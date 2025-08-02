@@ -8,5 +8,11 @@ namespace AFLManager.Models
     {
         public LeagueLevel Level;
         public List<Match> Fixtures;
+        
+        // Constructor to ensure Fixtures is never null
+        public SeasonSchedule()
+        {
+            Fixtures = new List<Match>();
+        }
     }
 }

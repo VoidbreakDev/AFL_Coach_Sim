@@ -1,4 +1,5 @@
 // File: Assets/Scripts/Managers/SaveLoadManager.cs
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using AFLManager.Models;
@@ -50,6 +51,18 @@ namespace AFLManager.Managers
         /// </summary>
         public static void SaveSchedule(string key, SeasonSchedule schedule)
         {
+            if (schedule == null)
+            {
+                Debug.LogError($"[SaveLoadManager] Cannot save null schedule for key '{key}'");
+                return;
+            }
+            
+            if (schedule.Fixtures == null)
+            {
+                Debug.LogWarning($"[SaveLoadManager] Schedule has null Fixtures list, initializing empty list for key '{key}'");
+                schedule.Fixtures = new List<Match>();
+            }
+            
             string fileName = $"schedule_{key}.json";
             string filePath = Path.Combine(DataFolder, fileName);
             string json = JsonSerialization.ToJson(schedule, true);
@@ -74,6 +87,20 @@ namespace AFLManager.Managers
 
             string json = File.ReadAllText(filePath);
             var schedule = JsonSerialization.FromJson<SeasonSchedule>(json);
+            
+            // Check if deserialization was successful and Fixtures is not null
+            if (schedule == null)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to deserialize schedule from: {filePath}");
+                return null;
+            }
+            
+            if (schedule.Fixtures == null)
+            {
+                Debug.LogWarning($"[SaveLoadManager] Schedule loaded but Fixtures is null from: {filePath}");
+                schedule.Fixtures = new List<Match>(); // Initialize empty list to prevent future null reference errors
+            }
+            
             Debug.Log($"[SaveLoadManager] Schedule loaded from: {filePath} ({schedule.Fixtures.Count} fixtures)");
             return schedule;
         }
