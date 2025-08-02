@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d94b50b8cf62940d491bafd0ee4cc0b1, type: 3}
+  m_Name: NewPlayerData
+  m_EditorClassIdentifier: 
+  Name: 
+  Age: 20
+  State: 
+  History: 
+  Role: 0
+  Stats:
+    Kicking: 0
+    Handballing: 0
+    Tackling: 0
+    Speed: 0
+    Stamina: 0
+    Knowledge: 0
+    Playmaking: 0
+  PotentialCeiling: 0
+  Contract:
+    Salary: 0
+    YearsRemaining: 0
+  Morale: 0
+  Stamina: 0
