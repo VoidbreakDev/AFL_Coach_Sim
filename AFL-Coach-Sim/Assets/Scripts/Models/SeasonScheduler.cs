@@ -4,6 +4,7 @@ using System.Collections.Generic;      // for List<T>
 
 namespace AFLManager.Models
 {
+    [Serializable]
     public class SeasonSchedule
     {
         public LeagueLevel Level;

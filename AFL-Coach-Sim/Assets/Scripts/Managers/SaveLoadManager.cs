@@ -35,8 +35,24 @@ namespace AFLManager.Managers
         public static Team LoadTeam(string teamId)
         {
             var path = Path.Combine(DataFolder, $"team_{teamId}.json");
-            if (!File.Exists(path)) return null;
-            return JsonSerialization.FromJson<Team>(File.ReadAllText(path));
+            Debug.Log($"[SaveLoadManager] Attempting to load team from: {path}");
+            if (!File.Exists(path)) 
+            {
+                Debug.LogWarning($"[SaveLoadManager] Team file does not exist: {path}");
+                return null;
+            }
+            var json = File.ReadAllText(path);
+            Debug.Log($"[SaveLoadManager] Team JSON loaded, length: {json.Length}");
+            var team = JsonSerialization.FromJson<Team>(json);
+            if (team != null)
+            {
+                Debug.Log($"[SaveLoadManager] Successfully loaded team: {team.Name}");
+            }
+            else
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to deserialize team from: {path}");
+            }
+            return team;
         }
 
         // new overload: save by arbitrary key (e.g. coach name)

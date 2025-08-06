@@ -132,7 +132,12 @@ namespace AFLManager.Models
         [Serializable]
         public class Team
         {
-            public string Id { get; private set; }
+            [SerializeField] private string _id;
+            public string Id 
+            { 
+                get { return _id; } 
+                private set { _id = value; } 
+            }
             public string Name;
             public LeagueLevel Level;
             public List<Player> Roster;
@@ -147,7 +152,7 @@ namespace AFLManager.Models
             /// </summary>
             public Team()
             {
-                Id = Guid.NewGuid().ToString();
+                _id = Guid.NewGuid().ToString();
                 Roster = new List<Player>();
                 CoachModifiers = new CoachSkills();
             }

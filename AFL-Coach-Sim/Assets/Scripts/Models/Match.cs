@@ -3,6 +3,7 @@ using System;                          // ← for DateTime
 
 namespace AFLManager.Models
 {
+    [Serializable]
     public class Match
     {
         public string HomeTeamId;

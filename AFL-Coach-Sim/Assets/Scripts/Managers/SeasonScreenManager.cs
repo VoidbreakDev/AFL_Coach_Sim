@@ -20,22 +20,41 @@ namespace AFLManager.Managers
 
         private SeasonSchedule schedule;
         private List<Team> leagueTeams;
+        private Dictionary<string, string> teamNameLookup;
         private string coachKey;
 
         void Start()
         {
             coachKey = PlayerPrefs.GetString("CoachName", "DefaultCoach");
+            Debug.Log($"[SeasonScreen] Coach key: {coachKey}");
+            Debug.Log($"[SeasonScreen] Persistent data path: {Application.persistentDataPath}");
 
             // Load all saved teams from JSON
             leagueTeams = new List<Team>();
-            foreach (var file in Directory.GetFiles(Application.persistentDataPath, "team_*.json"))
+            var teamFiles = Directory.GetFiles(Application.persistentDataPath, "team_*.json");
+            Debug.Log($"[SeasonScreen] Found {teamFiles.Length} team files");
+            
+            foreach (var file in teamFiles)
             {
+                Debug.Log($"[SeasonScreen] Processing file: {Path.GetFileName(file)}");
                 var key = Path.GetFileNameWithoutExtension(file).Replace("team_", "");
+                Debug.Log($"[SeasonScreen] Extracted key: '{key}'");
                 var team = SaveLoadManager.LoadTeam(key);
-                if (team != null) leagueTeams.Add(team);
+                if (team != null) 
+                {
+                    Debug.Log($"[SeasonScreen] Loaded team: {team.Name} (ID: {team.Id})");
+                    leagueTeams.Add(team);
+                }
+                else
+                {
+                    Debug.LogWarning($"[SeasonScreen] Failed to load team with key: '{key}'");
+                }
             }
 
             Debug.Log($"[SeasonScreen] Loaded {leagueTeams.Count} teams from JSON");
+
+            // Create team name lookup dictionary
+            BuildTeamNameLookup();
 
             // attempt load
             schedule = SaveLoadManager.LoadSchedule("testSeason");
@@ -43,6 +62,12 @@ namespace AFLManager.Managers
             {
                 Debug.Log("[SeasonScreen] No saved schedule—generating new one");
                 schedule = SeasonScheduler.GenerateSeason(leagueTeams, DateTime.Today, daysBetweenMatches);
+                // Save the newly generated schedule
+                if (schedule != null && schedule.Fixtures.Count > 0)
+                {
+                    SaveLoadManager.SaveSchedule("testSeason", schedule);
+                    Debug.Log($"[SeasonScreen] Saved new schedule with {schedule.Fixtures.Count} fixtures");
+                }
             }
             Debug.Log($"[SeasonScreen] Using schedule with {schedule.Fixtures.Count} fixtures");
 
@@ -57,8 +82,22 @@ namespace AFLManager.Managers
             {
                 var go = Instantiate(matchEntryPrefab, fixtureContainer);
                 go.GetComponent<MatchEntryUI>()
-                  .Initialize(match, SimulateMatch);
+                  .Initialize(match, SimulateMatch, teamNameLookup);
             }
+        }
+
+        private void BuildTeamNameLookup()
+        {
+            teamNameLookup = new Dictionary<string, string>();
+            foreach (var team in leagueTeams)
+            {
+                if (!string.IsNullOrEmpty(team.Id) && !string.IsNullOrEmpty(team.Name))
+                {
+                    teamNameLookup[team.Id] = team.Name;
+                    Debug.Log($"[SeasonScreen] Added team lookup: {team.Id} -> {team.Name}");
+                }
+            }
+            Debug.Log($"[SeasonScreen] Built team name lookup with {teamNameLookup.Count} entries");
         }
 
         // ← This method must exist to match the delegate passed to Initialize()
