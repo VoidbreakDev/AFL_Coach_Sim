@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using AFLManager.Models;
-using AFLManager.Managers;  // for SaveLoadManager, SeasonScheduler
-using AFLManager.UI;        // for MatchEntryUI
+using AFLManager.Managers;   // SaveLoadManager, SeasonScheduler
+using AFLManager.UI;         // MatchEntryUI
+using AFLManager.Simulation;
 
 namespace AFLManager.Managers
 {
@@ -15,120 +17,156 @@ namespace AFLManager.Managers
         public int daysBetweenMatches = 7;
 
         [Header("UI References")]
-        public GameObject matchEntryPrefab;  // Assign your MatchEntryPanel prefab here
-        public Transform fixtureContainer;  // Assign Scroll View → Viewport → Content
+        public GameObject matchEntryPrefab;     // MatchEntryPanel prefab with MatchEntryUI
+        public Transform fixtureContainer;      // ScrollView -> Viewport -> Content
+        [SerializeField] private LadderMiniWidget miniLadderWidget;
 
         private SeasonSchedule schedule;
         private List<Team> leagueTeams;
         private Dictionary<string, string> teamNameLookup;
         private string coachKey;
 
-        void Start()
+        private void Start()
         {
             coachKey = PlayerPrefs.GetString("CoachName", "DefaultCoach");
             Debug.Log($"[SeasonScreen] Coach key: {coachKey}");
-            Debug.Log($"[SeasonScreen] Persistent data path: {Application.persistentDataPath}");
+            Debug.Log($"[SeasonScreen] persistentDataPath: {Application.persistentDataPath}");
 
-            // Load all saved teams from JSON
-            leagueTeams = new List<Team>();
+            leagueTeams = LoadAllTeams();
+            BuildTeamNameLookup();
+
+            schedule = SaveLoadManager.LoadSchedule("testSeason");
+            if (schedule == null)
+            {
+                Debug.Log("[SeasonScreen] No saved schedule—generating new one");
+                schedule = SeasonScheduler.GenerateSeason(leagueTeams, DateTime.Today, daysBetweenMatches);
+                if (schedule != null && schedule.Fixtures?.Count > 0)
+                {
+                    SaveLoadManager.SaveSchedule("testSeason", schedule);
+                    Debug.Log($"[SeasonScreen] Saved new schedule with {schedule.Fixtures.Count} fixtures");
+                }
+            }
+
+            if (schedule?.Fixtures == null)
+            {
+                Debug.LogError("[SeasonScreen] Schedule is null or has no fixtures.");
+                return;
+            }
+
+            Debug.Log($"[SeasonScreen] Using schedule with {schedule.Fixtures.Count} fixtures");
+            RenderSchedule();          // builds fixture list
+            RebuildMiniLadder();       // build mini ladder ONCE after rows exist
+        }
+
+        private List<Team> LoadAllTeams()
+        {
+            var teams = new List<Team>();
             var teamFiles = Directory.GetFiles(Application.persistentDataPath, "team_*.json");
             Debug.Log($"[SeasonScreen] Found {teamFiles.Length} team files");
-            
             foreach (var file in teamFiles)
             {
-                Debug.Log($"[SeasonScreen] Processing file: {Path.GetFileName(file)}");
                 var key = Path.GetFileNameWithoutExtension(file).Replace("team_", "");
-                Debug.Log($"[SeasonScreen] Extracted key: '{key}'");
                 var team = SaveLoadManager.LoadTeam(key);
-                if (team != null) 
+                if (team != null)
                 {
-                    Debug.Log($"[SeasonScreen] Loaded team: {team.Name} (ID: {team.Id})");
-                    leagueTeams.Add(team);
+                    team.Roster ??= new List<Player>();
+                    teams.Add(team);
                 }
                 else
                 {
                     Debug.LogWarning($"[SeasonScreen] Failed to load team with key: '{key}'");
                 }
             }
-
-            Debug.Log($"[SeasonScreen] Loaded {leagueTeams.Count} teams from JSON");
-
-            // Create team name lookup dictionary
-            BuildTeamNameLookup();
-
-            // attempt load
-            schedule = SaveLoadManager.LoadSchedule("testSeason");
-            if (schedule == null)
-            {
-                Debug.Log("[SeasonScreen] No saved schedule—generating new one");
-                schedule = SeasonScheduler.GenerateSeason(leagueTeams, DateTime.Today, daysBetweenMatches);
-                // Save the newly generated schedule
-                if (schedule != null && schedule.Fixtures.Count > 0)
-                {
-                    SaveLoadManager.SaveSchedule("testSeason", schedule);
-                    Debug.Log($"[SeasonScreen] Saved new schedule with {schedule.Fixtures.Count} fixtures");
-                }
-            }
-            Debug.Log($"[SeasonScreen] Using schedule with {schedule.Fixtures.Count} fixtures");
-
-            RenderSchedule();
-        }
-
-        private void RenderSchedule()
-        {
-            Debug.Log($"[SeasonScreen] Rendering {schedule.Fixtures.Count} fixture entries");
-            foreach (Transform c in fixtureContainer) Destroy(c.gameObject);
-            foreach (var match in schedule.Fixtures)
-            {
-                var go = Instantiate(matchEntryPrefab, fixtureContainer);
-                go.GetComponent<MatchEntryUI>()
-                  .Initialize(match, SimulateMatch, teamNameLookup);
-            }
+            Debug.Log($"[SeasonScreen] Loaded {teams.Count} teams from JSON");
+            return teams;
         }
 
         private void BuildTeamNameLookup()
         {
             teamNameLookup = new Dictionary<string, string>();
-            foreach (var team in leagueTeams)
-            {
-                if (!string.IsNullOrEmpty(team.Id) && !string.IsNullOrEmpty(team.Name))
-                {
-                    teamNameLookup[team.Id] = team.Name;
-                    Debug.Log($"[SeasonScreen] Added team lookup: {team.Id} -> {team.Name}");
-                }
-            }
+            foreach (var t in leagueTeams)
+                if (!string.IsNullOrEmpty(t.Id) && !string.IsNullOrEmpty(t.Name))
+                    teamNameLookup[t.Id] = t.Name;
             Debug.Log($"[SeasonScreen] Built team name lookup with {teamNameLookup.Count} entries");
         }
 
-        // ← This method must exist to match the delegate passed to Initialize()
+        private void RenderSchedule()
+        {
+            foreach (Transform c in fixtureContainer) Destroy(c.gameObject);
+
+            foreach (var match in schedule.Fixtures)
+            {
+                var go = Instantiate(matchEntryPrefab, fixtureContainer, false);
+                var ui = go.GetComponent<MatchEntryUI>();
+                if (!ui) { Debug.LogError("[SeasonScreen] MatchEntryUI missing on prefab."); continue; }
+                ui.Initialize(match, SimulateMatch, teamNameLookup);
+            }
+        }
+
+        private string GetMatchId(Match m)
+        {
+            int index = schedule.Fixtures.IndexOf(m);
+            return $"{index}_{m.HomeTeamId}_{m.AwayTeamId}";
+        }
+
         private void SimulateMatch(Match match)
         {
-            // Simple win/lose stub based on average stats
-            float homeAvg = GetTeamAverage(match.HomeTeamId);
-            float awayAvg = GetTeamAverage(match.AwayTeamId);
-            bool homeWins = (homeAvg + UnityEngine.Random.Range(-5f, 5f))
-                         > (awayAvg + UnityEngine.Random.Range(-5f, 5f));
+            if (match == null) { Debug.LogError("[SeasonScreen] SimulateMatch null"); return; }
 
-            // Generate scores
-            int homeScore = UnityEngine.Random.Range(50, 100);
-            int awayScore = UnityEngine.Random.Range(50, 100);
-            if (homeWins && homeScore <= awayScore)
-                homeScore = awayScore + UnityEngine.Random.Range(1, 10);
-            if (!homeWins && awayScore <= homeScore)
-                awayScore = homeScore + UnityEngine.Random.Range(1, 10);
+            string matchId = GetMatchId(match);
+            var result = MatchSimulator.SimulateMatch(
+                matchId, "R?", match.HomeTeamId, match.AwayTeamId,
+                new MatchSimulator.DefaultRatingProvider(
+                    id => GetTeamAverage(id),
+                    id => new[] { $"{id}_P1", $"{id}_P2", $"{id}_P3", $"{id}_P4", $"{id}_P5", $"{id}_P6" }),
+                seed: matchId.GetHashCode());
 
-            match.Result = $"{homeScore}–{awayScore}";
+            match.Result = $"{result.HomeScore}–{result.AwayScore}";
+            SaveLoadManager.SaveMatchResult(result);
+            RebuildMiniLadder();
         }
 
         private float GetTeamAverage(string teamId)
         {
             var team = leagueTeams.Find(t => t.Id == teamId);
-            if (team == null || team.Roster.Count == 0) return 0f;
-
+            if (team == null || team.Roster == null || team.Roster.Count == 0) return 0f;
             float sum = 0f;
-            foreach (var p in team.Roster)
-                sum += p.Stats.GetAverage();
+            foreach (var p in team.Roster) sum += p?.Stats?.GetAverage() ?? 0f;
             return sum / team.Roster.Count;
+        }
+
+        private void RebuildMiniLadder()
+        {
+            if (!miniLadderWidget) { Debug.LogWarning("[SeasonScreen] miniLadderWidget not assigned."); return; }
+
+            var results = SaveLoadManager.LoadAllResults();
+            Debug.Log($"[SeasonScreen] RebuildMiniLadder: loaded {results.Count} results.");
+
+            var teamIds = (leagueTeams ?? new List<Team>())
+                .Where(t => !string.IsNullOrEmpty(t.Id))
+                .Select(t => t.Id)
+                .Distinct()
+                .ToList();
+
+            if (teamIds.Count == 0)
+            {
+                teamIds = results
+                    .SelectMany(r => new[] { r.HomeTeamId, r.AwayTeamId })
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .Distinct()
+                    .ToList();
+                Debug.LogWarning($"[SeasonScreen] No leagueTeams found; derived {teamIds.Count} team IDs from results.");
+            }
+
+            var teamNames = new Dictionary<string, string>();
+            if (leagueTeams != null)
+                foreach (var t in leagueTeams)
+                    if (!string.IsNullOrEmpty(t.Id))
+                        teamNames[t.Id] = string.IsNullOrEmpty(t.Name) ? t.Id : t.Name;
+
+            var ladder = LadderCalculator.BuildShortLadder(teamIds, teamNames, results);
+            Debug.Log($"[SeasonScreen] Ladder entries: {ladder.Count}");
+            miniLadderWidget.Render(ladder);
         }
     }
 }
