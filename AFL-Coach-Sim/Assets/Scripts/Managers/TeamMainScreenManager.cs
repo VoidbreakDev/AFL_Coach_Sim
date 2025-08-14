@@ -1,57 +1,85 @@
 // Assets/Scripts/Managers/TeamMainScreenManager.cs
-using UnityEngine;
-using AFLManager.Managers;  // SaveLoadManager
-using AFLManager.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEngine;
+using AFLManager.Models;
+using AFLManager.UI;
+using AFLManager.Managers;    // SaveLoadManager, SeasonScheduler
 
-public class TeamMainScreenManager : MonoBehaviour
+namespace AFLManager.Managers
 {
-    [Header("Wiring")]
-    [SerializeField] UpcomingMatchWidget upcoming;
-    [SerializeField] LastResultWidget lastResult;
-    [SerializeField] LadderMiniWidget ladderMini;
-    [SerializeField] MoraleWidget morale;
-    [SerializeField] InjuriesWidget injuries;
-    [SerializeField] TrainingWidget training;
-    [SerializeField] BudgetWidget budget;
-    [SerializeField] ContractsWidget contracts;
-
-    [Header("Nav")]
-    [SerializeField] NavigationController nav;
-
-    string playerTeamId;
-    SeasonSchedule schedule;
-
-    void Start()
+    public class TeamMainScreenManager : MonoBehaviour
     {
-        playerTeamId = PlayerPrefs.GetString("PlayerTeamId", "TEAM_001");
-        schedule = SaveLoadManager.LoadSchedule("testSeason");
-        if (schedule == null)
+        [Header("Cards")]
+        [SerializeField] UpcomingMatchWidget upcoming;
+        [SerializeField] LastResultWidget lastResult;
+        [SerializeField] LadderMiniWidget ladderMini;
+        [SerializeField] MoraleWidget morale;
+        [SerializeField] InjuriesWidget injuries;
+        [SerializeField] TrainingWidget training;
+        [SerializeField] BudgetWidget budget;
+        [SerializeField] ContractsWidget contracts;
+
+        [Header("Nav (optional)")]
+        [SerializeField] NavigationController nav;
+
+        private string playerTeamId;
+        private SeasonSchedule schedule;
+        private List<Team> cachedTeams;
+
+        void Start()
         {
-            var allTeams = SaveLoadManager.LoadAllTeams();
-            schedule = SeasonScheduler.GenerateSeason(allTeams, System.DateTime.Today, 7);
-            SaveLoadManager.SaveSchedule("testSeason", schedule);
+            playerTeamId = PlayerPrefs.GetString("PlayerTeamId", "TEAM_001");
+            cachedTeams = LoadAllTeams();
+
+            schedule = SaveLoadManager.LoadSchedule("testSeason");
+            if (schedule == null)
+            {
+                schedule = SeasonScheduler.GenerateSeason(cachedTeams, DateTime.Today, 7);
+                SaveLoadManager.SaveSchedule("testSeason", schedule);
+            }
+
+            if (upcoming) upcoming.OnPlay = OnClickPlayNext;
+
+            RefreshDashboard();
         }
-        RefreshDashboard();
-    }
 
-    public void RefreshDashboard()
-    {
-        var results = SaveLoadManager.LoadAllResults();
+        public void RefreshDashboard()
+        {
+            var results = SaveLoadManager.LoadAllResults();
 
-        DashboardDataBuilder.BindUpcoming(upcoming, schedule, results, playerTeamId);
-        DashboardDataBuilder.BindLastResult(lastResult, results, playerTeamId);
-        DashboardDataBuilder.BindMiniLadder(ladderMini, results, SaveLoadManager.LoadAllTeams());
-        DashboardDataBuilder.BindMorale(morale, playerTeamId);
-        DashboardDataBuilder.BindInjuries(injuries, playerTeamId);
-        DashboardDataBuilder.BindTraining(training, playerTeamId);
-        DashboardDataBuilder.BindBudget(budget, playerTeamId);
-        DashboardDataBuilder.BindContracts(contracts, playerTeamId);
-    }
+            DashboardDataBuilder.BindUpcoming(upcoming, schedule, results, playerTeamId, cachedTeams.Count);
+            DashboardDataBuilder.BindLastResult(lastResult, results, playerTeamId);
+            DashboardDataBuilder.BindMiniLadder(ladderMini, results, cachedTeams);
+            DashboardDataBuilder.BindMorale(morale, playerTeamId);
+            DashboardDataBuilder.BindInjuries(injuries, playerTeamId);
+            DashboardDataBuilder.BindTraining(training, playerTeamId);
+            DashboardDataBuilder.BindBudget(budget, playerTeamId);
+            DashboardDataBuilder.BindContracts(contracts, playerTeamId);
+        }
 
-    // Called by UpcomingMatchWidget "Play" button
-    public void OnClickPlayNext()
-    {
-        PreMatchFlow.Begin(this, playerTeamId, schedule);
+        public void OnClickPlayNext()
+        {
+            PreMatchFlow.Begin(this, playerTeamId, schedule, cachedTeams);
+        }
+
+        private List<Team> LoadAllTeams()
+        {
+            var teams = new List<Team>();
+            var dir = Application.persistentDataPath;
+            foreach (var file in Directory.GetFiles(dir, "team_*.json"))
+            {
+                var key = Path.GetFileNameWithoutExtension(file).Replace("team_", "");
+                var t = SaveLoadManager.LoadTeam(key);
+                if (t != null)
+                {
+                    t.Roster ??= new List<Player>();
+                    teams.Add(t);
+                }
+            }
+            return teams;
+        }
     }
 }

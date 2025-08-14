@@ -1,33 +1,41 @@
 // Assets/Scripts/UI/UpcomingMatchWidget.cs
-using UnityEngine;
-using TMPro;
-using AFLManager.Models;
 using System;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using AFLManager.Models;
 
-public class UpcomingMatchWidget : MonoBehaviour
+namespace AFLManager.UI
 {
-    [SerializeField] TMP_Text homeName;
-    [SerializeField] TMP_Text awayName;
-    [SerializeField] TMP_Text dateText;
-    [SerializeField] UnityEngine.UI.Button playButton;
-
-    public System.Action OnPlay;
-
-    void Awake() { if (playButton) playButton.onClick.AddListener(() => OnPlay?.Invoke()); }
-
-    public void Bind(Match m, DateTime date)
+    public class UpcomingMatchWidget : MonoBehaviour
     {
-        homeName.text = m.HomeTeamId;
-        awayName.text = m.AwayTeamId;
-        dateText.text = date.ToString("d MMM yyyy");
-        playButton.interactable = true;
-    }
+        [SerializeField] TMP_Text homeName;
+        [SerializeField] TMP_Text awayName;
+        [SerializeField] TMP_Text dateText;
+        [SerializeField] Button playButton;
 
-    public void BindNoMatch()
-    {
-        homeName.text = "-";
-        awayName.text = "-";
-        dateText.text = "No upcoming match";
-        playButton.interactable = false;
+        public Action OnPlay;
+
+        void Awake()
+        {
+            if (playButton) playButton.onClick.AddListener(() => OnPlay?.Invoke());
+        }
+
+        public void Bind(Match m, DateTime date)
+        {
+            if (!homeName || !awayName || !dateText) return;
+            homeName.text = m.HomeTeamId;
+            awayName.text = m.AwayTeamId;
+            dateText.text = date.ToString("d MMM yyyy");
+            if (playButton) playButton.interactable = true;
+        }
+
+        public void BindNoMatch()
+        {
+            if (homeName) homeName.text = "-";
+            if (awayName) awayName.text = "-";
+            if (dateText) dateText.text = "No upcoming match";
+            if (playButton) playButton.interactable = false;
+        }
     }
 }

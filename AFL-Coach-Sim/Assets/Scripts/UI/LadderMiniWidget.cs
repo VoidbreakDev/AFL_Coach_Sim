@@ -95,8 +95,6 @@ namespace AFLManager.UI
             foreach (var e in entries)
             {
                 var row = Instantiate(rowPrefab, contentParent, false);
-                if (!row) { Debug.LogError("[LadderMiniWidget] Failed to instantiate rowPrefab.", this); continue; }
-                row.gameObject.name = $"Row_{rank:00}_{e.TeamName}";
                 row.Bind(rank, e.TeamName, e.Games, e.Points);
                 rank++;
             }
