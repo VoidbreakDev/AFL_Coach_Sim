@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23f466110b7704401a74bc362ded17cf, type: 3}
+  m_Name: LeagueConfig
+  m_EditorClassIdentifier: 
+  LeagueName: AFL
+  DoubleRoundRobin: 1
+  Teams:
+  - Id: 1
+    Name: Collingwood
+    Attack: 100
+    Defense: 100
+  - Id: 2
+    Name: Adelaide
+    Attack: 40
+    Defense: 20
+  - Id: 3
+    Name: Carlton
+    Attack: 10
+    Defense: 10
+  - Id: 4
+    Name: Brisbane
+    Attack: 60
+    Defense: 40
+  - Id: 5
+    Name: West Coast
+    Attack: 30
+    Defense: 20
+  - Id: 6
+    Name: Richmond
+    Attack: 40
+    Defense: 15
+  - Id: 7
+    Name: Essendon
+    Attack: 20
+    Defense: 30
+  - Id: 8
+    Name: Fremantle
+    Attack: 70
+    Defense: 50
