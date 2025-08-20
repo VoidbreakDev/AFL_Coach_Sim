@@ -6,6 +6,7 @@ using UnityEngine;
 using UObject = UnityEngine.Object;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 // Your runtime view scripts:
 using System; // for String
@@ -255,6 +256,54 @@ public static partial class AFL_UIPrefabBuilder
 
         return SaveNewPrefab(root, path);
     }
+
+    private static GameObject CreateNavButton(Transform parent, string name, string label, ViewSwitcher switcher, string targetKey)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+        go.transform.SetParent(parent, false);
+
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(0, 40);
+
+        var img = go.GetComponent<Image>();
+        img.color = new Color(0.20f, 0.22f, 0.25f, 0.9f);
+
+        var le = go.GetComponent<LayoutElement>();
+        le.preferredHeight = 40;
+
+        // TMP label
+        var textGO = new GameObject("Label", typeof(RectTransform));
+        textGO.transform.SetParent(go.transform, false);
+        var tmp = textGO.AddComponent<TextMeshProUGUI>();
+        tmp.text = label;
+        tmp.enableAutoSizing = true;
+        tmp.fontSizeMin = 14; tmp.fontSizeMax = 24;
+        tmp.alignment = TextAlignmentOptions.Center;
+        var trt = tmp.rectTransform;
+        trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+        trt.offsetMin = Vector2.zero; trt.offsetMax = Vector2.zero;
+
+        // Behavior
+        var vsb = go.AddComponent<ViewSwitchButton>();
+        vsb.switcher = switcher;
+        vsb.targetKey = targetKey;
+
+        var btn = go.GetComponent<Button>();
+        btn.onClick.AddListener(vsb.Activate);
+
+        // Optional: nicer button colors
+        var colors = btn.colors;
+        colors.normalColor = img.color;
+        colors.highlightedColor = new Color(0.25f, 0.27f, 0.30f, 0.95f);
+        colors.pressedColor = new Color(0.18f, 0.20f, 0.22f, 1f);
+        colors.selectedColor = colors.highlightedColor;
+        btn.colors = colors;
+
+        return go;
+    }
 }
 public static partial class AFL_UIPrefabBuilder
 {
@@ -335,10 +384,21 @@ public static partial class AFL_UIPrefabBuilder
         seasonViewInstance.transform.SetParent(contentArea.transform, false);
         seasonViewInstance.SetActive(false); // start hidden; use a button to show
 
-        // 8) Add a ViewSwitcher and wire it
+        // 8) Add a ViewSwitcher and auto-wire its panel list
         var switcher = contentArea.AddComponent<ViewSwitcher>();
-        switcher.dashboardGrid = dashboard;
-        switcher.seasonView = seasonViewInstance;
+        switcher.panels = new List<ViewSwitcher.PanelEntry>
+        {
+            new ViewSwitcher.PanelEntry { key = "Dashboard", panel = dashboard },
+            new ViewSwitcher.PanelEntry { key = "Season",    panel = seasonViewInstance },
+        };
+        switcher.defaultKey = "Dashboard";
+        switcher.deactivateInactive = true;
+        switcher.useFade = true;    // set true if you want a cross-fade by default
+        switcher.fadeDuration = 0.15f;
+
+        // 8.1) Create pre-wired buttons in the LeftRail
+        CreateNavButton(leftRail.transform, "Btn Dashboard", "Dashboard", switcher, "Dashboard");
+        CreateNavButton(leftRail.transform, "Btn Season",    "Season",    switcher, "Season");
 
         // 9) Select the canvas and mark scene dirty for save
         Selection.activeObject = canvasGO;
@@ -432,10 +492,21 @@ public static partial class AFL_UIPrefabBuilder
         seasonViewInstance.transform.SetParent(contentArea.transform, false);
         seasonViewInstance.SetActive(false);
 
-        // ViewSwitcher on ContentArea
+        // ViewSwitcher on ContentArea + Auto-Wire Panels
         var switcher = contentArea.AddComponent<ViewSwitcher>();
-        switcher.dashboardGrid = dashboard;
-        switcher.seasonView = seasonViewInstance;
+        switcher.panels = new List<ViewSwitcher.PanelEntry>
+        {
+            new ViewSwitcher.PanelEntry { key = "Dashboard", panel = dashboard },
+            new ViewSwitcher.PanelEntry { key = "Season",    panel = seasonViewInstance },
+        };
+        switcher.defaultKey = "Dashboard";
+        switcher.deactivateInactive = true;
+        switcher.useFade = true;    // set true if you want a cross-fade by default
+        switcher.fadeDuration = 0.15f;
+
+        // Create pre-wired buttons in the LeftRail
+        CreateNavButton(leftRail.transform, "Btn Dashboard", "Dashboard", switcher, "Dashboard");
+        CreateNavButton(leftRail.transform, "Btn Season",    "Season",    switcher, "Season");
 
         // Save prefab
         var prefabPath = "Assets/Prefabs/UI/SceneStarter.prefab";
