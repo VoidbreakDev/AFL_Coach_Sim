@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    editor-extension-mode="False">
+  <ui:VisualElement name="Root" class="app-root">
+    <ui:VisualElement class="sidebar">
+      <ui:Label text="AFL Coach Sim" class="brand"/>
+      <ui:Button name="SeasonBtn" text="Season Hub" class="nav"/>
+      <ui:Button name="RosterBtn" text="Roster" class="nav"/>
+      <ui:Button name="ScheduleBtn" text="Schedule" class="nav"/>
+      <ui:Button name="ContractsBtn" text="Contracts" class="nav"/>
+      <ui:Button name="BudgetBtn" text="Budgeting" class="nav"/>
+      <ui:Button name="TrainingBtn" text="Training" class="nav"/>
+      <ui:Button name="ClubBtn" text="Club" class="nav"/>
+      <ui:Button name="SettingsBtn" text="Settings" class="nav"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="content">
+      <ui:Label text="Main Menu" class="h1"/>
+      <ui:VisualElement class="grid">
+        <ui:VisualElement class="card">
+          <ui:Label text="Continue" class="h2"/>
+          <ui:Button name="ContinueBtn" text="Load Last Save" class="primary"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="card">
+          <ui:Label text="New Career" class="h2"/>
+          <ui:Button name="NewCareerBtn" text="Start New"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="card">
+          <ui:Label text="Quick Links" class="h2"/>
+          <ui:Button name="OpenSeasonBtn" text="Open Season Hub"/>
+          <ui:Button name="OpenSettingsBtn" text="Open Settings"/>
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

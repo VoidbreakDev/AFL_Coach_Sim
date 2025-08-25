@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    editor-extension-mode="False">
+  <ui:VisualElement name="Root" class="app-root">
+    <ui:VisualElement class="sidebar">
+      <ui:Label text="Season Hub" class="brand"/>
+      <ui:Button name="BackToMenuBtn" text="← Main Menu" class="nav"/>
+      <ui:Button name="SeasonRosterBtn" text="Roster" class="nav"/>
+      <ui:Button name="SeasonScheduleBtn" text="Schedule" class="nav"/>
+      <ui:Button name="SeasonContractsBtn" text="Contracts" class="nav"/>
+      <ui:Button name="SeasonBudgetBtn" text="Budgeting" class="nav"/>
+      <ui:Button name="SeasonTrainingBtn" text="Training" class="nav"/>
+      <ui:Button name="SeasonClubBtn" text="Club" class="nav"/>
+      <ui:Button name="SeasonSettingsBtn" text="Settings" class="nav"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="content">
+      <ui:Label text="Season Overview" class="h1"/>
+      <ui:VisualElement class="grid">
+        <ui:VisualElement class="card">
+          <ui:Label text="Upcoming Fixture" class="h2"/>
+          <ui:Label name="UpcomingFixtureLabel" text="Round 1: TBD vs TBD"/>
+          <ui:Button name="OpenScheduleBtn" text="View Full Schedule"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="card">
+          <ui:Label text="Ladder Snapshot" class="h2"/>
+          <ui:Label name="LadderMiniLabel" text="1. TBD  2. TBD  3. TBD"/>
+          <ui:Button name="OpenLadderBtn" text="View Ladder"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="card">
+          <ui:Label text="Player Form" class="h2"/>
+          <ui:ListView name="PlayerList"
+                       fixed-item-height="32"
+                       virtualization-method="Dynamic"
+                       selection-type="Single" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

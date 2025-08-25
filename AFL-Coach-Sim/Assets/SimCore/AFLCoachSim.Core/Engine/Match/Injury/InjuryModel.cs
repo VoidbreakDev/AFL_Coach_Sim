@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AFLCoachSim.Core.Engine.Match;            // <-- for Phase enum
 using AFLCoachSim.Core.Engine.Match.Runtime;    // PlayerRuntime
 using AFLCoachSim.Core.Engine.Simulation;       // DeterministicRandom
+using AFLCoachSim.Core.Engine.Match.Tuning;
 namespace AFLCoachSim.Core.Engine.Match.Injury
 
 {
@@ -14,45 +15,49 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
         private const float OpenPlayRiskMult  = 1.2f;
         private const float Inside50RiskMult  = 1.3f;
 
-        public int Step(IList<PlayerRuntime> onField, IList<PlayerRuntime> bench, Phase phase, int dtSeconds, DeterministicRandom rng)
+        public int Step(System.Collections.Generic.IList<Runtime.PlayerRuntime> onField,
+                        System.Collections.Generic.IList<Runtime.PlayerRuntime> bench,
+                        Phase phase, int dtSeconds, DeterministicRandom rng,
+                        int existingInjuries, int maxInjuries, MatchTuning tuning)
         {
+            int injuries = 0;
+            if (existingInjuries >= maxInjuries) return 0;
+
+            float mult = phase == Phase.Inside50 ? tuning.InjuryInside50Mult
+                    : phase == Phase.OpenPlay ? tuning.InjuryOpenPlayMult : 1f;
+            float perSecondBase = tuning.InjuryBasePerMinuteRisk / 60f;
+
+            for (int i = 0; i < onField.Count; i++)
             {
-    int injuries = 0;
+                if (existingInjuries + injuries >= maxInjuries) break;
+                var pr = onField[i];
+                if (pr.InjuredOut) continue;
 
-    float mult = PhaseRiskMult(phase);
-    float perSecondBase = BasePerMinuteRisk / 60f;
+                float fatigueScale    = 1f + tuning.InjuryFatigueScale * (1f - pr.FatigueMult);
+                float durabilityScale = 1f + tuning.InjuryDurabilityScale * ((100 - pr.Player.Durability) / 100f);
+                float p = perSecondBase * mult * fatigueScale * durabilityScale * dtSeconds;
 
-    for (int i = 0; i < onField.Count; i++)
-    {
-        var pr = onField[i];
-        if (pr.InjuredOut) continue;
+                if (rng.NextFloat() < p)
+                {
+                    var sev = RollSeverity(rng, pr);
+                    ApplyInjury(pr, sev);
+                    injuries++;
+                }
+            }
 
-        float fatigueScale = 1f + (1f - pr.FatigueMult);
-        float durabilityScale = 1f + (0.6f * (100 - pr.Player.Durability) / 100f);
-        float p = perSecondBase * mult * fatigueScale * durabilityScale * dtSeconds;
+            // Bench recover countdown
+            for (int j = 0; j < bench.Count; j++)
+            {
+                var br = bench[j];
+                if (br.ReturnInSeconds > 0)
+                {
+                    br.ReturnInSeconds -= dtSeconds;
+                    if (br.ReturnInSeconds <= 0) br.ReturnInSeconds = 0;
+                }
+            }
 
-        if (rng.NextFloat() < p)
-        {
-            var sev = RollSeverity(rng, pr);
-            ApplyInjury(pr, sev);
-            injuries++;
+            return injuries;
         }
-    }
-
-    for (int j = 0; j < bench.Count; j++)
-    {
-        var br = bench[j];
-        if (br.ReturnInSeconds > 0)
-        {
-            br.ReturnInSeconds -= dtSeconds;
-            if (br.ReturnInSeconds <= 0) br.ReturnInSeconds = 0;
-        }
-    }
-
-    return injuries;
-}
-        }
-
         private static void ApplyInjury(PlayerRuntime pr, InjurySeverity sev)
         {
             switch (sev)

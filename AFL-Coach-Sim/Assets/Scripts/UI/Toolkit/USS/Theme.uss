@@ -1,0 +1,52 @@
+/* Layout */
+.app-root {
+  flex-direction: row;
+  height: 100%;
+}
+.sidebar {
+  width: 280px;
+  padding: 16px;
+  border-right-width: 1px;
+  border-right-color: rgba(255,255,255,0.08);
+  border-right-style: solid;
+  row-gap: 8px;
+}
+.content {
+  flex-grow: 1;
+  padding: 24px;
+}
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.card {
+  width: 380px;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: rgba(255,255,255,0.04);
+  border-width: 1px;
+  border-color: rgba(255,255,255,0.07);
+  border-style: solid;
+}
+
+/* Typography */
+.brand { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.h1 { font-size: 24px; font-weight: 800; margin-bottom: 16px; }
+.h2 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+
+/* Buttons */
+.nav { justify-content: flex-start; }
+.primary { font-weight: 700; }
+
+/* Theming */
+:root {
+  --bg: #0f1318;
+  --fg: #e9edf1;
+  --muted: #a8b2bd;
+  --accent: #2bb673;
+}
+
+#unity-theme-definition { background-color: var(--bg); color: var(--fg); }
+button { color: var(--fg); }
+button.primary { background-color: var(--accent); }

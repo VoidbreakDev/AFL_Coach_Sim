@@ -5,11 +5,13 @@ using AFLCoachSim.Core.Engine.Match.Runtime;
 using AFLCoachSim.Core.Engine.Match.Fatigue;
 using AFLCoachSim.Core.Engine.Match.Rotations;
 using AFLCoachSim.Core.Engine.Match.Injury;
+using AFLCoachSim.Core.Engine.Match.Tuning;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
     public sealed class MatchContext
     {
+        public MatchTuning Tuning;
         public Phase Phase = Phase.CenterBounce;
         public Score Score = new();
         public int Quarter = 1;
