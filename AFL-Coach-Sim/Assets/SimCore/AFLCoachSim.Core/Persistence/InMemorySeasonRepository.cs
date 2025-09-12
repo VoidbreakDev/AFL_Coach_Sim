@@ -6,7 +6,7 @@ namespace AFLCoachSim.Core.Persistence
 {
     public sealed class InMemorySeasonRepository : ISeasonRepository
     {
-        private readonly List<MatchResultDTO> _store = new();
+        private readonly List<MatchResultDTO> _store = new List<MatchResultDTO>();
         public void SaveResults(IEnumerable<MatchResultDTO> results)
         {
             _store.Clear(); _store.AddRange(results);

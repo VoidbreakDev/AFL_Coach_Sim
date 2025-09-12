@@ -1,0 +1,23 @@
+file,line,severity,rule,detail
+Assets/SimCore/AFLCoachSim.Core/Engine/Match/Rating.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/SimCore/AFLCoachSim.Core/Engine/Match/Fatigue/FatigueModel.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/SimCore/AFLCoachSim.Core/Engine/Match/Commentary/CommentaryGenerator.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/SimCore/AFLCoachSim.Core/Engine/Ladder/LadderCalculator.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/SimCore/AFLCoachSim.Core.Tests/M3_FatigueRotationsTest.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/SimCore/AFLCoachSim.Core.Tests/M3_InjuryRiskTests.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/SQLite.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/UI/SeasonHubBinder.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/UI/ViewSwitcher.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/UI/ViewSwitcher.cs,1,info,coroutine-stop-missing,StartCoroutine used without a stop path.
+Assets/Scripts/UI/LadderMiniWidget.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.
+Assets/Scripts/Managers/SeasonScreenManager.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/Tests/MatchSimTest.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/Simulation/MatchSimulator.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/Simulation/LadderCalculator.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Scripts/Game/PreMatchFlow.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Editor/AFL_UIPrefabBuilder.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.
+Assets/Editor/MatchTelemetryWindow.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.
+Assets/Editor/SeasonSimRunnerWindow.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.
+Assets/Editor/MatchEngineSmoke.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.
+Assets/Editor/MatchEngineSmoke.cs,1,info,event-unsubscribe-missing,Subscriptions detected but no obvious unsubscription; ensure to unsubscribe in OnDisable/OnDestroy.
+Assets/Editor/LeagueConfigSOEditor.cs,1,warn,using-UnityEditor-in-runtime,File imports UnityEditor; wrap editor-only code or move to Editor/.

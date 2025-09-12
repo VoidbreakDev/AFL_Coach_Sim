@@ -14,7 +14,7 @@ public class ViewSwitcher : MonoBehaviour
     }
 
     [Header("Panels (keys must be unique)")]
-    public List<PanelEntry> panels = new();
+    public List<PanelEntry> panels = new List<PanelEntry>();
 
     [Header("Defaults & Behavior")]
     public string defaultKey = "Dashboard";

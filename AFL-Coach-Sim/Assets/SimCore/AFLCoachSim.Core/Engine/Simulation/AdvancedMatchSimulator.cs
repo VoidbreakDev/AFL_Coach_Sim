@@ -20,8 +20,8 @@ namespace AFLCoachSim.Core.Engine.Simulation
             DeterministicRandom rng = null)
         {
             _teams = teams;
-            _rosters = rosters ?? new();
-            _tactics = tactics ?? new();
+            _rosters = rosters ?? new Dictionary<TeamId, System.Collections.Generic.List<Domain.Entities.Player>>();
+            _tactics = tactics ?? new Dictionary<TeamId, TeamTactics>();
             _rng = rng ?? new DeterministicRandom(12345);
         }
 

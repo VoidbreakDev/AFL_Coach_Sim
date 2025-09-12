@@ -10,8 +10,8 @@ namespace AFLCoachSim.Core.Engine.Match
         public TeamId TeamId { get; }
         public string TeamName { get; }
         public TeamTactics Tactics { get; }
-        public List<Player> OnField { get; } = new(22);
-        public List<Player> Bench { get; } = new(4);
+        public List<Player> OnField { get; } = new List<Player>(22);
+        public List<Player> Bench { get; } = new List<Player>(4);
         public int InterchangesUsed { get; set; }
 
         public TeamState(TeamId id, string name, TeamTactics tactics)

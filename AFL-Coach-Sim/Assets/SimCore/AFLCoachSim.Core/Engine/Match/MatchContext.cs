@@ -13,11 +13,11 @@ namespace AFLCoachSim.Core.Engine.Match
     {
         public MatchTuning Tuning;
         public Phase Phase = Phase.CenterBounce;
-        public Score Score = new();
+        public Score Score = new Score();
         public int Quarter = 1;
         public int TimeRemaining; // seconds in quarter
         public Weather Weather = Weather.Clear;
-        public Ground Ground = new();
+        public Ground Ground = new Ground();
         public TeamState Home, Away;
         public BallState Ball;
         public DeterministicRandom Rng;

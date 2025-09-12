@@ -7,7 +7,7 @@ namespace AFLCoachSim.Core.Data
     public sealed class TeamRosterConfig
     {
         public int TeamId;
-        public List<PlayerConfig> Players = new();
+        public List<PlayerConfig> Players = new List<PlayerConfig>();
 
         public (TeamId, List<Player>) ToDomain()
         {

@@ -1,0 +1,661 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Represents a player's skills in the AFL game system
+/// </summary>
+[Serializable]
+public class PlayerSkills
+{
+    public int kicking;
+    public int handballing;
+    public int tackling;
+    public int intelligence;
+    public int bravery;
+    public int teamwork;
+    public int independence;
+    public int marking;
+    public int speed;
+    public int strength;
+    public int endurance;
+    public int leadership;
+    public int footwork;
+    public int agility;
+    public int decisionMaking;
+   
+    public PlayerSkills()
+    {
+        // Initialize all skills to 0
+        kicking = 0;
+        handballing = 0;
+        tackling = 0;
+        intelligence = 0;
+        bravery = 0;
+        teamwork = 0;
+        independence = 0;
+        marking = 0;
+        speed = 0;
+        strength = 0;
+        endurance = 0;
+        leadership = 0;
+        footwork = 0;
+        agility = 0;
+        decisionMaking = 0;
+    }
+   
+    public PlayerSkills(int kicking, int handballing, int tackling, int intelligence,
+                       int bravery, int teamwork, int independence, int marking,
+                       int speed, int strength, int endurance, int leadership,
+                       int footwork, int agility, int decisionMaking)
+    {
+        this.kicking = kicking;
+        this.handballing = handballing;
+        this.tackling = tackling;
+        this.intelligence = intelligence;
+        this.bravery = bravery;
+        this.teamwork = teamwork;
+        this.independence = independence;
+        this.marking = marking;
+        this.speed = speed;
+        this.strength = strength;
+        this.endurance = endurance;
+        this.leadership = leadership;
+        this.footwork = footwork;
+        this.agility = agility;
+        this.decisionMaking = decisionMaking;
+    }
+   
+    /// <summary>
+    /// Calculates overall skill rating based on weighted average
+    /// </summary>
+    public int CalculateOverallSkillRating()
+    {
+        // Weighted calculation (higher weight for core skills)
+        float total =
+            (kicking * 0.15f) +
+            (handballing * 0.15f) +
+            (tackling * 0.2f) +
+            (intelligence * 0.1f) +
+            (bravery * 0.1f) +
+            (teamwork * 0.1f) +
+            (independence * 0.05f) +
+            (marking * 0.1f) +
+            (speed * 0.05f) +
+            (strength * 0.05f) +
+            (endurance * 0.05f) +
+            (leadership * 0.05f) +
+            (footwork * 0.05f) +
+            (agility * 0.05f) +
+            (decisionMaking * 0.05f);
+           
+        return Mathf.Clamp(Mathf.RoundToInt(total), 0, 100);
+    }
+}
+
+/// <summary>
+/// Represents a player in the AFL game system with enhanced attributes
+/// </summary>
+[Serializable]
+public class Player
+{
+    public string playerId;
+    public string playerName;
+    public int playerAge;
+    public int playerHeight;
+    public int playerWeight;
+    public string playerPosition;
+    public int playerRating; // Overall rating
+    public float playerSalary;
+    public bool isAvailable;
+   
+    // Enhanced attributes
+    public int stamina;
+    public int morale;
+    public PlayerSkills skills;
+   
+    public Player(string id, string name, int age, int height, int weight, string position, int rating, float salary)
+    {
+        playerId = id;
+        playerName = name;
+        playerAge = age;
+        playerHeight = height;
+        playerWeight = weight;
+        playerPosition = position;
+        playerRating = rating;
+        playerSalary = salary;
+        isAvailable = true;
+       
+        // Initialize skills
+        skills = new PlayerSkills();
+       
+        // Initialize stamina and morale
+        stamina = 100;
+        morale = 100;
+    }
+   
+    /// <summary>
+    /// Updates a specific skill level
+    /// </summary>
+    public void UpdateSkill(string skillName, int value)
+    {
+        switch (skillName.ToLower())
+        {
+            case "kicking":
+                skills.kicking = Mathf.Clamp(value, 0, 100);
+                break;
+            case "handballing":
+                skills.handballing = Mathf.Clamp(value, 0, 100);
+                break;
+            case "tackling":
+                skills.tackling = Mathf.Clamp(value, 0, 100);
+                break;
+            case "intelligence":
+                skills.intelligence = Mathf.Clamp(value, 0, 100);
+                break;
+            case "bravery":
+                skills.bravery = Mathf.Clamp(value, 0, 100);
+                break;
+            case "teamwork":
+                skills.teamwork = Mathf.Clamp(value, 0, 100);
+                break;
+            case "independence":
+                skills.independence = Mathf.Clamp(value, 0, 100);
+                break;
+            case "marking":
+                skills.marking = Mathf.Clamp(value, 0, 100);
+                break;
+            case "speed":
+                skills.speed = Mathf.Clamp(value, 0, 100);
+                break;
+            case "strength":
+                skills.strength = Mathf.Clamp(value, 0, 100);
+                break;
+            case "endurance":
+                skills.endurance = Mathf.Clamp(value, 0, 100);
+                break;
+            case "leadership":
+                skills.leadership = Mathf.Clamp(value, 0, 100);
+                break;
+            case "footwork":
+                skills.footwork = Mathf.Clamp(value, 0, 100);
+                break;
+            case "agility":
+                skills.agility = Mathf.Clamp(value, 0, 100);
+                break;
+            case "decisionmaking":
+                skills.decisionMaking = Mathf.Clamp(value, 0, 100);
+                break;
+        }
+       
+        // Update overall rating when skill changes
+        playerRating = skills.CalculateOverallSkillRating();
+    }
+   
+    /// <summary>
+    /// Gets specific skill value by name
+    /// </summary>
+    public int GetSkill(string skillName)
+    {
+        switch (skillName.ToLower())
+        {
+            case "kicking": return skills.kicking;
+            case "handballing": return skills.handballing;
+            case "tackling": return skills.tackling;
+            case "intelligence": return skills.intelligence;
+            case "bravery": return skills.bravery;
+            case "teamwork": return skills.teamwork;
+            case "independence": return skills.independence;
+            case "marking": return skills.marking;
+            case "speed": return skills.speed;
+            case "strength": return skills.strength;
+            case "endurance": return skills.endurance;
+            case "leadership": return skills.leadership;
+            case "footwork": return skills.footwork;
+            case "agility": return skills.agility;
+            case "decisionmaking": return skills.decisionMaking;
+            default: return 0;
+        }
+    }
+}
+
+/// <summary>
+/// Manager for handling player roster operations with enhanced features
+/// </summary>
+public class PlayerRosterManager : MonoBehaviour
+{
+    [Header("Player Management")]
+    public List<Player> roster;
+    public List<Player> availablePlayers;
+   
+    private Dictionary<string, Player> playerDatabase;
+   
+    void Awake()
+    {
+        InitializeRoster();
+    }
+   
+    /// <summary>
+    /// Initializes the roster system with default players
+    /// </summary>
+    private void InitializeRoster()
+    {
+        roster = new List<Player>();
+        availablePlayers = new List<Player>();
+        playerDatabase = new Dictionary<string, Player>();
+       
+        // Sample initial players - can be expanded or loaded from data
+        AddPlayer(new Player("P001", "John Smith", 25, 180, 80, "Forward", 85, 200000f));
+        AddPlayer(new Player("P002", "Mike Johnson", 28, 175, 75, "Midfield", 82, 180000f));
+        AddPlayer(new Player("P003", "David Brown", 23, 185, 85, "Defender", 88, 220000f));
+       
+        // Set some initial skill values
+        foreach (Player player in roster)
+        {
+            player.skills.kicking = 75;
+            player.skills.handballing = 65;
+            player.skills.tackling = 80;
+            player.skills.intelligence = 70;
+            player.skills.bravery = 85;
+            player.skills.teamwork = 75;
+            player.skills.independence = 60;
+            player.skills.marking = 70;
+            player.skills.speed = 85;
+            player.skills.strength = 90;
+            player.skills.endurance = 80;
+            player.skills.leadership = 65;
+            player.skills.footwork = 75;
+            player.skills.agility = 80;
+            player.skills.decisionMaking = 75;
+           
+            player.playerRating = player.skills.CalculateOverallSkillRating();
+        }
+    }
+   
+    /// <summary>
+    /// Adds a player to the roster system
+    /// </summary>
+    public void AddPlayer(Player player)
+    {
+        if (!playerDatabase.ContainsKey(player.playerId))
+        {
+            playerDatabase.Add(player.playerId, player);
+            roster.Add(player);
+           
+            if (player.isAvailable)
+                availablePlayers.Add(player);
+               
+            Debug.Log($"Added player: {player.playerName}");
+        }
+        else
+        {
+            Debug.LogWarning($"Player with ID {player.playerId} already exists");
+        }
+    }
+   
+    /// <summary>
+    /// Removes a player from the roster system
+    /// </summary>
+    public void RemovePlayer(string playerId)
+    {
+        if (playerDatabase.ContainsKey(playerId))
+        {
+            Player player = playerDatabase[playerId];
+            roster.Remove(player);
+            availablePlayers.Remove(player);
+            playerDatabase.Remove(playerId);
+           
+            Debug.Log($"Removed player: {player.playerName}");
+        }
+        else
+        {
+            Debug.LogWarning($"Player with ID {playerId} not found");
+        }
+    }
+   
+    /// <summary>
+    /// Updates player information
+    /// </summary>
+    public void UpdatePlayer(string playerId, Player updatedPlayer)
+    {
+        if (playerDatabase.ContainsKey(playerId))
+        {
+            Player existingPlayer = playerDatabase[playerId];
+           
+            // Update properties
+            existingPlayer.playerName = updatedPlayer.playerName;
+            existingPlayer.playerAge = updatedPlayer.playerAge;
+            existingPlayer.playerHeight = updatedPlayer.playerHeight;
+            existingPlayer.playerWeight = updatedPlayer.playerWeight;
+            existingPlayer.playerPosition = updatedPlayer.playerPosition;
+            existingPlayer.playerRating = updatedPlayer.playerRating;
+            existingPlayer.playerSalary = updatedPlayer.playerSalary;
+            existingPlayer.isAvailable = updatedPlayer.isAvailable;
+            existingPlayer.stamina = updatedPlayer.stamina;
+            existingPlayer.morale = updatedPlayer.morale;
+            existingPlayer.skills = updatedPlayer.skills;
+           
+            Debug.Log($"Updated player: {existingPlayer.playerName}");
+        }
+        else
+        {
+            Debug.LogWarning($"Player with ID {playerId} not found");
+        }
+    }
+   
+    /// <summary>
+    /// Gets a specific player by ID
+    /// </summary>
+    public Player GetPlayer(string playerId)
+    {
+        if (playerDatabase.ContainsKey(playerId))
+            return playerDatabase[playerId];
+           
+        return null;
+    }
+   
+    /// <summary>
+    /// Gets all players in the roster
+    /// </summary>
+    public List<Player> GetAllPlayers()
+    {
+        return new List<Player>(roster);
+    }
+   
+    /// <summary>
+    /// Gets available players for selection
+    /// </summary>
+    public List<Player> GetAvailablePlayers()
+    {
+        return new List<Player>(availablePlayers);
+    }
+   
+    /// <summary>
+    /// Filters players by position
+    /// </summary>
+    public List<Player> GetPlayersByPosition(string position)
+    {
+        List<Player> filteredPlayers = new List<Player>();
+       
+        foreach (Player player in roster)
+        {
+            if (player.playerPosition == position)
+                filteredPlayers.Add(player);
+        }
+       
+        return filteredPlayers;
+    }
+   
+    /// <summary>
+    /// Gets players within rating range
+    /// </summary>
+    public List<Player> GetPlayersByRatingRange(int minRating, int maxRating)
+    {
+        List<Player> filteredPlayers = new List<Player>();
+       
+        foreach (Player player in roster)
+        {
+            if (player.playerRating >= minRating && player.playerRating <= maxRating)
+                filteredPlayers.Add(player);
+        }
+       
+        return filteredPlayers;
+    }
+   
+    /// <summary>
+    /// Calculates total roster salary
+    /// </summary>
+    public float CalculateTotalSalary()
+    {
+        float total = 0f;
+       
+        foreach (Player player in roster)
+        {
+            total += player.playerSalary;
+        }
+       
+        return total;
+    }
+   
+    /// <summary>
+    /// Gets players with high stamina
+    /// </summary>
+    public List<Player> GetPlayersWithHighStamina(int minStamina = 80)
+    {
+        List<Player> filteredPlayers = new List<Player>();
+       
+        foreach (Player player in roster)
+        {
+            if (player.stamina >= minStamina)
+                filteredPlayers.Add(player);
+        }
+       
+        return filteredPlayers;
+    }
+   
+    /// <summary>
+    /// Gets players with high morale
+    /// </summary>
+    public List<Player> GetPlayersWithHighMorale(int minMorale = 80)
+    {
+        List<Player> filteredPlayers = new List<Player>();
+       
+        foreach (Player player in roster)
+        {
+            if (player.morale >= minMorale)
+                filteredPlayers.Add(player);
+        }
+       
+        return filteredPlayers;
+    }
+}
+
+/// <summary>
+/// Manager for handling player management operations with enhanced features
+/// </summary>
+public class PlayerManagementManager : MonoBehaviour
+{
+    [Header("Player Management")]
+    public PlayerRosterManager rosterManager;
+   
+    void Awake()
+    {
+        if (rosterManager == null)
+            rosterManager = GetComponent<PlayerRosterManager>();
+    }
+   
+    /// <summary>
+    /// Assigns a player to a specific position
+    /// </summary>
+    public bool AssignPlayerToPosition(string playerId, string newPosition)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.playerPosition = newPosition;
+            Debug.Log($"Assigned {player.playerName} to position: {newPosition}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Updates player rating
+    /// </summary>
+    public bool UpdatePlayerRating(string playerId, int newRating)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.playerRating = Mathf.Clamp(newRating, 0, 100);
+            Debug.Log($"Updated {player.playerName}'s rating to: {newRating}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Updates specific skill for a player
+    /// </summary>
+    public bool UpdatePlayerSkill(string playerId, string skillName, int value)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.UpdateSkill(skillName, value);
+            Debug.Log($"Updated {player.playerName}'s {skillName} to: {value}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Changes player availability status
+    /// </summary>
+    public bool SetPlayerAvailability(string playerId, bool isAvailable)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.isAvailable = isAvailable;
+           
+            // Update available players list
+            if (isAvailable && !rosterManager.availablePlayers.Contains(player))
+                rosterManager.availablePlayers.Add(player);
+            else if (!isAvailable && rosterManager.availablePlayers.Contains(player))
+                rosterManager.availablePlayers.Remove(player);
+               
+            Debug.Log($"{player.playerName} availability set to: {isAvailable}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Updates player stamina
+    /// </summary>
+    public bool UpdatePlayerStamina(string playerId, int value)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.stamina = Mathf.Clamp(value, 0, 100);
+            Debug.Log($"Updated {player.playerName}'s stamina to: {value}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Updates player morale
+    /// </summary>
+    public bool UpdatePlayerMorale(string playerId, int value)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            player.morale = Mathf.Clamp(value, 0, 100);
+            Debug.Log($"Updated {player.playerName}'s morale to: {value}");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Trades players between teams (simplified implementation)
+    /// </summary>
+    public bool TradePlayer(string playerId, PlayerManagementManager otherTeam)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null && otherTeam != null)
+        {
+            // Remove from current roster
+            rosterManager.RemovePlayer(playerId);
+           
+            // Add to other team's roster
+            otherTeam.rosterManager.AddPlayer(player);
+           
+            Debug.Log($"Traded {player.playerName} to another team");
+            return true;
+        }
+       
+        return false;
+    }
+   
+    /// <summary>
+    /// Gets player statistics summary with enhanced details
+    /// </summary>
+    public string GetPlayerStatistics()
+    {
+        int totalPlayers = rosterManager.roster.Count;
+        int availablePlayers = rosterManager.availablePlayers.Count;
+        float averageRating = 0f;
+        float totalSalary = rosterManager.CalculateTotalSalary();
+        int avgStamina = 0;
+        int avgMorale = 0;
+       
+        if (totalPlayers > 0)
+        {
+            foreach (Player player in rosterManager.roster)
+            {
+                averageRating += player.playerRating;
+                avgStamina += player.stamina;
+                avgMorale += player.morale;
+            }
+            averageRating /= totalPlayers;
+            avgStamina /= totalPlayers;
+            avgMorale /= totalPlayers;
+        }
+       
+        return $"Total Players: {totalPlayers}\n" +
+               $"Available Players: {availablePlayers}\n" +
+               $"Average Rating: {averageRating:F1}\n" +
+               $"Average Stamina: {avgStamina}\n" +
+               $"Average Morale: {avgMorale}\n" +
+               $"Total Salary: ${totalSalary:F0}";
+    }
+   
+    /// <summary>
+    /// Gets detailed skill breakdown for a player
+    /// </summary>
+    public string GetPlayerSkills(string playerId)
+    {
+        Player player = rosterManager.GetPlayer(playerId);
+       
+        if (player != null)
+        {
+            return $"Skills for {player.playerName}:\n" +
+                   $"Kicking: {player.skills.kicking}\n" +
+                   $"Handballing: {player.skills.handballing}\n" +
+                   $"Tackling: {player.skills.tackling}\n" +
+                   $"Intelligence: {player.skills.intelligence}\n" +
+                   $"Bravery: {player.skills.bravery}\n" +
+                   $"Teamwork: {player.skills.teamwork}\n" +
+                   $"Independence: {player.skills.independence}\n" +
+                   $"Marking: {player.skills.marking}\n" +
+                   $"Speed: {player.skills.speed}\n" +
+                   $"Strength: {player.skills.strength}\n" +
+                   $"Endurance: {player.skills.endurance}\n" +
+                   $"Leadership: {player.skills.leadership}\n" +
+                   $"Footwork: {player.skills.footwork}\n" +
+                   $"Agility: {player.skills.agility}\n" +
+                   $"Decision Making: {player.skills.decisionMaking}\n" +
+                   $"Overall Rating: {player.playerRating}";
+        }
+       
+        return "Player not found";
+    }
+}

@@ -11,16 +11,24 @@ namespace AFLManager.Models
     public enum PlayerRole
     {
         FullBack,
-        FullBackFlank,
-        HalfBackFlank,
+        BackPocket,          // Added
+        HalfBack,           // Added (was HalfBackFlank)
+        FullBackFlank,      // Keep original
+        HalfBackFlank,      // Keep original  
         CentreHalfBack,
-        Ruck,
-        Centre,
         Wing,
+        Centre,
+        Ruckman,            // Added (was Ruck)
+        Ruck,               // Keep original
+        RuckRover,          // Added
+        Rover,              // Added
         CentreHalfForward,
-        HalfForwardFlank,
-        FullForwardFlank,
-        FullForward
+        HalfForward,        // Added (was HalfForwardFlank)
+        HalfForwardFlank,   // Keep original
+        ForwardPocket,      // Added
+        FullForwardFlank,   // Keep original
+        FullForward,
+        Utility             // Added
     }
 
     /// <summary>
@@ -61,22 +69,36 @@ namespace AFLManager.Models
             public float PotentialCeiling;
             public float Morale;
             public float Stamina;
-            public PlayerStats Stats;
-            public ContractDetails Contract;
+        public PlayerStats Stats;
+        public ContractDetails Contract;
+        
+        // Development system
+        public AFLManager.Systems.Development.PlayerDevelopment Development;
+        
+        // Form and condition tracking
+        public AFLManager.Systems.Development.PlayerFormCondition FormCondition;
 
-            [NonSerialized] public Team CurrentTeam;
-            [NonSerialized] public Sprite Portrait;
+        [NonSerialized] public Team CurrentTeam;
+        [NonSerialized] public Sprite Portrait;
 
 
 
             /// <summary>
             /// Constructor: assigns a new unique ID.
             /// </summary>
-            public Player()
+        public Player()
+        {
+            Id = Guid.NewGuid().ToString();
+            Stats = new PlayerStats();
+            Development = new AFLManager.Systems.Development.PlayerDevelopment();
+            FormCondition = new AFLManager.Systems.Development.PlayerFormCondition();
+            
+            // Set position-specific development weights
+            if (Development != null)
             {
-                Id = Guid.NewGuid().ToString();
-                Stats = new PlayerStats();
+                Development.Weights = AFLManager.Systems.Development.PositionDevelopmentWeights.CreateForPosition(Role);
             }
+        }
         }
 
         /// <summary>

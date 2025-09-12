@@ -1,0 +1,35 @@
+Unity Editor version:    6000.2.1f1 (55300504c302)
+Branch:                  6000.2/staging
+Build type:              Release
+Batch mode:              YES
+macOS version:           Version 26.0 (Build 25A5351b)
+Darwin version:          25.0.0
+Architecture:            arm64
+Running under Rosetta:   NO
+Available memory:        16384 MB
+Date:                    2025-09-11T08:59:43Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair" at "2025-09-11T08:59:43.45709Z"
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/MacOS/Unity
+-batchmode
+-quit
+-projectPath
+.
+-logFile
+compile.log
+Successfully changed project path to: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+/Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+It looks like another Unity instance is running with this project open.
+
+Multiple Unity instances cannot open the same project.
+
+Project: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+Fatal Error! It looks like another Unity instance is running with this project open.
+
+Multiple Unity instances cannot open the same project.
+
+Project: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+[Package Manager] Server process was shutdown

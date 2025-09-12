@@ -1,0 +1,1740 @@
+Unity Editor version:    6000.2.1f1 (55300504c302)
+Branch:                  6000.2/staging
+Build type:              Release
+Batch mode:              YES
+macOS version:           Version 26.0 (Build 25A5351b)
+Darwin version:          25.0.0
+Architecture:            arm64
+Running under Rosetta:   NO
+Available memory:        16384 MB
+Date:                    2025-09-11T09:18:36Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair" at "2025-09-11T09:18:36.756487Z"
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/MacOS/Unity
+-batchmode
+-quit
+-projectPath
+.
+-executeMethod
+AFLCoachSim.Demo.PositionalCommentaryDemo.RunBatchDemo
+-logFile
+positional_demo.log
+Successfully changed project path to: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+/Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [8361608640]  Target information:
+
+Player connection [8361608640]  * "[IP] 192.168.86.34 [Port] 55504 [Flags] 2 [Guid] 3049661360 [EditorId] 3049661360 [Version] 1048832 [Id] OSXEditor(0,mac.lan) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
+
+Player connection [8361608640] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [8361608640] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 1756, path: "/Applications/Unity Hub.app/Contents/Frameworks/UnityLicensingClient_V1.app/Contents/MacOS/Unity.Licensing.Client")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.17.2'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-ryan_sinclair"
+[Licensing::IpcConnector] LicenseClient-ryan_sinclair channel disconnected successfully.
+[Licensing::IpcConnector] Channel LicenseClient-ryan_sinclair-6000.2.1 doesn't exist
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Frameworks/UnityLicensingClient.app/Contents/MacOS/Unity.Licensing.Client
+[Licensing::Module] Successfully launched the LicensingClient (PId: 92254)
+[Package Manager] Connected to IPC stream "Upm-92252" after 0.1 seconds.
+Library Redirect Path: Library/
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair-6000.2.1" at "2025-09-11T09:18:37.101006Z"
+[Licensing::Client] Code 1 while verifying Licensing Client signature (process Id: 92254, path: "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Frameworks/UnityLicensingClient.app/Contents/MacOS/Unity.Licensing.Client")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.2+ff71f16
+  Session Id:              01f5352e0fec4c0d9e52b4db7a029694
+  Correlation Id:          44fb94b235a915820951b5d42526ccd4
+  External correlation Id: 2183015737750220433
+  Machine Id:              xepibF8Bp4CRoGpjNHiLN8tBdfk=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-ryan_sinclair-6000.2.1" (connect: 0.17s, validation: 0.02s, handshake: 0.01s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair-6000.2.1-notifications" at "2025-09-11T09:18:37.127768Z"
+[Licensing::Module] Connected to LicensingClient (PId: 92254, launch time: 0.00, total connection time: 0.19s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VCRQ-KGWU-ARUG-59C9-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 16768296682370-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VCRQ-KGWU-ARUG-59C9-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 16768296682370-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Module] Licensing Background thread has ended after 0.39s
+FMOD failed to get number of drivers ... : "Error enumerating the available driver list. List may be inconsistent due to a recent device addition or removal. " (58)
+FMOD failed to get number of drivers ... : "Error enumerating the available driver list. List may be inconsistent due to a recent device addition or removal. " (58)
+FMOD initialized on nosound output
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 1.08 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.2.1f1 (55300504c302)
+[Subsystems] Discovering subsystems at path /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+ preferred device: Apple M3 (high power)
+Metal devices available: 1
+0: Apple M3 (high power)
+Using device Apple M3 (high power)
+Initializing Metal device caps: Apple M3
+Mac GPU Family: 2
+Apple GPU Family: 9
+MSL Version: 3.0
+Has Float MSAA: 1
+Has Float Filtering: 1
+ReadWrite Texture Tier: 2
+Initialize mono
+Mono path[0] = '/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Managed'
+Mono path[1] = '/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/MonoBleedingEdge/lib/mono/unityjit-macos'
+Mono config path = '/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56252
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll
+Register platform support module: /Applications/Unity/Hub/Editor/6000.2.1f1/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.000336 seconds.
+- Loaded All Assemblies, in  0.148 seconds
+Native extension for WindowsStandalone target not found
+Native extension for OSXStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.146 seconds
+Domain Reload Profiling: 294ms
+	BeginReloadAssembly (34ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (0ms)
+	RebuildCommonClasses (16ms)
+	RebuildNativeTypeToScriptingClass (7ms)
+	initialDomainReloadingComplete (19ms)
+	LoadAllAssembliesAndSetupDomain (71ms)
+		LoadAssemblies (33ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (70ms)
+			TypeCache.Refresh (70ms)
+				TypeCache.ScanAssembly (63ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (146ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (130ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (19ms)
+			SetLoadedEditorAssemblies (2ms)
+			BeforeProcessingInitializeOnLoad (32ms)
+			ProcessInitializeOnLoadAttributes (52ms)
+			ProcessInitializeOnLoadMethodAttributes (24ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VCRQ-KGWU-ARUG-59C9-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 16768296682370-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 57 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.8 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.ai.navigation@eb5635ad590d)
+    com.unity.collab-proxy@2.8.2 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.collab-proxy@c854d1f7d97f)
+    com.unity.ide.rider@3.0.36 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.ide.rider@4d374c7eb6db)
+    com.unity.ide.visualstudio@2.0.23 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.ide.visualstudio@198cdf337d13)
+    com.unity.inputsystem@1.14.2 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.inputsystem@be6c4fd0abf5)
+    com.unity.timeline@1.8.9 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.timeline@6b9e48457ddb)
+    com.unity.visualscripting@1.9.7 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.visualscripting@6279e2b7c485)
+    com.unity.burst@1.8.24 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.burst@f7a407abf4d5)
+    com.unity.searcher@4.9.3 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.searcher@1e17ce91558d)
+    com.unity.mathematics@1.3.2 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.mathematics@8017b507cc74)
+    com.unity.collections@2.5.7 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.collections@d49facba0036)
+    com.unity.nuget.mono-cecil@1.11.5 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.nuget.mono-cecil@d78732e851eb)
+    com.unity.test-framework.performance@3.1.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.test-framework.performance@92d1d09a72ed)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.multiplayer.center@f3fb577b3546)
+    com.unity.render-pipelines.universal@17.2.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.render-pipelines.universal@facf525283ae)
+    com.unity.test-framework@1.5.1 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.test-framework@a6f5be5f149c)
+    com.unity.ugui@2.0.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.ugui@80da3b035d6b)
+    com.unity.modules.accessibility@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.accessibility)
+    com.unity.modules.ai@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/BuiltInPackages/com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.ext.nunit@031a54704bff)
+    com.unity.render-pipelines.core@17.2.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.render-pipelines.core@609b19816fd2)
+    com.unity.shadergraph@17.2.0 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.shadergraph@844e9247af82)
+    com.unity.render-pipelines.universal-config@17.0.3 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.render-pipelines.universal-config@8dc1aab4af1d)
+    com.unity.rendering.light-transport@1.0.1 (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.rendering.light-transport@2c9279f90d7c)
+  Git packages:
+    com.unity.barracuda@https://github.com/Unity-Technologies/barracuda-release.git (location: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/Library/PackageCache/com.unity.barracuda@eefb8cb01e6c)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.00 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Assembly for Assembly Definition File 'Assets/Scripts/Tests/Tests/Tests.asmdef' will not be compiled, because it has no scripts associated with it.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:LogFormat (UnityEngine.LogType,string,object[])
+UnityEngine.Debug:LogWarningFormat (string,object[])
+UnityEditor.Scripting.ScriptCompilation.EditorCompilation:WarnIfThereAreAssembliesWithoutAnyScripts (UnityEditor.Scripting.ScriptCompilation.ScriptAssemblySettings,UnityEditor.Scripting.ScriptCompilation.ScriptAssembly[]) (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilation.cs:780)
+UnityEditor.Scripting.ScriptCompilation.EditorCompilation:CompileScriptsWithSettings (UnityEditor.Scripting.ScriptCompilation.ScriptAssemblySettings) (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilation.cs:833)
+UnityEditor.Scripting.ScriptCompilation.EditorCompilation:CompileScripts (UnityEditor.Scripting.ScriptCompilation.EditorScriptCompilationOptions,UnityEditor.BuildTarget,int,string[]) (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilation.cs:716)
+UnityEditor.Scripting.ScriptCompilation.EditorCompilationInterface/<>c__DisplayClass21_0:<CompileScripts>b__0 () (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilationInterface.cs:184)
+UnityEditor.Scripting.ScriptCompilation.EditorCompilationInterface:EmitExceptionAsError<UnityEditor.Scripting.ScriptCompilation.EditorCompilation/CompileStatus> (System.Func`1<UnityEditor.Scripting.ScriptCompilation.EditorCompilation/CompileStatus>,UnityEditor.Scripting.ScriptCompilation.EditorCompilation/CompileStatus) (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilationInterface.cs:49)
+UnityEditor.Scripting.ScriptCompilation.EditorCompilationInterface:CompileScripts (UnityEditor.Scripting.ScriptCompilation.EditorScriptCompilationOptions,UnityEditor.BuildTarget,int,string[]) (at /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilationInterface.cs:184)
+
+(Filename: /Users/bokken/build/output/unity/unity/Editor/Mono/Scripting/ScriptCompilation/EditorCompilation.cs Line: 780)
+
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://unix:/tmp/ilpp.sock-ab6a883e6d10217831f664ba8cd59ce7
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim/
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 17.4302ms
+Starting: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/bee_backend --ipc --defer-dag-verification --dagfile="Library/Bee/200b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: /Users/ryan_sinclair/Documents/Unity/AFL-Coach-Sim
+DisplayProgressbar: Compiling Scripts
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+[40m[1m[33mwarn[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/UnityReferenceAssemblies/unity-4.8-api/Facades/System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/NetStandard/Extensions/2.0.0/System.Runtime.InteropServices.WindowsRuntime.dll"
+[40m[1m[33mwarn[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/UnityReferenceAssemblies/unity-4.8-api/System.ComponentModel.Composition.dll" in favor of "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/NetStandard/compat/2.1.0/shims/netfx/System.ComponentModel.Composition.dll"
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.burst@f7a407abf4d5/Unity.Burst.CodeGen/Unity.Burst.Cecil.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.nuget.mono-cecil@d78732e851eb/Mono.Cecil.dll
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 15.2447ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Gameplay.dll, with 129 defines and 264 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 10.7769ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Editor.dll, with 127 defines and 259 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 2.2409ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll, with 129 defines and 308 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with Library/Bee/artifacts/200b0aE.dag/Unity.Collections.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEditor.CoreModule.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null with /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.CoreModule.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.burst@f7a407abf4d5/Unity.Burst.CodeGen/Unity.Burst.Cecil.Rocks.dll
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 170.8119ms
+ExitCode: 0 Duration: 0s704ms
+[621/814    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[802/814    0s] Csc Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Gameplay.dll (+2 others)
+Assets/Scripts/Demo/EnhancedPlayerSkillsDemo.cs(35,33): warning CS0618: 'Object.FindObjectOfType<T>()' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+Assets/Scripts/Demo/PositionalCommentaryDemo.cs(48,28): warning CS0618: 'Object.FindObjectOfType<T>()' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+[803/814    0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/AFLCoachSim.Gameplay.dll (+pdb)
+Processing assembly Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Gameplay.dll, with 129 defines and 264 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[804/814    0s] CopyFiles Library/ScriptAssemblies/AFLCoachSim.Gameplay.pdb
+[805/814    0s] CopyFiles Library/ScriptAssemblies/AFLCoachSim.Gameplay.dll
+[806/814    0s] Csc Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Editor.dll (+2 others)
+[807/814    0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/AFLCoachSim.Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/200b0aE.dag/AFLCoachSim.Editor.dll, with 127 defines and 259 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[808/814    0s] Csc Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll (+2 others)
+[809/814    0s] CopyFiles Library/ScriptAssemblies/AFLCoachSim.Editor.pdb
+[810/814    0s] CopyFiles Library/ScriptAssemblies/AFLCoachSim.Editor.dll
+[811/814    0s] ILPostProcess Library/Bee/artifacts/200b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/200b0aE.dag/Assembly-CSharp.dll, with 129 defines and 308 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[812/814    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[813/814    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+*** Tundra build success (0.69 seconds), 13 items updated, 814 evaluated
+Assets/Scripts/Demo/EnhancedPlayerSkillsDemo.cs(35,33): warning CS0618: 'Object.FindObjectOfType<T>()' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+Assets/Scripts/Demo/PositionalCommentaryDemo.cs(48,28): warning CS0618: 'Object.FindObjectOfType<T>()' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+alCommentaryDemo.cs(48,28): warning CS0618: 'Object.FindObjectOfType<T>()' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+AssetDatabase: script compilation time: 1.000326s
+Total cache size 57301148
+Total cache size after purge 57301148, took 00:00:00.0502129
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.358 seconds
+Refreshing native plugins compatible for Editor in 2.48 ms, found 2 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for OSXStandalone target not found
+Refreshing native plugins compatible for Editor in 0.52 ms, found 2 plugins.
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.510 seconds
+Domain Reload Profiling: 1868ms
+	BeginReloadAssembly (65ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (5ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (15ms)
+	RebuildCommonClasses (18ms)
+	RebuildNativeTypeToScriptingClass (7ms)
+	initialDomainReloadingComplete (11ms)
+	LoadAllAssembliesAndSetupDomain (255ms)
+		LoadAssemblies (159ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (124ms)
+			TypeCache.Refresh (97ms)
+				TypeCache.ScanAssembly (87ms)
+			BuildScriptInfoCaches (20ms)
+			ResolveRequiredComponents (5ms)
+	FinalizeReload (1511ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1382ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (8ms)
+			SetLoadedEditorAssemblies (2ms)
+			BeforeProcessingInitializeOnLoad (70ms)
+			ProcessInitializeOnLoadAttributes (1276ms)
+			ProcessInitializeOnLoadMethodAttributes (25ms)
+			AfterProcessingInitializeOnLoad (1ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (4ms)
+Refreshing native plugins compatible for Editor in 1.50 ms, found 2 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=e11992527a8c94cee943768911f7c931): Total: 3.422 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=1894 ms
+		Asset DB Callback time: managed=135 ms, native=10 ms
+		Scripting: domain reloads=1, domain reload time=358 ms, compile time=1001 ms, other=22 ms
+		Project Asset Count: scripts=1308, non-scripts=2239
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 1
+	InvokeCustomDependenciesCallbacks: 0.000ms
+	InvokePackagesCallback: 4.907ms
+	ApplyChangesToAssetFolders: 0.203ms
+	Scan: 226.286ms
+	OnSourceAssetsModified: 0.431ms
+	CategorizeAssetsWithTransientArtifact: 26.382ms
+	ProcessAssetsWithTransientArtifactChanges: 29.948ms
+	CategorizeAssets: 31.838ms
+	ImportOutOfDateAssets: 1517.513ms (515.133ms without children)
+		CompileScripts: 1001.074ms
+		ReloadNativeAssets: 0.018ms
+		UnloadImportedAssets: 0.684ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.362ms
+		InitializingProgressBar: 0.000ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.242ms
+	PostProcessAllAssets: 136.546ms
+	Hotreload: 4.863ms
+	UnloadStreamsBegin: 0.924ms
+	PersistCurrentRevisions: 0.077ms
+	UnloadStreamsEnd: 0.000ms
+	GenerateScriptTypeHashes: 1.612ms
+	Untracked: 1442.076ms
+
+Application.AssetDatabase Initial Refresh End
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Tools/UnityShaderCompiler
+Launched and connected shader compiler UnityShaderCompiler after 0.05 seconds
+Scanning for USB devices : 0.033ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-AFL-Coach-Sim
+2025-09-11 18:51:41.343 Unity[92252:3379110] NSEventModifierFlagFunction specified to -setKeyEquivalentModifierMask: for item <NSMenuItem: 0x78d844f00 SDF, ke='Command-F12'>, but is only supported for system-provided menu items; will not be used
+Unloading 41 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6291 unused Assets / (30.6 MB). Loaded Objects now: 7037.
+Memory consumption went from 233.0 MB to 202.5 MB.
+Total: 8.464375 ms (FindLiveObjects: 0.360167 ms CreateObjectMapping: 0.151500 ms MarkObjects: 4.112959 ms  DeleteObjects: 3.839291 ms)
+
+2025-09-11 18:51:41.385 Unity[92252:3379110] NSEventModifierFlagFunction specified to -setKeyEquivalentModifierMask: for item <NSMenuItem: 0x78d8446e0 SDF, ke='Command-F12'>, but is only supported for system-provided menu items; will not be used
+=== POSITIONAL COMMENTARY DEMO ===
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:64)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 64)
+
+Match: Eagles vs Dockers
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:65)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 65)
+
+Duration: 5min quarters, Weather: Clear
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:66)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 66)
+
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:67)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 67)
+
+FINAL SCORE: Eagles 90 - 36 Dockers
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:106)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 106)
+
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:107)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 107)
+
+=== COMMENTARY HIGHLIGHTS ===
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:108)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 108)
+
+• Q1, 5:00 - first quarter begins
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 4:50 - Clean take by Forward2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 4:40 - Good hands from Half-Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 4:35 - Mid1 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 4:10 - Clean take by Forward2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 4:05 - Beautiful finish by Mid2! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 3:50 - Good hands from Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 3:45 - Mid2 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 2:55 - Ruck2 is down with an apparent injury
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 2:50 - Quick hands from Mid1 to Back2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 2:30 - Forward1 takes a solid mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 2:20 - Inside 50 for the attacking team
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 2:10 - Wing3 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:55 - Good hands from Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:50 - Forward2 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:35 - Forward2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:30 - Wing3 slots it through! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:30 - Ruck2 wins the center bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:05 - Good hands from Mid1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 1:00 - Forward2 slots it through! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 0:35 - Ball moves into the forward 50
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 0:25 - Forward1 finds the target . Six points!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 0:25 - Wing3 dominates the ruck contest
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 0:15 - Opportunity building in the forward line
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q1, 0:05 - The ball finds its way forward
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 5:00 - Play resumes for the second term
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 4:15 - Good hands from Half-Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 4:10 - Beautiful finish by Mid2! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 4:10 - Mid1 wins the center bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 3:45 - Forward2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 3:10 - Forward2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 3:05 - Half-Forward1 slots it through! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 2:35 - Mid2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 2:30 - Wing3 slots it through! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 2:20 - Ball moves into the forward 50
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 1:20 - Clean take by Wing3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 1:15 - Mid2 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 1:15 - Utility23 gets first hands on it from the bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 1:10 - Wing2 delivers to Wing2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 0:30 - Great tackle by Wing3!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 0:15 - Beautiful finish by Half-Forward1! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q2, 0:15 - Clean tap from Mid1 at the center
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 5:00 - The third quarter gets underway
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 4:35 - Mid1 takes a solid mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 4:30 - Half-Forward1 takes a solid mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 4:15 - Clean take by Wing3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 4:10 - Mid1 makes no mistake . GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 4:10 - Clean tap from Mid2 at the center
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 3:25 - Clean take by Wing3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 2:45 - Ball moves into the forward 50
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 2:10 - Clean take by Mid2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 1:35 - Good hands from Half-Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 1:30 - Mid2 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 1:30 - Wing3 wins the center bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 0:45 - Forward2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 0:40 - Beautiful finish by Mid2! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 0:40 - Clean tap from Mid2 at the center
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 0:30 - Opportunity building in the forward line
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q3, 0:05 - Clean take by Mid2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 5:00 - The fourth quarter gets underway
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 4:45 - Inside 50 for the attacking team
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 4:30 - Wing3 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 4:25 - Half-Forward1 threads the needle! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 4:25 - Wing3 gets first hands on it from the bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 4:15 - Half-Forward1 requires attention from the trainers
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 3:40 - Half-Forward1 takes a solid mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 3:35 - Half-Forward1 slots it through! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 3:35 - Wing3 wins the center bounce
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 3:25 - Utility23 sends it long to Forward1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:55 - Utility23 sends it long to Mid4
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:45 - The ball finds its way forward
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:15 - Opportunity building in the forward line
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:10 - Clean take by Wing3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:05 - Beautiful finish by Wing3! GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 2:05 - Clean tap from Mid2 at the center
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 1:50 - Excellent defensive pressure from Wing2
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 1:30 - Good hands from Mid1
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 1:25 - Mid2 makes no mistake . GOAL!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 1:05 - Half-Forward1 finds the target . Six points!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 0:15 - Clean take by Wing3
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 0:10 - The ball finds its way forward
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• Q4, 0:05 - Mid2 secures the mark
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+• fourth quarter concludes
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:112)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 112)
+
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:115)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 115)
+
+=== POSITION ANALYSIS ===
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:116)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 116)
+
+Commentary Analysis:
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:308)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 308)
+
+  Center bounce/clearance events: 4 (should feature midfielders/ruckmen)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:309)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 309)
+
+  Goal/marking events: 0 (should feature forwards/attacking mids)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:310)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 310)
+
+  Tackle/rebound events: 1 (should feature defenders/defensive mids)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:311)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 311)
+
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:312)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 312)
+
+✅ Players should now be selected based on their positions!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:313)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 313)
+
+✅ No more defenders taking center bounces!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:314)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 314)
+
+✅ No more opposition players in the same play!
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /Users/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+AFLCoachSim.Demo.PositionalCommentaryDemo:AnalyzePositionalRealism (System.Collections.Generic.List`1<string>,System.Collections.Generic.Dictionary`2<AFLCoachSim.Core.Domain.ValueObjects.TeamId, System.Collections.Generic.List`1<AFLCoachSim.Core.Domain.Entities.Player>>) (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:315)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunDemoInternal () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:117)
+AFLCoachSim.Demo.PositionalCommentaryDemo:RunBatchDemo () (at Assets/Scripts/Demo/PositionalCommentaryDemo.cs:57)
+
+(Filename: Assets/Scripts/Demo/PositionalCommentaryDemo.cs Line: 315)
+
+Batchmode quit successfully invoked - shutting down!
+Thread 0x17fbd3000 may have been prematurely finalized
+Curl error 42: Callback aborted
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+[Licensing::IpcConnector] LicenseClient-ryan_sinclair-6000.2.1-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-ryan_sinclair-6000.2.1 channel disconnected successfully.
+Thread 0x16c6a3000 may have been prematurely finalized
+Thread 0x16c617000 may have been prematurely finalized
+Thread 0x16c72f000 may have been prematurely finalized
+Thread 0x16c7bb000 may have been prematurely finalized
+Thread 0x16c8d3000 may have been prematurely finalized
+Thread 0x16c847000 may have been prematurely finalized
+AcceleratorClientConnectionCallback - disconnected - :0
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+Cleanup mono
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      ALC ILPP context 1 is unloading
+debugger-agent: Unable to listen on 43
+Exiting batchmode successfully now!
+[Package Manager] Server process was shutdown

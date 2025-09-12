@@ -63,62 +63,127 @@ namespace AFLCoachSim.Core.Engine.Match
         // ---------------------------------
         // M3-style (fatigue/injury aware)
         // ---------------------------------
+        
+        /// <summary>
+        /// Position-aware midfield rating - prioritizes actual midfielders and ruckmen
+        /// </summary>
         public static float MidfieldUnit(IList<PlayerRuntime> onField)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            float[] top = new float[5];
-            int topCount = 0;
-
-            for (int i = 0; i < onField.Count; i++)
+            // Get players most suitable for center bounce work (mids + rucks)
+            var centerBounceParticipants = Selection.PositionalSelector.GetCenterBounceParticipants(onField, new Simulation.DeterministicRandom(12345), 5);
+            
+            if (centerBounceParticipants.Count == 0)
             {
-                var pr = onField[i];
+                // Fallback to original logic if no suitable players
+                float[] top = new float[5];
+                int topCount = 0;
+
+                for (int i = 0; i < onField.Count; i++)
+                {
+                    var pr = onField[i];
+                    var a = pr.Player.Attr;
+                    float s = (0.45f * a.Clearance + 0.25f * a.Strength
+                             + 0.15f * a.Positioning + 0.15f * a.DecisionMaking)
+                             * pr.FatigueMult * pr.InjuryMult;
+
+                    InsertTopDescending(top, ref topCount, s, 5);
+                }
+
+                return Average(top, topCount);
+            }
+            
+            // Use position-appropriate players
+            float sum = 0f;
+            for (int i = 0; i < centerBounceParticipants.Count; i++)
+            {
+                var pr = centerBounceParticipants[i];
                 var a = pr.Player.Attr;
                 float s = (0.45f * a.Clearance + 0.25f * a.Strength
                          + 0.15f * a.Positioning + 0.15f * a.DecisionMaking)
                          * pr.FatigueMult * pr.InjuryMult;
-
-                InsertTopDescending(top, ref topCount, s, 5);
+                sum += s;
             }
-
-            return Average(top, topCount);
+            
+            return sum / centerBounceParticipants.Count;
         }
 
         public static float Inside50Quality(IList<PlayerRuntime> onField)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            float[] top = new float[6];
-            int topCount = 0;
-
-            for (int i = 0; i < onField.Count; i++)
+            // Get players most suitable for Inside50 work (forwards + attacking mids)
+            var inside50Participants = Selection.PositionalSelector.GetInside50Participants(onField, new Simulation.DeterministicRandom(12345), 6);
+            
+            if (inside50Participants.Count == 0)
             {
-                var pr = onField[i];
+                // Fallback to original logic
+                float[] top = new float[6];
+                int topCount = 0;
+
+                for (int i = 0; i < onField.Count; i++)
+                {
+                    var pr = onField[i];
+                    var a = pr.Player.Attr;
+                    float s = (0.5f * a.Marking + 0.3f * a.Kicking + 0.2f * a.DecisionMaking)
+                             * pr.FatigueMult * pr.InjuryMult;
+
+                    InsertTopDescending(top, ref topCount, s, 6);
+                }
+
+                return Average(top, topCount);
+            }
+            
+            // Use position-appropriate players
+            float sum = 0f;
+            for (int i = 0; i < inside50Participants.Count; i++)
+            {
+                var pr = inside50Participants[i];
                 var a = pr.Player.Attr;
                 float s = (0.5f * a.Marking + 0.3f * a.Kicking + 0.2f * a.DecisionMaking)
                          * pr.FatigueMult * pr.InjuryMult;
-
-                InsertTopDescending(top, ref topCount, s, 6);
+                sum += s;
             }
-
-            return Average(top, topCount);
+            
+            return sum / inside50Participants.Count;
         }
 
         public static float DefensePressure(IList<PlayerRuntime> onField)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            float sum = 0f;
-            int cnt = 0;
-            for (int i = 0; i < onField.Count; i++)
+            // Get players most suitable for defensive work (defenders + defensive mids)
+            var defensiveParticipants = Selection.PositionalSelector.GetDefensiveParticipants(onField, new Simulation.DeterministicRandom(12345), 6);
+            
+            if (defensiveParticipants.Count == 0)
             {
-                var pr = onField[i];
+                // Fallback to original logic using all players
+                float fallbackSum = 0f;
+                int cnt = 0;
+                for (int i = 0; i < onField.Count; i++)
+                {
+                    var pr = onField[i];
+                    var a = pr.Player.Attr;
+                    float s = (0.5f * a.Tackling + 0.3f * a.Positioning + 0.2f * a.WorkRate)
+                              * pr.FatigueMult * pr.InjuryMult;
+                    fallbackSum += s; cnt++;
+                }
+                return cnt == 0 ? 1f : (fallbackSum / cnt);
+            }
+            
+            // Use position-appropriate players
+            float sum = 0f;
+            for (int i = 0; i < defensiveParticipants.Count; i++)
+            {
+                var pr = defensiveParticipants[i];
                 var a = pr.Player.Attr;
                 float s = (0.5f * a.Tackling + 0.3f * a.Positioning + 0.2f * a.WorkRate)
                           * pr.FatigueMult * pr.InjuryMult;
-                sum += s; cnt++;
+                sum += s;
             }
-            return cnt == 0 ? 1f : (sum / cnt);
+            
+            return sum / defensiveParticipants.Count;
         }
 
         // ----------------

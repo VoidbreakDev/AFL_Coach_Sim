@@ -1,0 +1,62 @@
+Unity Editor version:    6000.2.1f1 (55300504c302)
+Branch:                  6000.2/staging
+Build type:              Release
+Batch mode:              NO
+macOS version:           Version 26.0 (Build 25A5351b)
+Darwin version:          25.0.0
+Architecture:            arm64
+Running under Rosetta:   NO
+Available memory:        16384 MB
+Date:                    2025-09-11T09:24:05Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair" at "2025-09-11T09:24:05.328123Z"
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/MacOS/Unity
+-runTests
+-testPlatform
+editmode
+-assemblyNames
+AFLCoachSim.Core.Tests
+-testResults
+core-editmode-tests.xml
+-logFile
+core-editmode-tests.log
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 1756, path: "/Applications/Unity Hub.app/Contents/Frameworks/UnityLicensingClient_V1.app/Contents/MacOS/Unity.Licensing.Client")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.17.2'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-ryan_sinclair"
+[Licensing::IpcConnector] LicenseClient-ryan_sinclair channel disconnected successfully.
+[Licensing::IpcConnector] Channel LicenseClient-ryan_sinclair-6000.2.1 doesn't exist
+Launching external process: /Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Frameworks/UnityLicensingClient.app/Contents/MacOS/Unity.Licensing.Client
+[Licensing::Module] Successfully launched the LicensingClient (PId: 93045)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair-6000.2.1" at "2025-09-11T09:24:05.675793Z"
+[Licensing::Client] Code 1 while verifying Licensing Client signature (process Id: 93045, path: "/Applications/Unity/Hub/Editor/6000.2.1f1/Unity.app/Contents/Frameworks/UnityLicensingClient.app/Contents/MacOS/Unity.Licensing.Client")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.2+ff71f16
+  Session Id:              b4e11df19c8f452f9bd804aef2387b31
+  Correlation Id:          dbdce94e7c0f1b1520e5ac548aaa2ba7
+  External correlation Id: 8350903042218946447
+  Machine Id:              xepibF8Bp4CRoGpjNHiLN8tBdfk=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-ryan_sinclair-6000.2.1" (connect: 0.17s, validation: 0.02s, handshake: 0.01s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-ryan_sinclair-6000.2.1-notifications" at "2025-09-11T09:24:05.700262Z"
+[Licensing::Module] Connected to LicensingClient (PId: 93045, launch time: 0.00, total connection time: 0.19s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-VCRQ-KGWU-ARUG-59C9-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 16768296682370-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Module] Licensing Background thread has ended after 0.40s
+[Package Manager] Server process was shutdown

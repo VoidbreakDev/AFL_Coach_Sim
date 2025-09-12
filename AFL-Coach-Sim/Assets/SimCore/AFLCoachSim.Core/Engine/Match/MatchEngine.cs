@@ -30,8 +30,8 @@ namespace AFLCoachSim.Core.Engine.Match
             MatchTuning tuning = null,
             ITelemetrySink sink = null)
         {
-            rng ??= new DeterministicRandom(12345);
-            ground ??= new Ground();
+            if (rng == null) rng = new DeterministicRandom(12345);
+            if (ground == null) ground = new Ground();
 
             var homeTeam = teams[homeId];
             var awayTeam = teams[awayId];

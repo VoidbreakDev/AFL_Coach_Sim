@@ -13,7 +13,7 @@ namespace AFLCoachSim.Unity.Data
         public bool DoubleRoundRobin = true;
 
         [Header("Teams")]
-        public List<TeamEntry> Teams = new();
+        public List<TeamEntry> Teams = new List<TeamEntry>();
 
         [System.Serializable]
         public class TeamEntry
