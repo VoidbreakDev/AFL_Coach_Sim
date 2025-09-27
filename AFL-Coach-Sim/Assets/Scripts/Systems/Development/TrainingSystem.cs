@@ -301,7 +301,7 @@ namespace AFLManager.Systems.Development
             return results;
         }
         
-        private TrainingResult ProcessProgramWeek(ActiveTrainingProgram activeProgram)
+        protected virtual TrainingResult ProcessProgramWeek(ActiveTrainingProgram activeProgram)
         {
             var result = new TrainingResult
             {
@@ -334,7 +334,8 @@ namespace AFLManager.Systems.Development
                 else
                 {
                     Debug.Log($"{player.Name} was injured during training");
-                    // TODO: Apply injury to player
+                    // Apply injury to player - basic implementation
+                    ApplyTrainingInjury(player, activeProgram.Program);
                 }
                 
                 result.PlayerImprovements.Add(playerResult);
@@ -364,6 +365,26 @@ namespace AFLManager.Systems.Development
         {
             float injuryRisk = program.GetInjuryRisk(player);
             return UnityEngine.Random.Range(0f, 1f) < injuryRisk;
+        }
+        
+        /// <summary>
+        /// Applies a training injury to a player - basic implementation
+        /// Override in InjuryAwareTrainingSystem for full injury system integration
+        /// </summary>
+        protected virtual void ApplyTrainingInjury(Player player, TrainingProgram program)
+        {
+            // Basic injury application - reduces condition and adds minor performance impact
+            // This is a placeholder implementation for backward compatibility
+            
+            // Reduce player condition if it exists
+            if (player.Condition != null)
+            {
+                var conditionReduction = UnityEngine.Random.Range(10f, 25f);
+                player.Condition = Mathf.Max(0f, player.Condition - conditionReduction);
+            }
+            
+            // Note: For full injury management, use InjuryAwareTrainingSystem
+            Debug.Log($"[TrainingSystem] Applied basic training injury to {player.Name} - condition reduced");
         }
         
         /// <summary>

@@ -11,16 +11,21 @@ using AFLCoachSim.Core.Engine.Match.Rotations;
 using AFLCoachSim.Core.Engine.Match.Injury;
 using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
 using AFLCoachSim.Core.Engine.Match.Tuning;
+using AFLCoachSim.Core.Injuries; // InjuryManager
 
 namespace AFLCoachSim.Core.Engine.Match
 {
     public static class MatchEngine
     {
+        /// <summary>
+        /// Play an AFL match with comprehensive injury simulation
+        /// </summary>
         public static MatchResultDTO PlayMatch(
             int round,
             TeamId homeId,
             TeamId awayId,
             Dictionary<TeamId, Team> teams,
+            InjuryManager injuryManager,
             Dictionary<TeamId, List<Domain.Entities.Player>> rosters = null,
             Dictionary<TeamId, TeamTactics> tactics = null,
             Weather weather = Weather.Clear,
@@ -32,6 +37,7 @@ namespace AFLCoachSim.Core.Engine.Match
         {
             if (rng == null) rng = new DeterministicRandom(12345);
             if (ground == null) ground = new Ground();
+            if (injuryManager == null) throw new System.ArgumentNullException(nameof(injuryManager), "InjuryManager is required for match simulation");
 
             var homeTeam = teams[homeId];
             var awayTeam = teams[awayId];
@@ -66,7 +72,25 @@ namespace AFLCoachSim.Core.Engine.Match
             // Models
             ctx.FatigueModel = new FatigueModel();
             ctx.RotationManager = new RotationManager();
-            ctx.InjuryModel = new InjuryModel();
+            
+            // Initialize injury system with match-specific context provider
+            ctx.InjuryContextProvider = new Injury.MatchInjuryContextProvider();
+            injuryManager.SetContextProvider(ctx.InjuryContextProvider);
+            
+            ctx.InjuryModel = new InjuryModel(injuryManager);
+            
+            // Initialize injury states for all players
+            var allPlayers = new List<Runtime.PlayerRuntime>();
+            allPlayers.AddRange(ctx.HomeOnField);
+            allPlayers.AddRange(ctx.HomeBench);
+            allPlayers.AddRange(ctx.AwayOnField);
+            allPlayers.AddRange(ctx.AwayBench);
+            
+            ctx.InjuryModel.InitializeMatchInjuryStates(allPlayers);
+            
+            // Set up initial match context for injury system
+            var matchContext = CreateMatchContext(ctx);
+            ctx.InjuryContextProvider.SetMatchContext(matchContext);
 
             // Four quarters
             for (int q = 1; q <= 4; q++)
@@ -85,6 +109,17 @@ namespace AFLCoachSim.Core.Engine.Match
             // Finalize match telemetry
             ctx.Telemetry.HomeAvgConditionEnd = AverageCondition(ctx.HomeOnField, ctx.HomeBench);
             ctx.Telemetry.AwayAvgConditionEnd = AverageCondition(ctx.AwayOnField, ctx.AwayBench);
+            
+            // Generate detailed injury report
+            var analytics = ctx.InjuryModel.GetMatchAnalytics();
+            if (analytics.TotalNewInjuries > 0)
+            {
+                var injuryReport = GenerateInjuryReport(analytics);
+                UnityEngine.Debug.Log($"[MatchEngine] Match Injury Report:\n{injuryReport}");
+                
+                // Store analytics in telemetry for later use
+                // You could extend MatchTelemetry to include enhanced injury analytics here
+            }
 
             // Publish a final snapshot
             var final = MakeSnapshot(ctx);
@@ -113,6 +148,11 @@ namespace AFLCoachSim.Core.Engine.Match
             if (ctx.RotationManager.MaybeRotate(ctx.AwayOnField, ctx.AwayBench, ctx.Away.Tactics, dt, out swapped) && swapped)
                 ctx.Telemetry.AwayInterchanges++;
 
+            // Update match context for injury system
+            var matchContext = CreateMatchContext(ctx);
+            ctx.InjuryContextProvider.SetMatchContext(matchContext);
+            
+            // Process injuries for both teams
             int hinj = ctx.InjuryModel.Step(ctx.HomeOnField, ctx.HomeBench, ctx.Phase, dt, ctx.Rng,
                                 ctx.Telemetry.HomeInjuryEvents, ctx.Tuning.InjuryMaxPerTeam, ctx.Tuning);
             int ainj = ctx.InjuryModel.Step(ctx.AwayOnField, ctx.AwayBench, ctx.Phase, dt, ctx.Rng,
@@ -328,5 +368,85 @@ namespace AFLCoachSim.Core.Engine.Match
         }
 
         private static float Clamp01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
+        
+        private static Injury.MatchContext CreateMatchContext(MatchContext ctx)
+        {
+            var matchContext = new Injury.MatchContext
+            {
+                CurrentPhase = ctx.Phase,
+                CurrentQuarter = ctx.Quarter,
+                TimeInQuarter = System.TimeSpan.FromSeconds(ctx.TimeRemaining),
+                ScoreDifferential = ctx.Score.HomePoints - ctx.Score.AwayPoints
+            };
+            
+            // Convert weather information
+            matchContext.Weather = new Injury.MatchWeather
+            {
+                Condition = ctx.Weather.ToString(),
+                Temperature = GetTemperatureForWeather(ctx.Weather),
+                WindSpeed = GetWindSpeedForWeather(ctx.Weather)
+            };
+            
+            // Add venue if available
+            if (ctx.Ground != null)
+            {
+                matchContext.Venue = "AFL Ground"; // ctx.Ground.Name if available
+            }
+            
+            return matchContext;
+        }
+        
+        private static int GetTemperatureForWeather(Weather weather)
+        {
+            return weather switch
+            {
+                Weather.Clear => 22,
+                Weather.Windy => 18,
+                Weather.LightRain => 15,
+                Weather.HeavyRain => 12,
+                _ => 20
+            };
+        }
+        
+        private static int GetWindSpeedForWeather(Weather weather)
+        {
+            return weather switch
+            {
+                Weather.Windy => 35,     // Strong wind conditions
+                Weather.LightRain => 15, // Moderate breeze with rain
+                Weather.HeavyRain => 25, // Strong wind with heavy rain
+                _ => 5                   // Light breeze
+            };
+        }
+        
+        private static string GenerateInjuryReport(Injury.MatchInjuryAnalytics analytics)
+        {
+            if (analytics.TotalNewInjuries == 0)
+                return "No new injuries occurred during this match";
+                
+            var report = $"Match Injury Report:\n";
+            report += $"- Total players tracked: {analytics.TotalPlayersTracked}\n";
+            report += $"- Players with pre-existing injuries: {analytics.PlayersWithPreExistingInjuries}\n";
+            report += $"- New injuries: {analytics.TotalNewInjuries}\n";
+            report += $"- Injury rate: {analytics.InjuryRate:P1}\n";
+            
+            // Breakdown by type
+            var typeGroups = analytics.NewInjuriesByType.GroupBy(t => t).OrderByDescending(g => g.Count());
+            report += "\nInjury Types:\n";
+            foreach (var group in typeGroups)
+            {
+                report += $"- {group.Key}: {group.Count()}\n";
+            }
+            
+            // Breakdown by severity
+            var severityGroups = analytics.NewInjuriesBySeverity.GroupBy(s => s).OrderByDescending(g => g.Count());
+            report += "\nInjury Severities:\n";
+            foreach (var group in severityGroups)
+            {
+                report += $"- {group.Key}: {group.Count()}\n";
+            }
+            
+            return report;
+        }
     }
 }

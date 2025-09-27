@@ -226,5 +226,170 @@ namespace AFLManager.Managers
             }
 
         }
+
+        // ===== Training Data =====
+        private static string TrainingDataFilePath => Path.Combine(DataFolder, "training_data.json");
+        
+        /// <summary>
+        /// Save all training data including player potentials, enrollments, sessions, and efficiency metrics
+        /// </summary>
+        public static void SaveTrainingData(AFLCoachSim.Core.DTO.TrainingDataDTO trainingData)
+        {
+            if (trainingData == null)
+            {
+                Debug.LogError("[SaveLoadManager] Cannot save null training data");
+                return;
+            }
+            
+            try
+            {
+                trainingData.SavedAt = DateTime.Now.ToString("O");
+                string json = JsonSerialization.ToJson(trainingData, true);
+                File.WriteAllText(TrainingDataFilePath, json);
+                
+                var fileInfo = new FileInfo(TrainingDataFilePath);
+                Debug.Log($"[SaveLoadManager] Training data saved: {fileInfo.Length} bytes to {TrainingDataFilePath}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to save training data: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Load all training data from persistence
+        /// </summary>
+        public static AFLCoachSim.Core.DTO.TrainingDataDTO LoadTrainingData()
+        {
+            try
+            {
+                if (!File.Exists(TrainingDataFilePath))
+                {
+                    Debug.Log($"[SaveLoadManager] No training data file found at {TrainingDataFilePath}, creating new");
+                    return new AFLCoachSim.Core.DTO.TrainingDataDTO();
+                }
+                
+                string json = File.ReadAllText(TrainingDataFilePath);
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return new AFLCoachSim.Core.DTO.TrainingDataDTO();
+                }
+                
+                var data = JsonSerialization.FromJson<AFLCoachSim.Core.DTO.TrainingDataDTO>(json);
+                if (data == null)
+                {
+                    Debug.LogWarning("[SaveLoadManager] Failed to deserialize training data, creating new");
+                    return new AFLCoachSim.Core.DTO.TrainingDataDTO();
+                }
+                
+                Debug.Log($"[SaveLoadManager] Loaded training data with {data.PlayerPotentials.Count} potentials, {data.Enrollments.Count} enrollments");
+                return data;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to load training data: {e.Message}");
+                return new AFLCoachSim.Core.DTO.TrainingDataDTO();
+            }
+        }
+        
+        /// <summary>
+        /// Check if training data exists
+        /// </summary>
+        public static bool HasTrainingData()
+        {
+            return File.Exists(TrainingDataFilePath);
+        }
+        
+        /// <summary>
+        /// Clear all training data (useful for testing or resetting)
+        /// </summary>
+        public static void ClearTrainingData()
+        {
+            try
+            {
+                if (File.Exists(TrainingDataFilePath))
+                {
+                    File.Delete(TrainingDataFilePath);
+                    Debug.Log("[SaveLoadManager] Cleared all training data");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to clear training data: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Backup training data with a suffix
+        /// </summary>
+        public static void BackupTrainingData(string suffix = null)
+        {
+            try
+            {
+                if (!File.Exists(TrainingDataFilePath))
+                {
+                    Debug.LogWarning("[SaveLoadManager] No training data file to backup");
+                    return;
+                }
+                
+                string timestamp = suffix ?? DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string backupPath = Path.Combine(DataFolder, $"training_data_backup_{timestamp}.json");
+                File.Copy(TrainingDataFilePath, backupPath, overwrite: true);
+                Debug.Log($"[SaveLoadManager] Training data backed up to: {backupPath}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to backup training data: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Restore training data from a backup
+        /// </summary>
+        public static bool RestoreTrainingData(string suffix)
+        {
+            try
+            {
+                string backupPath = Path.Combine(DataFolder, $"training_data_backup_{suffix}.json");
+                if (!File.Exists(backupPath))
+                {
+                    Debug.LogWarning($"[SaveLoadManager] Backup file not found: {backupPath}");
+                    return false;
+                }
+                
+                File.Copy(backupPath, TrainingDataFilePath, overwrite: true);
+                Debug.Log($"[SaveLoadManager] Training data restored from: {backupPath}");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to restore training data: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Get training data file statistics for debugging
+        /// </summary>
+        public static (bool exists, long sizeBytes, DateTime lastModified) GetTrainingDataStats()
+        {
+            try
+            {
+                if (File.Exists(TrainingDataFilePath))
+                {
+                    var fileInfo = new FileInfo(TrainingDataFilePath);
+                    return (true, fileInfo.Length, fileInfo.LastWriteTime);
+                }
+                else
+                {
+                    return (false, 0, DateTime.MinValue);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[SaveLoadManager] Failed to get training data stats: {e.Message}");
+                return (false, 0, DateTime.MinValue);
+            }
+        }
     }
 }

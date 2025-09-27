@@ -30,7 +30,8 @@ namespace AFLCoachSim.Core.Engine.Match
         // Models
         public FatigueModel FatigueModel;
         public RotationManager RotationManager;
-        public InjuryModel InjuryModel;
+        public InjuryModel InjuryModel; // Modern injury model with unified injury system
+        public Injury.MatchInjuryContextProvider InjuryContextProvider; // Provides match context to injury manager
         public MatchTelemetry Telemetry = new MatchTelemetry();
     }
 }
