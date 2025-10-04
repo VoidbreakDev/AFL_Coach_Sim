@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFLCoachSim.Core.Models;
+using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Domain.ValueObjects;
 
 namespace AFLCoachSim.Core.Training
 {
@@ -23,7 +24,7 @@ namespace AFLCoachSim.Core.Training
         // Prerequisites and restrictions
         public int MinimumAge { get; set; }
         public int MaximumAge { get; set; }
-        public List<Position> SuitablePositions { get; set; }
+        public List<Role> SuitableRoles { get; set; }
         public DevelopmentStage TargetStage { get; set; }
         
         // Program parameters
@@ -35,16 +36,16 @@ namespace AFLCoachSim.Core.Training
         // Effectiveness factors
         public float BaseEffectiveness { get; set; }
         public Dictionary<DevelopmentStage, float> StageMultipliers { get; set; }
-        public Dictionary<Position, float> PositionMultipliers { get; set; }
+        public Dictionary<Role, float> RoleMultipliers { get; set; }
 
         public TrainingProgram()
         {
             Id = Guid.NewGuid().ToString();
             SecondaryFoci = new List<TrainingFocus>();
             AttributeTargets = new Dictionary<string, float>();
-            SuitablePositions = new List<Position>();
+            SuitableRoles = new List<Role>();
             StageMultipliers = new Dictionary<DevelopmentStage, float>();
-            PositionMultipliers = new Dictionary<Position, float>();
+            RoleMultipliers = new Dictionary<Role, float>();
             BaseEffectiveness = 1.0f;
             InjuryRiskModifier = 1.0f;
             FatigueRateModifier = 1.0f;
@@ -61,12 +62,12 @@ namespace AFLCoachSim.Core.Training
             if (StageMultipliers.ContainsKey(stage))
                 effectiveness *= StageMultipliers[stage];
             
-            // Apply position multiplier
-            if (PositionMultipliers.ContainsKey(player.Position))
-                effectiveness *= PositionMultipliers[player.Position];
+            // Apply role multiplier
+            if (RoleMultipliers.ContainsKey(player.PrimaryRole))
+                effectiveness *= RoleMultipliers[player.PrimaryRole];
                 
             // Apply age factors
-            int age = CalculateAge(player.DateOfBirth);
+            int age = player.Age;
             if (age < MinimumAge || age > MaximumAge)
                 effectiveness *= 0.7f; // Reduced effectiveness outside ideal age range
                 
@@ -96,14 +97,14 @@ namespace AFLCoachSim.Core.Training
         /// </summary>
         public bool IsSuitableFor(Player player, DevelopmentStage stage)
         {
-            int age = CalculateAge(player.DateOfBirth);
+            int age = player.Age;
             
             // Check age constraints
             if (age < MinimumAge || age > MaximumAge)
                 return false;
                 
-            // Check position suitability (empty list means suitable for all)
-            if (SuitablePositions.Any() && !SuitablePositions.Contains(player.Position))
+            // Check role suitability (empty list means suitable for all)
+            if (SuitableRoles.Any() && !SuitableRoles.Contains(player.PrimaryRole))
                 return false;
                 
             // Check development stage
@@ -113,14 +114,6 @@ namespace AFLCoachSim.Core.Training
             return true;
         }
 
-        private int CalculateAge(DateTime dateOfBirth)
-        {
-            var today = DateTime.Today;
-            var age = today.Year - dateOfBirth.Year;
-            if (dateOfBirth.Date > today.AddYears(-age))
-                age--;
-            return age;
-        }
     }
 
     /// <summary>

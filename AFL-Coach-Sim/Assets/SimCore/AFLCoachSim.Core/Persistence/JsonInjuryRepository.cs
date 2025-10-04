@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using AFLCoachSim.Core.Injuries.Domain;
 using AFLCoachSim.Core.DTO;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Persistence
 {
@@ -152,11 +152,11 @@ namespace AFLCoachSim.Core.Persistence
                 {
                     File.Delete(InjuryDataFilePath);
                 }
-                Debug.Log("[JsonInjuryRepository] Cleared all injury data");
+                CoreLogger.Log("[JsonInjuryRepository] Cleared all injury data");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonInjuryRepository] Failed to clear injury data: {e.Message}");
+                CoreLogger.LogError($"[JsonInjuryRepository] Failed to clear injury data: {e.Message}");
             }
         }
         
@@ -166,7 +166,7 @@ namespace AFLCoachSim.Core.Persistence
             allData.PlayerInjuryHistories.RemoveAll(h => h.PlayerId == playerId);
             SaveAllInjuryDataInternal(allData);
             
-            Debug.Log($"[JsonInjuryRepository] Cleared injury data for player {playerId}");
+            CoreLogger.Log($"[JsonInjuryRepository] Cleared injury data for player {playerId}");
         }
         
         #endregion
@@ -184,17 +184,17 @@ namespace AFLCoachSim.Core.Persistence
             {
                 if (!File.Exists(InjuryDataFilePath))
                 {
-                    Debug.LogWarning("[JsonInjuryRepository] No injury data file to backup");
+                    CoreLogger.LogWarning("[JsonInjuryRepository] No injury data file to backup");
                     return;
                 }
                 
                 string backupPath = Path.Combine(DataFolder, $"injury_data_backup_{backupSuffix}.json");
                 File.Copy(InjuryDataFilePath, backupPath, overwrite: true);
-                Debug.Log($"[JsonInjuryRepository] Injury data backed up to: {backupPath}");
+                CoreLogger.Log($"[JsonInjuryRepository] Injury data backed up to: {backupPath}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonInjuryRepository] Failed to backup injury data: {e.Message}");
+                CoreLogger.LogError($"[JsonInjuryRepository] Failed to backup injury data: {e.Message}");
             }
         }
         
@@ -205,17 +205,17 @@ namespace AFLCoachSim.Core.Persistence
                 string backupPath = Path.Combine(DataFolder, $"injury_data_backup_{backupSuffix}.json");
                 if (!File.Exists(backupPath))
                 {
-                    Debug.LogWarning($"[JsonInjuryRepository] Backup file not found: {backupPath}");
+                    CoreLogger.LogWarning($"[JsonInjuryRepository] Backup file not found: {backupPath}");
                     return false;
                 }
                 
                 File.Copy(backupPath, InjuryDataFilePath, overwrite: true);
-                Debug.Log($"[JsonInjuryRepository] Injury data restored from: {backupPath}");
+                CoreLogger.Log($"[JsonInjuryRepository] Injury data restored from: {backupPath}");
                 return true;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonInjuryRepository] Failed to restore injury data: {e.Message}");
+                CoreLogger.LogError($"[JsonInjuryRepository] Failed to restore injury data: {e.Message}");
                 return false;
             }
         }
@@ -252,7 +252,7 @@ namespace AFLCoachSim.Core.Persistence
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonInjuryRepository] Failed to load injury data: {e.Message}");
+                CoreLogger.LogError($"[JsonInjuryRepository] Failed to load injury data: {e.Message}");
                 return new InjuryDataDTO();
             }
         }
@@ -263,7 +263,7 @@ namespace AFLCoachSim.Core.Persistence
             {
                 if (data == null)
                 {
-                    Debug.LogError("[JsonInjuryRepository] Cannot save null injury data");
+                    CoreLogger.LogError("[JsonInjuryRepository] Cannot save null injury data");
                     return;
                 }
                 
@@ -273,12 +273,12 @@ namespace AFLCoachSim.Core.Persistence
                 
                 #if UNITY_EDITOR
                 var fileInfo = new FileInfo(InjuryDataFilePath);
-                Debug.Log($"[JsonInjuryRepository] Injury data saved: {fileInfo.Length} bytes to {InjuryDataFilePath}");
+                CoreLogger.Log($"[JsonInjuryRepository] Injury data saved: {fileInfo.Length} bytes to {InjuryDataFilePath}");
                 #endif
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonInjuryRepository] Failed to save injury data: {e.Message}");
+                CoreLogger.LogError($"[JsonInjuryRepository] Failed to save injury data: {e.Message}");
             }
         }
         

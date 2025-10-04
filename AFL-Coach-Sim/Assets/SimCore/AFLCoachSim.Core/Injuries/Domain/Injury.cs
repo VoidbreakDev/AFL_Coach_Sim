@@ -52,15 +52,17 @@ namespace AFLCoachSim.Core.Injuries.Domain
             SetRecoveryParameters();
         }
         
+        private static readonly System.Random _random = new System.Random();
+        
         private void SetRecoveryParameters()
         {
             ExpectedRecoveryDays = Severity switch
             {
-                InjurySeverity.Niggle => UnityEngine.Random.Range(1, 3),
-                InjurySeverity.Minor => UnityEngine.Random.Range(3, 14),
-                InjurySeverity.Moderate => UnityEngine.Random.Range(14, 42),
-                InjurySeverity.Major => UnityEngine.Random.Range(42, 120),
-                InjurySeverity.Severe => UnityEngine.Random.Range(120, 365),
+                InjurySeverity.Niggle => _random.Next(1, 4), // Range is inclusive of min, exclusive of max
+                InjurySeverity.Minor => _random.Next(3, 15),
+                InjurySeverity.Moderate => _random.Next(14, 43),
+                InjurySeverity.Major => _random.Next(42, 121),
+                InjurySeverity.Severe => _random.Next(120, 366),
                 _ => 7
             };
             
@@ -190,10 +192,10 @@ namespace AFLCoachSim.Core.Injuries.Domain
             return Severity switch
             {
                 InjurySeverity.Niggle => 0,
-                InjurySeverity.Minor => UnityEngine.Random.Range(0, 2),
-                InjurySeverity.Moderate => UnityEngine.Random.Range(1, 4),
-                InjurySeverity.Major => UnityEngine.Random.Range(3, 7),
-                InjurySeverity.Severe => UnityEngine.Random.Range(7, 14),
+                InjurySeverity.Minor => _random.Next(0, 3),
+                InjurySeverity.Moderate => _random.Next(1, 5),
+                InjurySeverity.Major => _random.Next(3, 8),
+                InjurySeverity.Severe => _random.Next(7, 15),
                 _ => 1
             };
         }
@@ -226,7 +228,7 @@ namespace AFLCoachSim.Core.Injuries.Domain
         
         private static string GetRandomBodyPart(params string[] parts)
         {
-            return parts[UnityEngine.Random.Range(0, parts.Length)];
+            return parts[_random.Next(0, parts.Length)];
         }
     }
 }

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using AFLCoachSim.Core.Training;
 using AFLCoachSim.Core.DTO;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Persistence
 {
@@ -308,11 +308,11 @@ namespace AFLCoachSim.Core.Persistence
                 {
                     File.Delete(TrainingDataFilePath);
                 }
-                Debug.Log("[JsonTrainingRepository] Cleared all training data");
+                CoreLogger.Log("[JsonTrainingRepository] Cleared all training data");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to clear training data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to clear training data: {e.Message}");
             }
         }
 
@@ -337,7 +337,7 @@ namespace AFLCoachSim.Core.Persistence
             }
             
             SaveAllTrainingDataInternal(allData);
-            Debug.Log($"[JsonTrainingRepository] Cleared training data for player {playerId}");
+            CoreLogger.Log($"[JsonTrainingRepository] Cleared training data for player {playerId}");
         }
 
         #endregion
@@ -355,17 +355,17 @@ namespace AFLCoachSim.Core.Persistence
             {
                 if (!File.Exists(TrainingDataFilePath))
                 {
-                    Debug.LogWarning("[JsonTrainingRepository] No training data file to backup");
+                    CoreLogger.LogWarning("[JsonTrainingRepository] No training data file to backup");
                     return;
                 }
                 
                 string backupPath = Path.Combine(DataFolder, $"training_data_backup_{backupSuffix}.json");
                 File.Copy(TrainingDataFilePath, backupPath, overwrite: true);
-                Debug.Log($"[JsonTrainingRepository] Training data backed up to: {backupPath}");
+                CoreLogger.Log($"[JsonTrainingRepository] Training data backed up to: {backupPath}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to backup training data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to backup training data: {e.Message}");
             }
         }
 
@@ -376,17 +376,17 @@ namespace AFLCoachSim.Core.Persistence
                 string backupPath = Path.Combine(DataFolder, $"training_data_backup_{backupSuffix}.json");
                 if (!File.Exists(backupPath))
                 {
-                    Debug.LogWarning($"[JsonTrainingRepository] Backup file not found: {backupPath}");
+                    CoreLogger.LogWarning($"[JsonTrainingRepository] Backup file not found: {backupPath}");
                     return false;
                 }
                 
                 File.Copy(backupPath, TrainingDataFilePath, overwrite: true);
-                Debug.Log($"[JsonTrainingRepository] Training data restored from: {backupPath}");
+                CoreLogger.Log($"[JsonTrainingRepository] Training data restored from: {backupPath}");
                 return true;
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to restore training data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to restore training data: {e.Message}");
                 return false;
             }
         }
@@ -423,7 +423,7 @@ namespace AFLCoachSim.Core.Persistence
                 // If migration occurred, save the migrated data and create backup of original
                 if (migratedData.Version != originalVersion)
                 {
-                    Debug.Log($"[JsonTrainingRepository] Data migrated from {originalVersion} to {migratedData.Version}, saving migrated version");
+                    CoreLogger.Log($"[JsonTrainingRepository] Data migrated from {originalVersion} to {migratedData.Version}, saving migrated version");
                     
                     // Create backup of original version before saving migrated data
                     string backupName = $"pre_migration_{originalVersion ?? "unknown"}_{DateTime.Now:yyyyMMdd_HHmmss}";
@@ -437,7 +437,7 @@ namespace AFLCoachSim.Core.Persistence
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to load training data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to load training data: {e.Message}");
                 return new TrainingDataDTO();
             }
         }
@@ -448,7 +448,7 @@ namespace AFLCoachSim.Core.Persistence
             {
                 if (data == null)
                 {
-                    Debug.LogError("[JsonTrainingRepository] Cannot save null training data");
+                    CoreLogger.LogError("[JsonTrainingRepository] Cannot save null training data");
                     return;
                 }
                 
@@ -458,12 +458,12 @@ namespace AFLCoachSim.Core.Persistence
                 
                 #if UNITY_EDITOR
                 var fileInfo = new FileInfo(TrainingDataFilePath);
-                Debug.Log($"[JsonTrainingRepository] Training data saved: {fileInfo.Length} bytes to {TrainingDataFilePath}");
+                CoreLogger.Log($"[JsonTrainingRepository] Training data saved: {fileInfo.Length} bytes to {TrainingDataFilePath}");
                 #endif
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to save training data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to save training data: {e.Message}");
             }
         }
         
@@ -476,7 +476,7 @@ namespace AFLCoachSim.Core.Persistence
             {
                 if (data == null)
                 {
-                    Debug.LogError("[JsonTrainingRepository] Cannot save null migrated data");
+                    CoreLogger.LogError("[JsonTrainingRepository] Cannot save null migrated data");
                     return;
                 }
                 
@@ -484,11 +484,11 @@ namespace AFLCoachSim.Core.Persistence
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
                 File.WriteAllText(TrainingDataFilePath, json);
                 
-                Debug.Log($"[JsonTrainingRepository] Migrated training data saved to {TrainingDataFilePath}");
+                CoreLogger.Log($"[JsonTrainingRepository] Migrated training data saved to {TrainingDataFilePath}");
             }
             catch (Exception e)
             {
-                Debug.LogError($"[JsonTrainingRepository] Failed to save migrated data: {e.Message}");
+                CoreLogger.LogError($"[JsonTrainingRepository] Failed to save migrated data: {e.Message}");
             }
         }
 

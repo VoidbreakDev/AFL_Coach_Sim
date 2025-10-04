@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFLCoachSim.Core.Models;
+using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Domain.ValueObjects;
 
 namespace AFLCoachSim.Core.Training
 {
@@ -26,7 +27,7 @@ namespace AFLCoachSim.Core.Training
         /// </summary>
         public DevelopmentPotential CalculatePlayerPotential(Player player)
         {
-            int age = CalculateAge(player.DateOfBirth);
+            int age = player.Age;
             var stage = GetDevelopmentStage(age);
             
             var potential = new DevelopmentPotential
@@ -37,18 +38,18 @@ namespace AFLCoachSim.Core.Training
             };
 
             // Calculate attribute-specific potentials based on position and current ratings
-            var attributes = player.Attributes;
-            potential.AttributePotentials["Kicking"] = CalculateAttributePotential(attributes.Kicking, GetPositionBonus(player.Position, "Kicking"));
-            potential.AttributePotentials["Marking"] = CalculateAttributePotential(attributes.Marking, GetPositionBonus(player.Position, "Marking"));
-            potential.AttributePotentials["Handballing"] = CalculateAttributePotential(attributes.Handballing, GetPositionBonus(player.Position, "Handballing"));
-            potential.AttributePotentials["Contested"] = CalculateAttributePotential(attributes.Contested, GetPositionBonus(player.Position, "Contested"));
-            potential.AttributePotentials["Endurance"] = CalculateAttributePotential(attributes.Endurance, GetPositionBonus(player.Position, "Endurance"));
+            var attributes = player.Attr;
+            potential.AttributePotentials["Kicking"] = CalculateAttributePotential(attributes.Kicking, GetRoleBonus(player.PrimaryRole, "Kicking"));
+            potential.AttributePotentials["Marking"] = CalculateAttributePotential(attributes.Marking, GetRoleBonus(player.PrimaryRole, "Marking"));
+            potential.AttributePotentials["Handball"] = CalculateAttributePotential(attributes.Handball, GetRoleBonus(player.PrimaryRole, "Handball"));
+            potential.AttributePotentials["Clearance"] = CalculateAttributePotential(attributes.Clearance, GetRoleBonus(player.PrimaryRole, "Clearance"));
+            potential.AttributePotentials["WorkRate"] = CalculateAttributePotential(attributes.WorkRate, GetRoleBonus(player.PrimaryRole, "WorkRate"));
 
             // Set preferred training based on position
-            potential.PreferredTraining = GetPreferredTrainingForPosition(player.Position);
+            potential.PreferredTraining = GetPreferredTrainingForRole(player.PrimaryRole);
             
             // Injury proneness based on age, position, and random factors
-            potential.InjuryProneness = CalculateInjuryProneness(age, player.Position);
+            potential.InjuryProneness = CalculateInjuryProneness(age, player.PrimaryRole);
 
             _playerPotentials[player.Id] = potential;
             return potential;
@@ -64,7 +65,7 @@ namespace AFLCoachSim.Core.Training
             foreach (var player in players)
             {
                 var potential = GetOrCreatePlayerPotential(player);
-                var stage = GetDevelopmentStage(CalculateAge(player.DateOfBirth));
+                var stage = GetDevelopmentStage(player.Age);
                 var outcome = CalculateTrainingOutcome(program, session, player, potential, stage);
                 
                 outcomes[player.Id] = outcome;
@@ -145,8 +146,8 @@ namespace AFLCoachSim.Core.Training
         private float CalculateOverallPotential(Player player, int age)
         {
             // Base potential influenced by current attributes and age
-            var attrs = player.Attributes;
-            float currentAverage = (attrs.Kicking + attrs.Marking + attrs.Handballing + attrs.Contested + attrs.Endurance) / 5f;
+            var attrs = player.Attr;
+            float currentAverage = (attrs.Kicking + attrs.Marking + attrs.Handball + attrs.Clearance + attrs.WorkRate) / 5f;
             
             // Younger players have higher potential ceiling
             float ageFactor = age <= 20 ? 1.3f : age <= 25 ? 1.1f : age <= 29 ? 1.0f : 0.8f;
@@ -193,56 +194,55 @@ namespace AFLCoachSim.Core.Training
         }
 
         /// <summary>
-        /// Get position-specific bonus for different attributes
+        /// Get role-specific bonus for different attributes
         /// </summary>
-        private float GetPositionBonus(Position position, string attribute)
+        private float GetRoleBonus(Role role, string attribute)
         {
-            var bonuses = new Dictionary<(Position, string), float>
+            var bonuses = new Dictionary<(Role, string), float>
             {
-                // Forwards
-                {(Position.FullForward, "Kicking"), 0.8f},
-                {(Position.FullForward, "Marking"), 0.9f},
-                {(Position.ForwardPocket, "Kicking"), 0.7f},
-                {(Position.HalfForward, "Kicking"), 0.6f},
-                {(Position.HalfForward, "Contested"), 0.5f},
+                // Key Position Forwards
+                {(Role.KPF, "Kicking"), 0.8f},
+                {(Role.KPF, "Marking"), 0.9f},
+                {(Role.SMLF, "Kicking"), 0.7f},
+                {(Role.HFF, "Kicking"), 0.6f},
+                {(Role.HFF, "Clearance"), 0.5f},
                 
                 // Midfielders  
-                {(Position.Centre, "Endurance"), 0.9f},
-                {(Position.Centre, "Handballing"), 0.8f},
-                {(Position.Rover, "Contested"), 0.7f},
-                {(Position.RuckRover, "Contested"), 0.8f},
-                {(Position.Wing, "Endurance"), 0.8f},
+                {(Role.MID, "WorkRate"), 0.9f},
+                {(Role.MID, "Handball"), 0.8f},
+                {(Role.MID, "Clearance"), 0.8f},
+                {(Role.WING, "WorkRate"), 0.8f},
                 
                 // Defenders
-                {(Position.FullBack, "Marking"), 0.8f},
-                {(Position.HalfBack, "Kicking"), 0.7f},
-                {(Position.BackPocket, "Contested"), 0.6f},
+                {(Role.KPD, "Marking"), 0.8f},
+                {(Role.HBF, "Kicking"), 0.7f},
+                {(Role.SMLB, "Clearance"), 0.6f},
                 
                 // Ruck
-                {(Position.Ruckman, "Marking"), 0.9f},
-                {(Position.Ruckman, "Contested"), 0.8f}
+                {(Role.RUC, "Marking"), 0.9f},
+                {(Role.RUC, "Clearance"), 0.8f}
             };
             
-            return bonuses.ContainsKey((position, attribute)) ? bonuses[(position, attribute)] : 0.3f;
+            return bonuses.ContainsKey((role, attribute)) ? bonuses[(role, attribute)] : 0.3f;
         }
 
         /// <summary>
-        /// Get preferred training focuses for each position
+        /// Get preferred training focuses for each role
         /// </summary>
-        private List<TrainingFocus> GetPreferredTrainingForPosition(Position position)
+        private List<TrainingFocus> GetPreferredTrainingForRole(Role role)
         {
-            var preferences = new Dictionary<Position, List<TrainingFocus>>
+            var preferences = new Dictionary<Role, List<TrainingFocus>>
             {
-                {Position.FullForward, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.Strength}},
-                {Position.HalfForward, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Speed, TrainingFocus.Contested}},
-                {Position.Centre, new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Handballing, TrainingFocus.DecisionMaking}},
-                {Position.Wing, new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Speed, TrainingFocus.Kicking}},
-                {Position.HalfBack, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.DecisionMaking}},
-                {Position.FullBack, new List<TrainingFocus> {TrainingFocus.Marking, TrainingFocus.Strength, TrainingFocus.Positioning}},
-                {Position.Ruckman, new List<TrainingFocus> {TrainingFocus.Strength, TrainingFocus.Contested, TrainingFocus.Marking}}
+                {Role.KPF, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.Strength}},
+                {Role.HFF, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Speed, TrainingFocus.Contested}},
+                {Role.MID, new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Handballing, TrainingFocus.DecisionMaking}},
+                {Role.WING, new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Speed, TrainingFocus.Kicking}},
+                {Role.HBF, new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.DecisionMaking}},
+                {Role.KPD, new List<TrainingFocus> {TrainingFocus.Marking, TrainingFocus.Strength, TrainingFocus.Positioning}},
+                {Role.RUC, new List<TrainingFocus> {TrainingFocus.Strength, TrainingFocus.Contested, TrainingFocus.Marking}}
             };
 
-            return preferences.ContainsKey(position) ? preferences[position] : new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Kicking};
+            return preferences.ContainsKey(role) ? preferences[role] : new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Kicking};
         }
 
         private float CalculateInjuryRisk(TrainingProgram program, TrainingSession session, Player player, DevelopmentPotential potential)
@@ -252,7 +252,7 @@ namespace AFLCoachSim.Core.Training
             baseRisk *= potential.InjuryProneness;
             
             // Age factor - older players more injury prone
-            int age = CalculateAge(player.DateOfBirth);
+            int age = player.Age;
             if (age > 30) baseRisk *= 1.5f;
             else if (age > 26) baseRisk *= 1.2f;
             
@@ -267,9 +267,9 @@ namespace AFLCoachSim.Core.Training
 
         private float CalculateMoraleImpact(float effectiveness, TrainingIntensity intensity)
         {
-            float base = effectiveness > 1.0f ? 2f : effectiveness > 0.8f ? 1f : 0f;
+            float baseMorale = effectiveness > 1.0f ? 2f : effectiveness > 0.8f ? 1f : 0f;
             float intensityPenalty = (int)intensity > 3 ? -1f : 0f; // Elite intensity can reduce morale
-            return base + intensityPenalty;
+            return baseMorale + intensityPenalty;
         }
 
         private float CalculateTeamChemistryImpact(TrainingType type)
@@ -308,19 +308,19 @@ namespace AFLCoachSim.Core.Training
 
         private float GetPlayerAttributeValue(Player player, string attribute)
         {
-            var attrs = player.Attributes;
+            var attrs = player.Attr;
             switch (attribute)
             {
                 case "Kicking":
                     return attrs.Kicking;
                 case "Marking":
                     return attrs.Marking;
-                case "Handballing":
-                    return attrs.Handballing;
-                case "Contested":
-                    return attrs.Contested;
-                case "Endurance":
-                    return attrs.Endurance;
+                case "Handball":
+                    return attrs.Handball;
+                case "Clearance":
+                    return attrs.Clearance;
+                case "WorkRate":
+                    return attrs.WorkRate;
                 default:
                     return 50f;
             }
@@ -358,32 +358,24 @@ namespace AFLCoachSim.Core.Training
                 return DevelopmentStage.Declining;
         }
 
-        private int CalculateAge(DateTime dateOfBirth)
-        {
-            var today = DateTime.Today;
-            var age = today.Year - dateOfBirth.Year;
-            if (dateOfBirth.Date > today.AddYears(-age))
-                age--;
-            return age;
-        }
 
-        private float CalculateInjuryProneness(int age, Position position)
+        private float CalculateInjuryProneness(int age, Role role)
         {
-            float base = 1.0f;
+            float baseProneness = 1.0f;
             
             // Age factor
-            if (age > 30) base += 0.3f;
-            else if (age < 20) base += 0.1f; // Young players slightly more prone due to inexperience
+            if (age > 30) baseProneness += 0.3f;
+            else if (age < 20) baseProneness += 0.1f; // Young players slightly more prone due to inexperience
             
-            // Position factor - more physical positions have higher injury risk
-            var physicalPositions = new[] { Position.Ruckman, Position.FullForward, Position.FullBack, Position.Centre };
-            if (physicalPositions.Contains(position))
-                base += 0.2f;
+            // Role factor - more physical roles have higher injury risk
+            var physicalRoles = new[] { Role.RUC, Role.KPF, Role.KPD, Role.MID };
+            if (physicalRoles.Contains(role))
+                baseProneness += 0.2f;
                 
             // Random individual variation
-            base += ((float)_random.NextDouble() * 0.4f) - 0.2f; // ±0.2 variation
+            baseProneness += ((float)_random.NextDouble() * 0.4f) - 0.2f; // ±0.2 variation
             
-            return Math.Max(0.5f, Math.Min(2.0f, base)); // Clamp between 0.5x and 2.0x
+            return Math.Max(0.5f, Math.Min(2.0f, baseProneness)); // Clamp between 0.5x and 2.0x
         }
 
         /// <summary>

@@ -353,8 +353,16 @@ namespace AFLManager.UI
         {
             if (currentPlayer == null) return;
             
-            // TODO: Open player development screen
-            Debug.Log($"Opening development screen for {currentPlayer.Name}");
+            // Find and open the player development panel
+            var developmentPanel = FindObjectOfType<PlayerDevelopmentPanel>();
+            if (developmentPanel != null)
+            {
+                developmentPanel.ShowPlayerDevelopment(currentPlayer);
+            }
+            else
+            {
+                Debug.LogWarning("PlayerDevelopmentPanel not found in scene");
+            }
         }
     }
 }

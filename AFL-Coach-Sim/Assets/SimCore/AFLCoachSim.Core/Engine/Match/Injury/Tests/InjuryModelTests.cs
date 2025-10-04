@@ -8,8 +8,7 @@ using AFLCoachSim.Core.Engine.Match.Tuning;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Injuries;
 using AFLCoachSim.Core.Injuries.Domain;
-using AFLCoachSim.Core.Injuries.Persistence;
-using AFLCoachSim.Core.Injuries.Services;
+using AFLCoachSim.Core.Persistence;
 
 namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
 {
@@ -204,50 +203,69 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
         /// </summary>
         private class InMemoryTestRepository : IInjuryRepository
         {
-            private readonly List<InjuryDto> _injuries = new List<InjuryDto>();
-            private readonly List<InjuryHistoryDto> _history = new List<InjuryHistoryDto>();
-            private int _nextId = 1;
+            private readonly Dictionary<int, AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> _histories = new Dictionary<int, AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory>();
+            private readonly Dictionary<AFLCoachSim.Core.Injuries.Domain.InjuryId, AFLCoachSim.Core.Injuries.Domain.Injury> _injuries = new Dictionary<AFLCoachSim.Core.Injuries.Domain.InjuryId, AFLCoachSim.Core.Injuries.Domain.Injury>();
             
-            public void SaveInjury(InjuryDto injury)
+            // Implement all required interface methods
+            public void SavePlayerInjuryHistory(AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory history)
             {
-                injury.Id = _nextId++;
-                _injuries.Add(injury);
+                _histories[history.PlayerId] = history;
             }
             
-            public void UpdateInjury(InjuryDto injury)
+            public AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory LoadPlayerInjuryHistory(int playerId)
             {
-                var existing = _injuries.FirstOrDefault(i => i.Id == injury.Id);
-                if (existing != null)
+                return _histories.TryGetValue(playerId, out var history) ? history : null;
+            }
+            
+            public List<AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> LoadAllPlayerInjuryHistories()
+            {
+                return _histories.Values.ToList();
+            }
+            
+            public void RemovePlayerInjuryHistory(int playerId)
+            {
+                _histories.Remove(playerId);
+            }
+            
+            public void SaveInjury(AFLCoachSim.Core.Injuries.Domain.Injury injury)
+            {
+                _injuries[injury.Id] = injury;
+            }
+            
+            public AFLCoachSim.Core.Injuries.Domain.Injury LoadInjury(AFLCoachSim.Core.Injuries.Domain.InjuryId injuryId)
+            {
+                return _injuries.TryGetValue(injuryId, out var injury) ? injury : null;
+            }
+            
+            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadPlayerInjuries(int playerId)
+            {
+                return _injuries.Values.Where(i => i.PlayerId == playerId).ToList();
+            }
+            
+            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadActiveInjuries()
+            {
+                return _injuries.Values.Where(i => i.Status == InjuryStatus.Active).ToList();
+            }
+            
+            public void SaveAllInjuryData(AFLCoachSim.Core.DTO.InjuryDataDTO data) { }
+            public AFLCoachSim.Core.DTO.InjuryDataDTO LoadAllInjuryData() { return new AFLCoachSim.Core.DTO.InjuryDataDTO(); }
+            public void ClearAllInjuryData() 
+            {
+                _injuries.Clear();
+                _histories.Clear();
+            }
+            public void ClearPlayerInjuryData(int playerId) 
+            {
+                _histories.Remove(playerId);
+                var playerInjuries = _injuries.Where(kvp => kvp.Value.PlayerId == playerId).Select(kvp => kvp.Key).ToList();
+                foreach (var id in playerInjuries)
                 {
-                    _injuries.Remove(existing);
-                    _injuries.Add(injury);
+                    _injuries.Remove(id);
                 }
             }
-            
-            public InjuryDto GetInjury(int injuryId)
-            {
-                return _injuries.FirstOrDefault(i => i.Id == injuryId);
-            }
-            
-            public List<InjuryDto> GetActiveInjuries(int playerId)
-            {
-                return _injuries.Where(i => i.PlayerId == playerId && i.IsActive).ToList();
-            }
-            
-            public List<InjuryDto> GetAllInjuries(int playerId)
-            {
-                return _injuries.Where(i => i.PlayerId == playerId).ToList();
-            }
-            
-            public void SaveInjuryHistory(InjuryHistoryDto historyEntry)
-            {
-                _history.Add(historyEntry);
-            }
-            
-            public List<InjuryHistoryDto> GetInjuryHistory(int injuryId)
-            {
-                return _history.Where(h => h.InjuryId == injuryId).ToList();
-            }
+            public bool HasInjuryData() { return _injuries.Any() || _histories.Any(); }
+            public bool BackupInjuryData(string backupPath) { return true; }
+            public bool RestoreInjuryData(string backupPath) { return true; }
         }
     }
 }

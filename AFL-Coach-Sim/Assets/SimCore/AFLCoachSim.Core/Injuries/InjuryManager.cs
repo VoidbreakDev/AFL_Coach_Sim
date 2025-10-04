@@ -4,7 +4,7 @@ using System.Linq;
 using AFLCoachSim.Core.Injuries.Domain;
 using AFLCoachSim.Core.Persistence;
 using AFLCoachSim.Core.Engine.Match.Injury;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Injuries
 {
@@ -69,7 +69,7 @@ namespace AFLCoachSim.Core.Injuries
             OnInjuryOccurred?.Invoke(injury);
             OnPlayerPerformanceImpactChanged?.Invoke(playerId, history.CurrentPerformanceMultiplier);
             
-            Debug.Log($"[InjuryManager] Player {playerId} sustained {severity} {type} injury from {source}");
+            CoreLogger.Log($"[InjuryManager] Player {playerId} sustained {severity} {type} injury from {source}");
             
             return injury;
         }
@@ -144,7 +144,7 @@ namespace AFLCoachSim.Core.Injuries
             
             if (recoveredPlayers.Any())
             {
-                Debug.Log($"[InjuryManager] {recoveredPlayers.Count} players had injury status changes during daily processing");
+                CoreLogger.Log($"[InjuryManager] {recoveredPlayers.Count} players had injury status changes during daily processing");
             }
         }
         
@@ -362,7 +362,7 @@ namespace AFLCoachSim.Core.Injuries
                 _playerHistories[kvp.Key] = kvp.Value;
             }
             
-            Debug.Log($"[InjuryManager] Loaded injury histories for {_playerHistories.Count} players");
+            CoreLogger.Log($"[InjuryManager] Loaded injury histories for {_playerHistories.Count} players");
         }
         
         private PlayerInjuryHistory GetOrCreatePlayerHistory(int playerId)

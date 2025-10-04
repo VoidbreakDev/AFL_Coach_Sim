@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 using AFLCoachSim.Core.Training;
 using AFLCoachSim.Core.DTO;
 using AFLCoachSim.Core.Persistence;
@@ -426,7 +426,7 @@ namespace AFLCoachSim.Core.Tests
             Assert.LessOrEqual(saveTime.TotalSeconds, 5.0, "Save operation should complete within 5 seconds");
             Assert.LessOrEqual(loadTime.TotalSeconds, 5.0, "Load operation should complete within 5 seconds");
             
-            Debug.Log($"Performance Test - Save: {saveTime.TotalMilliseconds:F0}ms, Load: {loadTime.TotalMilliseconds:F0}ms");
+            CoreLogger.Log($"Performance Test - Save: {saveTime.TotalMilliseconds:F0}ms, Load: {loadTime.TotalMilliseconds:F0}ms");
         }
 
         #endregion

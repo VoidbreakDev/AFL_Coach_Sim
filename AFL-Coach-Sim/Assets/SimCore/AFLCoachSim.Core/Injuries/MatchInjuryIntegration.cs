@@ -4,7 +4,7 @@ using AFLCoachSim.Core.Injuries.Domain;
 using AFLCoachSim.Core.Engine.Match.Injury;
 using AFLCoachSim.Core.Engine.Match.Runtime;
 using AFLCoachSim.Core.Engine.Match;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Injuries
 {
@@ -82,7 +82,7 @@ namespace AFLCoachSim.Core.Injuries
                     // Playing with injuries may slow recovery
                     if (minutesPlayed > 0 && injury.Severity >= InjurySeverity.Moderate)
                     {
-                        Debug.Log($"[MatchInjuryIntegration] Player {playerId} played {minutesPlayed} minutes with {injury.Severity} injury - may affect recovery");
+                        CoreLogger.Log($"[MatchInjuryIntegration] Player {playerId} played {minutesPlayed} minutes with {injury.Severity} injury - may affect recovery");
                     }
                 }
             }
@@ -177,7 +177,7 @@ namespace AFLCoachSim.Core.Injuries
             // The injury is already recorded by the injury manager in ConvertMatchInjuryToDomain
             // This method can be used for additional processing if needed
             
-            Debug.Log($"[MatchInjuryIntegration] Match injury recorded: Player {injury.PlayerId} - {injury.Description}");
+            CoreLogger.Log($"[MatchInjuryIntegration] Match injury recorded: Player {injury.PlayerId} - {injury.Description}");
             
             // Update the runtime to reflect the recorded injury
             SyncRuntimeWithInjury(playerRuntime, injury);

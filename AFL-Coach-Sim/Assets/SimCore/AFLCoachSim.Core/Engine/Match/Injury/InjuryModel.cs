@@ -6,7 +6,7 @@ using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Engine.Match.Tuning;
 using AFLCoachSim.Core.Injuries;
 using AFLCoachSim.Core.Injuries.Domain;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Injury
 {
@@ -17,11 +17,13 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
     {
         private readonly InjuryManager _injuryManager;
         private readonly Dictionary<int, PlayerRuntimeInjuryState> _playerInjuryStates;
+        private readonly ILogger _logger;
         
-        public InjuryModel(InjuryManager injuryManager)
+        public InjuryModel(InjuryManager injuryManager, ILogger logger = null)
         {
             _injuryManager = injuryManager;
             _playerInjuryStates = new Dictionary<int, PlayerRuntimeInjuryState>();
+            _logger = logger ?? NullLogger.Instance;
         }
         
         /// <summary>
@@ -57,7 +59,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                 ApplyPreExistingInjuriesToRuntime(playerRuntime, injuryState);
             }
             
-            Debug.Log($"[InjuryModel] Initialized injury states for {allPlayers.Count} players, {_playerInjuryStates.Values.Count(s => s.PreExistingInjuries.Any())} with pre-existing injuries");
+            _logger.Log($"[InjuryModel] Initialized injury states for {allPlayers.Count} players, {_playerInjuryStates.Values.Count(s => s.PreExistingInjuries.Any())} with pre-existing injuries");
         }
         
         /// <summary>
@@ -91,7 +93,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                         UpdatePlayerInjuryState(playerId, newInjury);
                         newInjuries++;
                         
-                        Debug.Log($"[InjuryModel] Player {playerId} sustained {newInjury.Severity} {newInjury.Type} injury during {phase}");
+                        _logger.Log($"[InjuryModel] Player {playerId} sustained {newInjury.Severity} {newInjury.Type} injury during {phase}");
                     }
                 }
             }
@@ -178,7 +180,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             return rng.NextFloat() < injuryProbability;
         }
         
-        private Injury CreateMatchInjury(PlayerRuntime playerRuntime, Phase phase, DeterministicRandom rng)
+        private AFLCoachSim.Core.Injuries.Domain.Injury CreateMatchInjury(PlayerRuntime playerRuntime, Phase phase, DeterministicRandom rng)
         {
             var playerId = playerRuntime.Player.ID;
             var player = playerRuntime.Player;
@@ -202,7 +204,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             return injury;
         }
         
-        private void ApplyNewInjuryToRuntime(PlayerRuntime playerRuntime, Injury injury)
+        private void ApplyNewInjuryToRuntime(PlayerRuntime playerRuntime, AFLCoachSim.Core.Injuries.Domain.Injury injury)
         {
             // Apply immediate performance impact
             var currentMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerRuntime.Player.ID);
@@ -243,7 +245,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             ApplyInjuryTypeSpecificEffects(playerRuntime, injury);
         }
         
-        private void ApplyInjuryTypeSpecificEffects(PlayerRuntime playerRuntime, Injury injury)
+        private void ApplyInjuryTypeSpecificEffects(PlayerRuntime playerRuntime, AFLCoachSim.Core.Injuries.Domain.Injury injury)
         {
             // Apply type-specific performance impacts
             switch (injury.Type)
@@ -291,7 +293,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             }
         }
         
-        private void UpdatePlayerInjuryState(int playerId, Injury newInjury)
+        private void UpdatePlayerInjuryState(int playerId, AFLCoachSim.Core.Injuries.Domain.Injury newInjury)
         {
             if (_playerInjuryStates.TryGetValue(playerId, out var state))
             {
@@ -410,9 +412,8 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
         
         private int GetPlayerAge(Domain.Entities.Player player)
         {
-            // This would come from player data - placeholder for now
-            // In a real implementation, you'd access player.Age or calculate from birth date
-            return UnityEngine.Random.Range(18, 35);
+            // Use actual player age from the player data
+            return player.Age;
         }
         
         private BodyPart GetMatchSpecificBodyPart(InjuryType injuryType, Phase phase, DeterministicRandom rng)
@@ -502,9 +503,9 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
         public int PlayerId { get; set; }
         public float PreExistingPerformanceMultiplier { get; set; } = 1.0f;
         public bool CanParticipate { get; set; } = true;
-        public List<Injury> PreExistingInjuries { get; set; } = new List<Injury>();
-        public List<Injury> NewMatchInjuries { get; set; } = new List<Injury>();
-        public Injury MostSeverePreExisting { get; set; }
+        public List<AFLCoachSim.Core.Injuries.Domain.Injury> PreExistingInjuries { get; set; } = new List<AFLCoachSim.Core.Injuries.Domain.Injury>();
+        public List<AFLCoachSim.Core.Injuries.Domain.Injury> NewMatchInjuries { get; set; } = new List<AFLCoachSim.Core.Injuries.Domain.Injury>();
+        public AFLCoachSim.Core.Injuries.Domain.Injury MostSeverePreExisting { get; set; }
     }
     
     /// <summary>

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.DTO;
-using UnityEngine;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Training
 {
@@ -19,7 +19,7 @@ namespace AFLCoachSim.Core.Training
         {
             if (data == null)
             {
-                Debug.LogWarning("[TrainingDataMigrator] Cannot migrate null data");
+                CoreLogger.LogWarning("[TrainingDataMigrator] Cannot migrate null data");
                 return new TrainingDataDTO();
             }
             
@@ -30,7 +30,7 @@ namespace AFLCoachSim.Core.Training
                 return data; // No migration needed
             }
             
-            Debug.Log($"[TrainingDataMigrator] Migrating training data from version {sourceVersion} to {CURRENT_VERSION}");
+            CoreLogger.Log($"[TrainingDataMigrator] Migrating training data from version {sourceVersion} to {CURRENT_VERSION}");
             
             var migratedData = data;
             
@@ -49,7 +49,7 @@ namespace AFLCoachSim.Core.Training
             migratedData.Version = CURRENT_VERSION;
             migratedData.SavedAt = DateTime.Now.ToString("O");
             
-            Debug.Log($"[TrainingDataMigrator] Successfully migrated training data to version {CURRENT_VERSION}");
+            CoreLogger.Log($"[TrainingDataMigrator] Successfully migrated training data to version {CURRENT_VERSION}");
             return migratedData;
         }
         
@@ -96,7 +96,7 @@ namespace AFLCoachSim.Core.Training
         /// </summary>
         private static TrainingDataDTO MigrateFrom0ToV1(TrainingDataDTO data)
         {
-            Debug.Log("[TrainingDataMigrator] Applying migration from pre-1.0 to version 1.0");
+            CoreLogger.Log("[TrainingDataMigrator] Applying migration from pre-1.0 to version 1.0");
             
             var migrated = new TrainingDataDTO
             {
@@ -153,7 +153,7 @@ namespace AFLCoachSim.Core.Training
                 }
             }
             
-            Debug.Log($"[TrainingDataMigrator] Migrated {migrated.PlayerPotentials.Count} potentials, " +
+            CoreLogger.Log($"[TrainingDataMigrator] Migrated {migrated.PlayerPotentials.Count} potentials, " +
                      $"{migrated.Enrollments.Count} enrollments, " +
                      $"{migrated.CompletedSessions.Count + migrated.ScheduledSessions.Count} sessions");
             
@@ -202,7 +202,7 @@ namespace AFLCoachSim.Core.Training
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TrainingDataMigrator] Failed to migrate development potential for player {original.PlayerId}: {e.Message}");
+                CoreLogger.LogError($"[TrainingDataMigrator] Failed to migrate development potential for player {original.PlayerId}: {e.Message}");
                 return null;
             }
         }
@@ -244,7 +244,7 @@ namespace AFLCoachSim.Core.Training
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TrainingDataMigrator] Failed to migrate enrollment for player {original.PlayerId}: {e.Message}");
+                CoreLogger.LogError($"[TrainingDataMigrator] Failed to migrate enrollment for player {original.PlayerId}: {e.Message}");
                 return null;
             }
         }
@@ -285,7 +285,7 @@ namespace AFLCoachSim.Core.Training
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TrainingDataMigrator] Failed to migrate session {original.Id}: {e.Message}");
+                CoreLogger.LogError($"[TrainingDataMigrator] Failed to migrate session {original.Id}: {e.Message}");
                 return null;
             }
         }
@@ -312,7 +312,7 @@ namespace AFLCoachSim.Core.Training
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TrainingDataMigrator] Failed to migrate efficiency for player {original.PlayerId}: {e.Message}");
+                CoreLogger.LogError($"[TrainingDataMigrator] Failed to migrate efficiency for player {original.PlayerId}: {e.Message}");
                 return null;
             }
         }
@@ -349,7 +349,7 @@ namespace AFLCoachSim.Core.Training
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TrainingDataMigrator] Failed to compare versions {version1} and {version2}: {e.Message}");
+                CoreLogger.LogError($"[TrainingDataMigrator] Failed to compare versions {version1} and {version2}: {e.Message}");
                 return false;
             }
         }

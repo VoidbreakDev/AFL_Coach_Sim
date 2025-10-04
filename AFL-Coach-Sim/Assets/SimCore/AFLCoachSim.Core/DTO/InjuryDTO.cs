@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.Injuries.Domain;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.DTO
 {
@@ -101,7 +102,7 @@ namespace AFLCoachSim.Core.DTO
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[InjuryDTO] Failed to convert injury {InjuryId} to domain: {e.Message}");
+                CoreLogger.Log($"[InjuryDTO] Failed to convert injury {InjuryId} to domain: {e.Message}");
                 return null;
             }
         }
@@ -174,7 +175,7 @@ namespace AFLCoachSim.Core.DTO
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PlayerInjuryHistoryDTO] Failed to convert injury history for player {PlayerId}: {e.Message}");
+                CoreLogger.Log($"[PlayerInjuryHistoryDTO] Failed to convert injury history for player {PlayerId}: {e.Message}");
                 return new PlayerInjuryHistory(PlayerId);
             }
         }

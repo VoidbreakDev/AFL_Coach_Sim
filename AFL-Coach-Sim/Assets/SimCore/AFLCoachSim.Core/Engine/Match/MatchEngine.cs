@@ -12,6 +12,7 @@ using AFLCoachSim.Core.Engine.Match.Injury;
 using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
 using AFLCoachSim.Core.Engine.Match.Tuning;
 using AFLCoachSim.Core.Injuries; // InjuryManager
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -115,7 +116,7 @@ namespace AFLCoachSim.Core.Engine.Match
             if (analytics.TotalNewInjuries > 0)
             {
                 var injuryReport = GenerateInjuryReport(analytics);
-                UnityEngine.Debug.Log($"[MatchEngine] Match Injury Report:\n{injuryReport}");
+                CoreLogger.Log($"[MatchEngine] Match Injury Report:\n{injuryReport}");
                 
                 // Store analytics in telemetry for later use
                 // You could extend MatchTelemetry to include enhanced injury analytics here
