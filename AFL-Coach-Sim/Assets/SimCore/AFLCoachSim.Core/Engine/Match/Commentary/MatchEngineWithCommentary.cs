@@ -5,6 +5,8 @@ using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
 using AFLCoachSim.Core.Engine.Match.Tuning;
+using AFLCoachSim.Core.Persistence;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Commentary
 {
@@ -40,7 +42,7 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
             Dictionary<TeamId, Team> teams,
             Dictionary<TeamId, List<Domain.Entities.Player>> rosters = null,
             Dictionary<TeamId, TeamTactics> tactics = null,
-            Weather weather = Weather.Clear,
+            WeatherCondition weather = WeatherCondition.Clear,
             Ground ground = null,
             int quarterSeconds = 20 * 60,
             DeterministicRandom rng = null,
@@ -59,10 +61,14 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
             // Create commentary sink
             var commentarySink = new CommentarySink(homeId, awayId, rosters, teamNames, rng);
             
+            // Create a default injury manager for the match
+            var injuryRepository = new JsonInjuryRepository();
+            var injuryManager = new AFLCoachSim.Core.Injuries.InjuryManager(injuryRepository);
+            
             // Run the match with commentary
             var result = MatchEngine.PlayMatch(
-                round, homeId, awayId, teams, rosters, tactics,
-                weather, ground, quarterSeconds, rng, tuning, commentarySink);
+                round, homeId, awayId, teams, injuryManager, rosters, 
+                tactics, weather, ground, quarterSeconds, rng, tuning, commentarySink);
             
             // Return enhanced result with commentary
             return new CommentatedMatchResult

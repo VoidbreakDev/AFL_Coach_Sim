@@ -6,6 +6,7 @@ using AFLCoachSim.Core.Season.Domain.Entities;
 using AFLCoachSim.Core.Season.Domain.ValueObjects;
 using AFLCoachSim.Core.Infrastructure.Logging;
 using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Weather;
 
 namespace AFLCoachSim.Core.Season.Services
 {

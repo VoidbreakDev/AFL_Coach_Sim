@@ -152,8 +152,8 @@ namespace AFLCoachSim.Core.Season.Domain.Entities
             var trade = new Trade(
                 offer.ProposingTeam,
                 offer.ReceivingTeam,
-                offer.OfferedAssets,
-                offer.RequestedAssets,
+                offer.OfferedAssets.ToList(),
+                offer.RequestedAssets.ToList(),
                 DateTime.UtcNow);
 
             trade.Complete();

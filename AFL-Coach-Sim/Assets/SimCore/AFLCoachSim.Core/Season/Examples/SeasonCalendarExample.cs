@@ -136,8 +136,9 @@ namespace AFLCoachSim.Core.Season.Examples
             CoreLogger.Log("\nSimulating match completions...");
             foreach (var match in currentMatches.Take(2)) // Complete first 2 matches
             {
-                var homeScore = UnityEngine.Random.Range(60, 120);
-                var awayScore = UnityEngine.Random.Range(60, 120);
+                var random = new System.Random();
+                var homeScore = random.Next(60, 120);
+                var awayScore = random.Next(60, 120);
                 var result = progressionManager.CompleteMatch(match.MatchId, homeScore, awayScore);
                 
                 if (result.Success)
@@ -182,7 +183,7 @@ namespace AFLCoachSim.Core.Season.Examples
             
             // Show typical match times
             CoreLogger.Log("\nTypical AFL Match Times:");
-            foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
+            foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>())
             {
                 var time = AFLCalendarUtilities.GetTypicalMatchTime(day);
                 CoreLogger.Log($"{day}: {time:h\\:mm} {(time.Hours >= 12 ? "PM" : "AM")}");
@@ -208,7 +209,7 @@ namespace AFLCoachSim.Core.Season.Examples
             
             // Analyze home/away balance
             CoreLogger.Log("Home/Away Balance:");
-            var teams = Enum.GetValues<TeamId>().Where(t => t != TeamId.None).ToList();
+            var teams = TeamId.GetAllTeams().Where(t => t != TeamId.None).ToList();
             
             foreach (var team in teams.Take(6)) // Show first 6 teams
             {
@@ -235,13 +236,13 @@ namespace AFLCoachSim.Core.Season.Examples
         
         private static string GetTeamState(TeamId teamId)
         {
-            return teamId switch
-            {
-                TeamId.Adelaide or TeamId.PortAdelaide => "SA",
-                TeamId.Brisbane or TeamId.GoldCoast => "QLD",
-                TeamId.WestCoast or TeamId.Fremantle => "WA",
-                _ => "VIC"
-            };
+            if (teamId == TeamId.Adelaide || teamId == TeamId.PortAdelaide)
+                return "SA";
+            if (teamId == TeamId.Brisbane || teamId == TeamId.GoldCoast)
+                return "QLD";
+            if (teamId == TeamId.WestCoast || teamId == TeamId.Fremantle)
+                return "WA";
+            return "VIC";
         }
     }
 }

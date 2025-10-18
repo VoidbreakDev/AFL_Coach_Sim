@@ -6,6 +6,9 @@ using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
 using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Persistence;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Tests
 {
@@ -58,17 +61,18 @@ namespace AFLCoachSim.Core.Tests
 
             int trials = 40;
             int lowTotal = 0, highTotal = 0;
+            var injuryManager = new InjuryManager(new JsonInjuryRepository());
 
             for (int i = 0; i < trials; i++)
             {
-                var resLow = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, rosters,
+                var resLow = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, injuryManager, rosters,
                     new Dictionary<TeamId, TeamTactics> { [new TeamId(1)] = lowRot, [new TeamId(2)] = lowRot },
-                    Weather.Clear, new Ground(), 10 * 60, new DeterministicRandom(100 + i));
+                    WeatherCondition.Clear, new Ground(), 10 * 60, new DeterministicRandom(100 + i));
                 lowTotal += resLow.HomeScore + resLow.AwayScore;
 
-                var resHigh = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, rosters,
+                var resHigh = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, injuryManager, rosters,
                     new Dictionary<TeamId, TeamTactics> { [new TeamId(1)] = highRot, [new TeamId(2)] = highRot },
-                    Weather.Clear, new Ground(), 10 * 60, new DeterministicRandom(200 + i));
+                    WeatherCondition.Clear, new Ground(), 10 * 60, new DeterministicRandom(200 + i));
                 highTotal += resHigh.HomeScore + resHigh.AwayScore;
             }
 

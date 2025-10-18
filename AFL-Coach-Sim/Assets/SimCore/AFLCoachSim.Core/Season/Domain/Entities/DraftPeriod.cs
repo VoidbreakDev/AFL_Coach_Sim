@@ -317,7 +317,7 @@ namespace AFLCoachSim.Core.Season.Domain.Entities
             {
                 CurrentPickNumber = nextPick.PickNumber;
                 CurrentRound = nextPick.Round;
-                nextPick.StartPick();
+                nextPick.StartPick(DateTime.UtcNow);
             }
             else
             {
@@ -441,9 +441,10 @@ namespace AFLCoachSim.Core.Season.Domain.Entities
         {
             return draftType switch
             {
-                DraftType.National => TimeSpan.FromMinutes(5),
-                DraftType.Rookie => TimeSpan.FromMinutes(3),
-                DraftType.PreSeason => TimeSpan.FromMinutes(2),
+                DraftType.NationalDraft => TimeSpan.FromMinutes(5),
+                DraftType.RookieDraft => TimeSpan.FromMinutes(3),
+                DraftType.MidSeasonDraft => TimeSpan.FromMinutes(2),
+                DraftType.SupplementaryDraft => TimeSpan.FromMinutes(2),
                 _ => TimeSpan.FromMinutes(5)
             };
         }

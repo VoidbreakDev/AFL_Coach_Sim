@@ -29,7 +29,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Process weekly development for a player integrating training and match experience
         /// </summary>
-        public PlayerStatsDelta ProcessPlayerDevelopment(Player player, TrainingProgram trainingProgram, 
+        public PlayerStatsDelta ProcessPlayerDevelopment(AFLManager.Models.Player player, TrainingProgram trainingProgram, 
             int matchesPlayed, float averageMatchRating)
         {
             if (!useEnhancedDevelopment)
@@ -63,7 +63,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Get player's development profile for UI display
         /// </summary>
-        public PlayerDevelopmentProfile GetPlayerProfile(Player player)
+        public PlayerDevelopmentProfile GetPlayerProfile(AFLManager.Models.Player player)
         {
             var corePlayer = ConvertToCorePlayer(player);
             return _enhancedFramework.GetOrCreateProfile(corePlayer);
@@ -72,18 +72,18 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Get available specializations for a player's position
         /// </summary>
-        public List<PlayerSpecialization> GetAvailableSpecializations(Player player)
+        public List<PlayerSpecialization> GetAvailableSpecializations(AFLManager.Models.Player player)
         {
             return PlayerDevelopmentHelpers.GetSpecializationsForPosition(player.Role.ToString());
         }
         
         #region Conversion Methods
         
-        private Player ConvertToCorePlayer(AFLManager.Models.Player unityPlayer)
+        private AFLCoachSim.Core.Domain.Entities.Player ConvertToCorePlayer(AFLManager.Models.Player unityPlayer)
         {
             // Convert Unity player model to Core player model
             // This is a simplified example - you'd need proper conversion logic
-            return new Player
+            return new AFLCoachSim.Core.Domain.Entities.Player
             {
                 Id = unityPlayer.GetHashCode(), // Use proper ID system
                 Name = unityPlayer.Name,

@@ -4,6 +4,8 @@ using System.Linq;
 using System;
 using AFLCoachSim.Core.Models;
 using AFLCoachSim.Core.Training;
+using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Domain.ValueObjects;
 
 namespace AFLCoachSim.Training
 {
@@ -19,7 +21,7 @@ namespace AFLCoachSim.Training
         [SerializeField] private int simulationDays = 30;
 
         private TrainingManager _trainingManager;
-        private List&lt;Player&gt; _demoPlayers;
+        private List<Player> _demoPlayers;
 
         void Start()
         {
@@ -65,7 +67,7 @@ namespace AFLCoachSim.Training
             Debug.Log($"Training system initialized with {availablePrograms.Count} available programs");
             
             // Log program categories
-            var programsByType = availablePrograms.GroupBy(p =&gt; p.Type).ToDictionary(g =&gt; g.Key, g =&gt; g.Count());
+            var programsByType = availablePrograms.GroupBy(p => p.Type).ToDictionary(g => g.Key, g => g.Count());
             foreach (var category in programsByType)
             {
                 Debug.Log($"- {category.Key}: {category.Value} programs");
@@ -76,7 +78,7 @@ namespace AFLCoachSim.Training
         {
             Debug.Log("\n--- Creating Demo Players ---");
             
-            _demoPlayers = new List&lt;Player&gt;();
+            _demoPlayers = new List<Player>();
             var positions = new[] 
             { 
                 Position.FullForward, Position.HalfForward, Position.Centre, Position.Wing, 
@@ -84,7 +86,7 @@ namespace AFLCoachSim.Training
                 Position.ForwardPocket, Position.BackPocket
             };
 
-            for (int i = 0; i &lt; numberOfPlayers; i++)
+            for (int i = 0; i < numberOfPlayers; i++)
             {
                 var player = CreateRealisticPlayer(
                     id: i + 1,
@@ -117,42 +119,42 @@ namespace AFLCoachSim.Training
             var attrs = new Attributes();
             
             // Base random attributes (50-80 range)
-            attrs.Kicking = UnityEngine.Random.Range(50f, 80f);
-            attrs.Marking = UnityEngine.Random.Range(50f, 80f);
-            attrs.Handballing = UnityEngine.Random.Range(50f, 80f);
-            attrs.Contested = UnityEngine.Random.Range(50f, 80f);
-            attrs.Endurance = UnityEngine.Random.Range(50f, 80f);
+            attrs.Kicking = UnityEngine.Random.Range(50, 80);
+            attrs.Marking = UnityEngine.Random.Range(50, 80);
+            attrs.Handball = UnityEngine.Random.Range(50, 80);
+            attrs.Tackling = UnityEngine.Random.Range(50, 80);
+            attrs.WorkRate = UnityEngine.Random.Range(50, 80);
 
             // Apply position-specific bonuses
             switch (position)
             {
                 case Position.FullForward:
-                    attrs.Kicking += UnityEngine.Random.Range(5f, 15f);
-                    attrs.Marking += UnityEngine.Random.Range(10f, 20f);
+                    attrs.Kicking += UnityEngine.Random.Range(5, 15);
+                    attrs.Marking += UnityEngine.Random.Range(10, 20);
                     break;
                 case Position.Centre:
-                    attrs.Endurance += UnityEngine.Random.Range(10f, 20f);
-                    attrs.Handballing += UnityEngine.Random.Range(5f, 15f);
+                    attrs.WorkRate += UnityEngine.Random.Range(10, 20);
+                    attrs.Handball += UnityEngine.Random.Range(5, 15);
                     break;
                 case Position.Ruckman:
-                    attrs.Contested += UnityEngine.Random.Range(10f, 20f);
-                    attrs.Marking += UnityEngine.Random.Range(8f, 15f);
+                    attrs.RuckWork += UnityEngine.Random.Range(10, 20);
+                    attrs.Marking += UnityEngine.Random.Range(8, 15);
                     break;
                 case Position.HalfBack:
-                    attrs.Kicking += UnityEngine.Random.Range(8f, 15f);
-                    attrs.Marking += UnityEngine.Random.Range(5f, 12f);
+                    attrs.Kicking += UnityEngine.Random.Range(8, 15);
+                    attrs.Marking += UnityEngine.Random.Range(5, 12);
                     break;
                 case Position.Wing:
-                    attrs.Endurance += UnityEngine.Random.Range(8f, 18f);
+                    attrs.Speed += UnityEngine.Random.Range(8, 18);
                     break;
             }
 
             // Clamp to reasonable ranges
-            attrs.Kicking = Mathf.Clamp(attrs.Kicking, 40f, 95f);
-            attrs.Marking = Mathf.Clamp(attrs.Marking, 40f, 95f);
-            attrs.Handballing = Mathf.Clamp(attrs.Handballing, 40f, 95f);
-            attrs.Contested = Mathf.Clamp(attrs.Contested, 40f, 95f);
-            attrs.Endurance = Mathf.Clamp(attrs.Endurance, 40f, 95f);
+            attrs.Kicking = Mathf.Clamp(attrs.Kicking, 40, 95);
+            attrs.Marking = Mathf.Clamp(attrs.Marking, 40, 95);
+            attrs.Handball = Mathf.Clamp(attrs.Handball, 40, 95);
+            attrs.Tackling = Mathf.Clamp(attrs.Tackling, 40, 95);
+            attrs.WorkRate = Mathf.Clamp(attrs.WorkRate, 40, 95);
 
             return attrs;
         }
@@ -198,7 +200,7 @@ namespace AFLCoachSim.Training
                 Debug.Log($"    Type: {program.Type}, Focus: {program.PrimaryFocus}");
                 Debug.Log($"    Duration: {program.DurationDays} days, Intensity: {program.BaseIntensity}");
                 Debug.Log($"    Reason: {reason}");
-                Debug.Log($"    Targets: {string.Join(", ", program.AttributeTargets.Select(kv =&gt; $"{kv.Key} +{kv.Value}"))}");
+                Debug.Log($"    Targets: {string.Join(", ", program.AttributeTargets.Select(kv => $"{kv.Key} +{kv.Value}"))}");
                 Debug.Log("");
             }
         }
@@ -229,22 +231,22 @@ namespace AFLCoachSim.Training
             Debug.Log("\n--- Scheduling Training Sessions ---");
             
             var enrolledPrograms = _demoPlayers
-                .SelectMany(p =&gt; _trainingManager.GetPlayerEnrollments(p.Id))
-                .GroupBy(e =&gt; e.ProgramId)
-                .Select(g =&gt; g.Key)
+                .SelectMany(p => _trainingManager.GetPlayerEnrollments(p.Id))
+                .GroupBy(e => e.ProgramId)
+                .Select(g => g.Key)
                 .Distinct()
                 .Take(3) // Limit to first 3 programs for demo
                 .ToList();
 
             foreach (var programId in enrolledPrograms)
             {
-                var program = programs.First(p =&gt; p.Id == programId);
+                var program = programs.First(p => p.Id == programId);
                 var enrollees = _trainingManager.GetProgramEnrollees(programId);
                 
                 Debug.Log($"\nScheduling sessions for '{program.Name}' with {enrollees.Count} players");
                 
                 // Schedule multiple sessions over time
-                for (int day = 0; day &lt; simulationDays; day += 7) // Weekly sessions
+                for (int day = 0; day < simulationDays; day += 7) // Weekly sessions
                 {
                     var session = _trainingManager.ScheduleSession(
                         programId, 
@@ -256,7 +258,7 @@ namespace AFLCoachSim.Training
                     if (session != null)
                     {
                         // Execute the session
-                        var players = _demoPlayers.Where(p =&gt; enrollees.Contains(p.Id)).ToList();
+                        var players = _demoPlayers.Where(p => enrollees.Contains(p.Id)).ToList();
                         bool executed = _trainingManager.ExecuteSession(session.Id, players);
                         
                         if (executed)
@@ -290,19 +292,19 @@ namespace AFLCoachSim.Training
             // Show program progress
             foreach (var enrollment in playerReport.ActiveEnrollments)
             {
-                var program = _trainingManager.GetAvailablePrograms().First(p =&gt; p.Id == enrollment.ProgramId);
+                var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == enrollment.ProgramId);
                 var progress = enrollment.CalculateProgress(program);
                 Debug.Log($"    {program.Name}: {progress:F1}% complete ({enrollment.SessionsCompleted} sessions)");
                 
                 if (enrollment.CumulativeGains.Any())
                 {
-                    Debug.Log($"      Gains: {string.Join(", ", enrollment.CumulativeGains.Select(kv =&gt; $"{kv.Key} +{kv.Value:F1}"))}");
+                    Debug.Log($"      Gains: {string.Join(", ", enrollment.CumulativeGains.Select(kv => $"{kv.Key} +{kv.Value:F1}"))}");
                 }
             }
 
             // Generate team report
             Debug.Log("\n--- Team Training Summary ---");
-            var playerIds = _demoPlayers.Select(p =&gt; p.Id).ToList();
+            var playerIds = _demoPlayers.Select(p => p.Id).ToList();
             var teamReport = _trainingManager.GenerateTeamReport(playerIds);
             
             Debug.Log($"Team Training Report ({teamReport.ReportDate:yyyy-MM-dd}):");
@@ -346,17 +348,17 @@ namespace AFLCoachSim.Training
 
         #region Event Handlers
 
-        private void OnSessionCompleted(TrainingSession session, Dictionary&lt;int, TrainingOutcome&gt; outcomes)
+        private void OnSessionCompleted(TrainingSession session, Dictionary<int, TrainingOutcome> outcomes)
         {
-            var program = _trainingManager.GetAvailablePrograms().First(p =&gt; p.Id == session.ProgramId);
+            var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == session.ProgramId);
             Debug.Log($"Training session completed: '{program.Name}' ({session.Intensity} intensity)");
             
             foreach (var outcome in outcomes.Take(2)) // Show first 2 outcomes
             {
-                var player = _demoPlayers.First(p =&gt; p.Id == outcome.Key);
+                var player = _demoPlayers.First(p => p.Id == outcome.Key);
                 var result = outcome.Value;
                 
-                Debug.Log($"  {player.NameOf()}: Gains={string.Join(",", result.AttributeGains.Select(kv =&gt; $"{kv.Key}+{kv.Value:F1}"))} " +
+                Debug.Log($"  {player.NameOf()}: Gains={string.Join(",", result.AttributeGains.Select(kv => $"{kv.Key}+{kv.Value:F1}"))} " +
                          $"Risk={result.InjuryRisk:F3} Fatigue={result.FatigueAccumulation:F1}");
                 
                 if (result.SpecialEffects.Any())
@@ -368,15 +370,15 @@ namespace AFLCoachSim.Training
 
         private void OnPlayerEnrolled(int playerId, PlayerTrainingEnrollment enrollment)
         {
-            var player = _demoPlayers.First(p =&gt; p.Id == playerId);
-            var program = _trainingManager.GetAvailablePrograms().First(p =&gt; p.Id == enrollment.ProgramId);
+            var player = _demoPlayers.First(p => p.Id == playerId);
+            var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == enrollment.ProgramId);
             Debug.Log($"Player enrolled: {player.NameOf()} started '{program.Name}'");
         }
 
         private void OnPlayerProgramCompleted(int playerId, string programId)
         {
-            var player = _demoPlayers.First(p =&gt; p.Id == playerId);
-            var program = _trainingManager.GetAvailablePrograms().First(p =&gt; p.Id == programId);
+            var player = _demoPlayers.First(p => p.Id == playerId);
+            var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == programId);
             Debug.Log($"Program completed: {player.NameOf()} finished '{program.Name}'!");
         }
 
@@ -422,7 +424,7 @@ namespace AFLCoachSim.Training
         {
             var today = DateTime.Today;
             var age = today.Year - dateOfBirth.Year;
-            if (dateOfBirth.Date &gt; today.AddYears(-age))
+            if (dateOfBirth.Date > today.AddYears(-age))
                 age--;
             return age;
         }
@@ -488,7 +490,7 @@ namespace AFLCoachSim.Training
         public static void RunBatchDemo()
         {
             var demoObject = new GameObject("TrainingSystemDemo");
-            var demo = demoObject.AddComponent&lt;TrainingSystemDemo&gt;();
+            var demo = demoObject.AddComponent<TrainingSystemDemo>();
             demo.RunDemo();
             DestroyImmediate(demoObject);
         }

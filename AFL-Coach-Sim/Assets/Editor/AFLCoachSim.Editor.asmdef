@@ -4,8 +4,8 @@
   "references": [
     "AFLCoachSim.Core",
     "AFLCoachSim.Gameplay",
-    "Unity.TextMeshPro",
-    "Unity.UGUI"
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [ "Editor" ],
   "excludePlatforms": [],

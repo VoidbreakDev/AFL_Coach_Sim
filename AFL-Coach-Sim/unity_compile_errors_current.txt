@@ -1,0 +1,1 @@
+zsh: no such file or directory: /Applications/Unity/Hub/Editor/6000.0.23f1/Unity.app/Contents/MacOS/Unity

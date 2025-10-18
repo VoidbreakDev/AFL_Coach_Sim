@@ -35,7 +35,7 @@ namespace AFLManager.Systems.Coach
             public List<CoachAbility> UnlockedAbilities { get; set; } = new();
             
             // NEW: Coach Skills Integration
-            public CoachSkills Skills { get; set; } = new CoachSkills();
+            public AFLCoachSim.Core.Domain.Entities.CoachSkills Skills { get; set; } = new AFLCoachSim.Core.Domain.Entities.CoachSkills();
             
             // Progression System
             public int ExperiencePoints { get; set; } = 0;

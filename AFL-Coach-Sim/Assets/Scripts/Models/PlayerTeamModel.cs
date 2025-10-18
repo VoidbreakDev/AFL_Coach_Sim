@@ -1,9 +1,9 @@
-// File: Assets/Scripts/Models/PlayerTeamModels.cs
+// File: Assets/Scripts/Models/PlayerTeamModel.cs
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AFLManager.Models
+namespace AFLCoachSim.Models
 {
     /// <summary>
     /// Roles a player can occupy on the field.
@@ -72,11 +72,11 @@ namespace AFLManager.Models
         public PlayerStats Stats;
         public ContractDetails Contract;
         
-        // Development system
-        public AFLManager.Systems.Development.PlayerDevelopment Development;
+        // Development system (commented out until systems are available)
+        // public AFLManager.Systems.Development.PlayerDevelopment Development;
         
-        // Form and condition tracking
-        public AFLManager.Systems.Development.PlayerFormCondition FormCondition;
+        // Form and condition tracking (commented out until systems are available)
+        // public AFLManager.Systems.Development.PlayerFormCondition FormCondition;
 
         [NonSerialized] public Team CurrentTeam;
         [NonSerialized] public Sprite Portrait;
@@ -90,15 +90,14 @@ namespace AFLManager.Models
         {
             Id = Guid.NewGuid().ToString();
             Stats = new PlayerStats();
-            Development = new AFLManager.Systems.Development.PlayerDevelopment();
-            FormCondition = new AFLManager.Systems.Development.PlayerFormCondition();
+            // Development = new AFLManager.Systems.Development.PlayerDevelopment();
+            // FormCondition = new AFLManager.Systems.Development.PlayerFormCondition();
             
-            // Set position-specific development weights
-            if (Development != null)
-            {
-                Development.Weights = AFLManager.Systems.Development.PositionDevelopmentWeights.CreateForPosition(Role);
-            }
-        }
+            // Set position-specific development weights (commented out until systems are available)
+            // if (Development != null)
+            // {
+            //     Development.Weights = AFLManager.Systems.Development.PositionDevelopmentWeights.CreateForPosition(Role);
+            // }
         }
 
         /// <summary>
@@ -179,4 +178,5 @@ namespace AFLManager.Models
                 CoachModifiers = new CoachSkills();
             }
         }
+    }
 }

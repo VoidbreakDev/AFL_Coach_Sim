@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Engine.Match.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics
 {
@@ -185,36 +186,37 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
     /// </summary>
     public static class FormationMatchups
     {
-        private static readonly Dictionary<(string, string), float> _matchups = new Dictionary<(string, string), float>
+        private static readonly Dictionary<string, float> _matchups = new Dictionary<string, float>
         {
             // Attacking vs other formations
-            (("Attacking", "Defensive"), -0.08f), // Attacking struggles against defensive setups
-            (("Attacking", "Standard"), 0.05f),   // Slight advantage vs balanced
-            (("Attacking", "Flooding"), -0.12f),  // Very difficult against flooding
-            (("Attacking", "Pressing"), 0.08f),   // Good against pressing (space behind)
+            ["Attacking_Defensive"] = -0.08f, // Attacking struggles against defensive setups
+            ["Attacking_Standard"] = 0.05f,   // Slight advantage vs balanced
+            ["Attacking_Flooding"] = -0.12f,  // Very difficult against flooding
+            ["Attacking_Pressing"] = 0.08f,   // Good against pressing (space behind)
             
             // Defensive vs other formations
-            (("Defensive", "Attacking"), 0.08f),   // Good against attacking formations
-            (("Defensive", "Standard"), 0.02f),    // Slight advantage
-            (("Defensive", "Pressing"), -0.05f),   // Struggles with high pressure
-            (("Defensive", "Flooding"), 0.0f),     // Neutral matchup
+            ["Defensive_Attacking"] = 0.08f,   // Good against attacking formations
+            ["Defensive_Standard"] = 0.02f,    // Slight advantage
+            ["Defensive_Pressing"] = -0.05f,   // Struggles with high pressure
+            ["Defensive_Flooding"] = 0.0f,     // Neutral matchup
             
             // Pressing vs other formations
-            (("Pressing", "Attacking"), -0.08f),   // Vulnerable to attacking formations
-            (("Pressing", "Defensive"), 0.05f),    // Good at breaking down defensive teams
-            (("Pressing", "Standard"), 0.06f),     // Generally effective
-            (("Pressing", "Flooding"), -0.10f),    // Struggles against ultra-defensive setups
+            ["Pressing_Attacking"] = -0.08f,   // Vulnerable to attacking formations
+            ["Pressing_Defensive"] = 0.05f,    // Good at breaking down defensive teams
+            ["Pressing_Standard"] = 0.06f,     // Generally effective
+            ["Pressing_Flooding"] = -0.10f,    // Struggles against ultra-defensive setups
             
             // Flooding vs other formations
-            (("Flooding", "Attacking"), 0.12f),    // Very effective against attacking teams
-            (("Flooding", "Defensive"), 0.0f),     // Neutral
-            (("Flooding", "Standard"), 0.08f),     // Good defensive advantage
-            (("Flooding", "Pressing"), 0.10f)      // Effective against high pressure
+            ["Flooding_Attacking"] = 0.12f,    // Very effective against attacking teams
+            ["Flooding_Defensive"] = 0.0f,     // Neutral
+            ["Flooding_Standard"] = 0.08f,     // Good defensive advantage
+            ["Flooding_Pressing"] = 0.10f      // Effective against high pressure
         };
 
         public static float GetMatchupBonus(string ourFormation, string opponentFormation)
         {
-            return _matchups.GetValueOrDefault((ourFormation, opponentFormation), 0f);
+            string key = $"{ourFormation}_{opponentFormation}";
+            return _matchups.GetValueOrDefault(key, 0f);
         }
     }
 
@@ -304,6 +306,12 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         public float Inside50Advantage { get; set; } = 0f;
         public float KickInAdvantage { get; set; } = 0f;
         public float OverallAdvantage { get; set; } = 0f;
+        
+        // Additional properties for enhanced tactical integration
+        public float OverallEffectiveness { get; set; } = 0f;
+        public float OffensiveEffectiveness { get; set; } = 0f;
+        public float DefensiveEffectiveness { get; set; } = 0f;
+        public float Confidence { get; set; } = 0f;
 
         public float GetPhaseAdvantage(Phase phase)
         {
@@ -317,6 +325,8 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
             };
         }
     }
+
+    // Note: TacticalBalance is now defined in EnhancedTacticalModels.cs
 
     /// <summary>
     /// Player positioning and performance modifiers from tactical setup
@@ -401,7 +411,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         public float PossessionTurnover { get; set; } // Rate of turnovers (0.0 to 1.0)
         public Phase CurrentPhase { get; set; }
         public float TeamMomentum { get; set; } // -1.0 to 1.0
-        public Weather Weather { get; set; } = Weather.Clear;
+        public AFLCoachSim.Core.Engine.Match.Weather.Weather Weather { get; set; } = AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear;
         public Dictionary<string, float> TeamStats { get; set; } = new Dictionary<string, float>();
     }
 

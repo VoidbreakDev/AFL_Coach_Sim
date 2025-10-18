@@ -1,0 +1,432 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Domain.ValueObjects;
+
+namespace AFLManager.Systems.Timing
+{
+    /// <summary>
+    /// Manages timing configurations at the season level, allowing different timing systems
+    /// for different match types, phases, and contexts within a season.
+    /// </summary>
+    [CreateAssetMenu(fileName = "SeasonTimingConfiguration", menuName = "AFL Manager/Season/Timing Configuration")]
+    public class SeasonTimingConfiguration : ScriptableObject
+    {
+        [Header("Default Timing Settings")]
+        [SerializeField] private TimingSystemType defaultTimingSystem = TimingSystemType.VariableSpeed;
+        [SerializeField] private bool allowPlayerTimingOverride = true;
+        [SerializeField] private bool enableAdaptiveTiming = true;
+        
+        [Header("Match Type Configurations")]
+        [SerializeField] private List<MatchTypeTimingConfig> matchTypeConfigs = new List<MatchTypeTimingConfig>();
+        
+        [Header("Season Phase Configurations")]
+        [SerializeField] private List<SeasonPhaseTimingConfig> seasonPhaseConfigs = new List<SeasonPhaseTimingConfig>();
+        
+        [Header("Context-Based Timing")]
+        [SerializeField] private ContextBasedTimingSettings contextSettings = new ContextBasedTimingSettings();
+        
+        [Header("Player Experience Settings")]
+        [SerializeField] private PlayerExperienceTimingSettings playerSettings = new PlayerExperienceTimingSettings();
+        
+        /// <summary>
+        /// Get timing configuration for a specific match context
+        /// </summary>
+        public TimingIntegrationConfiguration GetConfigurationForMatch(MatchTimingRequest request)
+        {
+            var config = new TimingIntegrationConfiguration();
+            
+            // Start with defaults
+            config.DefaultTimingSystem = defaultTimingSystem;
+            config.AllowRuntimeTimingSwitch = allowPlayerTimingOverride;
+            config.EnableTimingTelemetry = true;
+            
+            // Apply match type specific settings
+            var matchTypeConfig = GetMatchTypeConfig(request.MatchType);
+            if (matchTypeConfig != null)
+            {
+                ApplyMatchTypeConfig(config, matchTypeConfig);
+            }
+            
+            // Apply season phase specific settings
+            var seasonPhaseConfig = GetSeasonPhaseConfig(request.SeasonPhase, request.CurrentRound, request.TotalRounds);
+            if (seasonPhaseConfig != null)
+            {
+                ApplySeasonPhaseConfig(config, seasonPhaseConfig);
+            }
+            
+            // Apply contextual adjustments
+            ApplyContextualAdjustments(config, request);
+            
+            // Apply player experience adjustments
+            ApplyPlayerExperienceAdjustments(config, request);
+            
+            // Set up specific timing system configurations
+            config.CompressedTimingConfig = CreateCompressedConfig(request);
+            config.VariableSpeedConfig = CreateVariableSpeedConfig(request);
+            config.StandardTimingConfig = CreateStandardConfig(request);
+            
+            return config;
+        }
+        
+        /// <summary>
+        /// Get recommended timing system for a match context
+        /// </summary>
+        public TimingSystemType GetRecommendedTimingSystem(MatchTimingRequest request)
+        {
+            // Check for explicit match type preferences
+            var matchTypeConfig = GetMatchTypeConfig(request.MatchType);
+            if (matchTypeConfig != null && matchTypeConfig.ForceTimingSystem)
+            {
+                return matchTypeConfig.PreferredTimingSystem;
+            }
+            
+            // Adaptive timing based on context
+            if (enableAdaptiveTiming)
+            {
+                return DetermineAdaptiveTimingSystem(request);
+            }
+            
+            // Fall back to player preference or default
+            return request.PlayerPreferredTiming ?? defaultTimingSystem;
+        }
+        
+        /// <summary>
+        /// Check if timing system switching is allowed for this match
+        /// </summary>
+        public bool CanSwitchTiming(MatchTimingRequest request)
+        {
+            if (!allowPlayerTimingOverride) return false;
+            
+            var matchTypeConfig = GetMatchTypeConfig(request.MatchType);
+            if (matchTypeConfig != null && matchTypeConfig.ForceTimingSystem) return false;
+            
+            return true;
+        }
+        
+        private MatchTypeTimingConfig GetMatchTypeConfig(AFLManager.Models.MatchType matchType)
+        {
+            return matchTypeConfigs.Find(config => config.MatchType == matchType);
+        }
+        
+        private SeasonPhaseTimingConfig GetSeasonPhaseConfig(AFLManager.Systems.Training.SeasonPhase phase, int currentRound, int totalRounds)
+        {
+            // First try exact phase match
+            var exactConfig = seasonPhaseConfigs.Find(config => config.SeasonPhase == phase);
+            if (exactConfig != null) return exactConfig;
+            
+            // Then try round-based matching
+            foreach (var config in seasonPhaseConfigs)
+            {
+                if (config.AppliesTo(currentRound, totalRounds))
+                {
+                    return config;
+                }
+            }
+            
+            return null;
+        }
+        
+        private void ApplyMatchTypeConfig(TimingIntegrationConfiguration config, MatchTypeTimingConfig matchConfig)
+        {
+            if (matchConfig.ForceTimingSystem)
+            {
+                config.DefaultTimingSystem = matchConfig.PreferredTimingSystem;
+                config.AllowRuntimeTimingSwitch = false;
+            }
+            else
+            {
+                config.DefaultTimingSystem = matchConfig.PreferredTimingSystem;
+            }
+        }
+        
+        private void ApplySeasonPhaseConfig(TimingIntegrationConfiguration config, SeasonPhaseTimingConfig phaseConfig)
+        {
+            // Season phase can modify but not override match type requirements
+            if (!phaseConfig.OverrideMatchType)
+            {
+                return;
+            }
+            
+            // Apply phase-specific timing preferences
+            config.DefaultTimingSystem = phaseConfig.PreferredTimingSystem;
+            
+            // Adjust telemetry settings based on season importance
+            if (phaseConfig.SeasonPhase == AFLManager.Systems.Training.SeasonPhase.Finals)
+            {
+                config.EnableTimingTelemetry = true; // Always enable for finals
+            }
+        }
+        
+        private void ApplyContextualAdjustments(TimingIntegrationConfiguration config, MatchTimingRequest request)
+        {
+            // Close matches favor slower, more engaged timing
+            if (request.IsCloseMatch && contextSettings.SlowDownForCloseMatches)
+            {
+                if (config.DefaultTimingSystem == TimingSystemType.Compressed)
+                {
+                    config.DefaultTimingSystem = TimingSystemType.VariableSpeed;
+                }
+            }
+            
+            // Player team matches get different treatment
+            if (request.IsPlayerTeamMatch && contextSettings.PlayerTeamPreferences.UseSpecialTiming)
+            {
+                config.DefaultTimingSystem = contextSettings.PlayerTeamPreferences.PreferredSystem;
+                config.AllowRuntimeTimingSwitch = contextSettings.PlayerTeamPreferences.AllowSwitching;
+            }
+            
+            // Rivalry matches might use different timing
+            if (request.IsRivalryMatch && contextSettings.RivalryMatchSettings.UseSpecialTiming)
+            {
+                config.DefaultTimingSystem = contextSettings.RivalryMatchSettings.PreferredSystem;
+            }
+        }
+        
+        private void ApplyPlayerExperienceAdjustments(TimingIntegrationConfiguration config, MatchTimingRequest request)
+        {
+            var experienceLevel = request.PlayerExperienceLevel ?? AFLManager.Models.PlayerExperienceLevel.Intermediate;
+            
+            switch (experienceLevel)
+            {
+                case AFLManager.Models.PlayerExperienceLevel.Beginner:
+                    if (playerSettings.BeginnerSettings.UseCustomTiming)
+                    {
+                        config.DefaultTimingSystem = playerSettings.BeginnerSettings.PreferredSystem;
+                        config.AllowRuntimeTimingSwitch = playerSettings.BeginnerSettings.AllowSwitching;
+                    }
+                    break;
+                    
+                case AFLManager.Models.PlayerExperienceLevel.Expert:
+                    if (playerSettings.ExpertSettings.UseCustomTiming)
+                    {
+                        config.DefaultTimingSystem = playerSettings.ExpertSettings.PreferredSystem;
+                        config.AllowRuntimeTimingSwitch = playerSettings.ExpertSettings.AllowSwitching;
+                    }
+                    break;
+            }
+        }
+        
+        private TimingSystemType DetermineAdaptiveTimingSystem(MatchTimingRequest request)
+        {
+            // Finals and important matches favor variable speed for control
+            if (request.MatchType == AFLManager.Models.MatchType.GrandFinal || request.MatchType == AFLManager.Models.MatchType.Final)
+            {
+                return TimingSystemType.VariableSpeed;
+            }
+            
+            // Early season and development focused matches might use compressed timing
+            if (request.SeasonPhase == AFLManager.Systems.Training.SeasonPhase.EarlySeason && !request.IsPlayerTeamMatch)
+            {
+                return TimingSystemType.Compressed;
+            }
+            
+            // Close matches favor variable speed
+            if (request.IsCloseMatch)
+            {
+                return TimingSystemType.VariableSpeed;
+            }
+            
+            // Blowouts favor compressed timing
+            if (request.ExpectedMargin > 36) // More than 6 goals expected
+            {
+                return TimingSystemType.Compressed;
+            }
+            
+            // Default to variable speed for most scenarios
+            return TimingSystemType.VariableSpeed;
+        }
+        
+        private CompressedTimingConfiguration CreateCompressedConfig(MatchTimingRequest request)
+        {
+            var config = CompressedTimingConfiguration.Default;
+            
+            // Adjust compression settings based on match importance
+            if (request.MatchType == AFLManager.Models.MatchType.GrandFinal)
+            {
+                config.BaseCompressionRate = 1.5f; // Less compression for grand final
+                config.EnableAICoachIntegration = true;
+            }
+            else if (request.IsPlayerTeamMatch)
+            {
+                config.BaseCompressionRate = 2.0f; // Moderate compression for player matches
+                config.EnableAICoachIntegration = true;
+            }
+            else
+            {
+                config.BaseCompressionRate = 4.0f; // Higher compression for non-player matches
+                config.EnableAICoachIntegration = false;
+            }
+            
+            return config;
+        }
+        
+        private VariableSpeedConfiguration CreateVariableSpeedConfig(MatchTimingRequest request)
+        {
+            var config = VariableSpeedConfiguration.Default;
+            
+            // Adjust auto-pause settings based on match context
+            if (request.IsCloseMatch || request.MatchType == AFLManager.Models.MatchType.Final || request.MatchType == AFLManager.Models.MatchType.GrandFinal)
+            {
+                config.AutoPauseSettings.PauseOnGoals = true;
+                config.AutoPauseSettings.PauseOnInjuries = true;
+                config.AutoPauseSettings.PauseOnCloseFinish = true;
+            }
+            
+            // Adjust speed ranges based on player experience
+            if (request.PlayerExperienceLevel == AFLManager.Models.PlayerExperienceLevel.Beginner)
+            {
+                config.SpeedSettings.MaxSpeed = 3.0f; // Limit max speed for beginners
+            }
+            else if (request.PlayerExperienceLevel == AFLManager.Models.PlayerExperienceLevel.Expert)
+            {
+                config.SpeedSettings.MaxSpeed = 8.0f; // Allow higher speeds for experts
+            }
+            
+            return config;
+        }
+        
+        private EnhancedTimingConfiguration CreateStandardConfig(MatchTimingRequest request)
+        {
+            return EnhancedTimingConfiguration.Default;
+        }
+    }
+    
+    /// <summary>
+    /// Configuration for specific match types
+    /// </summary>
+    [Serializable]
+    public class MatchTypeTimingConfig
+    {
+        public AFLManager.Models.MatchType MatchType;
+        public TimingSystemType PreferredTimingSystem = TimingSystemType.VariableSpeed;
+        public bool ForceTimingSystem = false;
+        public string Description;
+    }
+    
+    /// <summary>
+    /// Configuration for different season phases
+    /// </summary>
+    [Serializable]
+    public class SeasonPhaseTimingConfig
+    {
+        public AFLManager.Systems.Training.SeasonPhase SeasonPhase;
+        public TimingSystemType PreferredTimingSystem = TimingSystemType.VariableSpeed;
+        public bool OverrideMatchType = false;
+        
+        [Header("Round-based Application")]
+        public bool UseRoundNumbers = false;
+        public int StartRound = 1;
+        public int EndRound = 23;
+        
+        public bool AppliesTo(int currentRound, int totalRounds)
+        {
+            if (!UseRoundNumbers) return false;
+            
+            // Handle negative round numbers as "from end"
+            int actualStartRound = StartRound > 0 ? StartRound : totalRounds + StartRound + 1;
+            int actualEndRound = EndRound > 0 ? EndRound : totalRounds + EndRound + 1;
+            
+            return currentRound >= actualStartRound && currentRound <= actualEndRound;
+        }
+    }
+    
+    /// <summary>
+    /// Context-based timing adjustments
+    /// </summary>
+    [Serializable]
+    public class ContextBasedTimingSettings
+    {
+        [Header("Match Context")]
+        public bool SlowDownForCloseMatches = true;
+        public bool SpeedUpBlowouts = true;
+        
+        [Header("Player Team")]
+        public PlayerTeamTimingSettings PlayerTeamPreferences = new PlayerTeamTimingSettings();
+        
+        [Header("Rivalry Matches")]
+        public SpecialMatchTimingSettings RivalryMatchSettings = new SpecialMatchTimingSettings();
+    }
+    
+    /// <summary>
+    /// Player team specific timing settings
+    /// </summary>
+    [Serializable]
+    public class PlayerTeamTimingSettings
+    {
+        public bool UseSpecialTiming = true;
+        public TimingSystemType PreferredSystem = TimingSystemType.VariableSpeed;
+        public bool AllowSwitching = true;
+    }
+    
+    /// <summary>
+    /// Special match timing settings
+    /// </summary>
+    [Serializable]
+    public class SpecialMatchTimingSettings
+    {
+        public bool UseSpecialTiming = false;
+        public TimingSystemType PreferredSystem = TimingSystemType.VariableSpeed;
+    }
+    
+    /// <summary>
+    /// Player experience level timing settings
+    /// </summary>
+    [Serializable]
+    public class PlayerExperienceTimingSettings
+    {
+        [Header("Beginner Players")]
+        public ExperienceLevelTimingSettings BeginnerSettings = new ExperienceLevelTimingSettings
+        {
+            UseCustomTiming = true,
+            PreferredSystem = TimingSystemType.VariableSpeed,
+            AllowSwitching = true
+        };
+        
+        [Header("Expert Players")]
+        public ExperienceLevelTimingSettings ExpertSettings = new ExperienceLevelTimingSettings
+        {
+            UseCustomTiming = true,
+            PreferredSystem = TimingSystemType.Compressed,
+            AllowSwitching = true
+        };
+    }
+    
+    /// <summary>
+    /// Timing settings for a specific experience level
+    /// </summary>
+    [Serializable]
+    public class ExperienceLevelTimingSettings
+    {
+        public bool UseCustomTiming = false;
+        public TimingSystemType PreferredSystem = TimingSystemType.VariableSpeed;
+        public bool AllowSwitching = true;
+    }
+    
+    /// <summary>
+    /// Request context for determining match timing configuration
+    /// </summary>
+    public class MatchTimingRequest
+    {
+        public AFLManager.Models.MatchType MatchType { get; set; } = AFLManager.Models.MatchType.Regular;
+        public AFLManager.Systems.Training.SeasonPhase SeasonPhase { get; set; } = AFLManager.Systems.Training.SeasonPhase.MidSeason;
+        public int CurrentRound { get; set; } = 1;
+        public int TotalRounds { get; set; } = 23;
+        public bool IsPlayerTeamMatch { get; set; } = false;
+        public bool IsCloseMatch { get; set; } = false;
+        public bool IsRivalryMatch { get; set; } = false;
+        public int ExpectedMargin { get; set; } = 0;
+        public AFLManager.Models.PlayerExperienceLevel? PlayerExperienceLevel { get; set; };
+        public TimingSystemType? PlayerPreferredTiming { get; set; }
+        public TeamId HomeTeamId { get; set; }
+        public TeamId AwayTeamId { get; set; }
+        public DateTime MatchDate { get; set; } = DateTime.Now;
+    }
+    
+    // Note: Using enums from other parts of the codebase:
+    // - MatchType from AFLManager.Models (TimingIntegrationModels.cs)
+    // - SeasonPhase from AFLManager.Systems.Training (SeasonTrainingCalendarData.cs)
+    // - PlayerExperienceLevel from AFLManager.Models (TimingIntegrationModels.cs)
+}

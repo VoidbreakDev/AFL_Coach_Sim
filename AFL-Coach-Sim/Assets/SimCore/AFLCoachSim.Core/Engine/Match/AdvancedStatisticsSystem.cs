@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFLCoachSim.Core.Models;
+using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Domain.Aggregates;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -38,7 +39,7 @@ namespace AFLCoachSim.Core.Engine.Match
                 {
                     PlayerId = player.Id,
                     PlayerName = player.Name,
-                    Position = player.Position,
+                    Position = player.Position.ToString(),
                     TeamId = player.TeamId,
                     MatchStartTime = DateTime.Now,
                     TimeOnGround = TimeSpan.Zero
@@ -448,12 +449,12 @@ namespace AFLCoachSim.Core.Engine.Match
             float offensiveImpact = (playerStats.EffectiveDisposals * 1.2f + 
                                    playerStats.Goals * 6f + 
                                    playerStats.GoalAssists * 3f + 
-                                   playerStats.ContestedMarks * 2f) / Math.Max(1, playerStats.TimeOnGround.TotalMinutes);
+                                   playerStats.ContestedMarks * 2f) / (float)Math.Max(1, playerStats.TimeOnGround.TotalMinutes);
             
             float defensiveImpact = (playerStats.EffectiveTackles * 2f + 
                                    playerStats.Intercepts * 3f + 
                                    playerStats.Spoils * 1.5f + 
-                                   playerStats.PressureActs * 1f) / Math.Max(1, playerStats.TimeOnGround.TotalMinutes);
+                                   playerStats.PressureActs * 1f) / (float)Math.Max(1, playerStats.TimeOnGround.TotalMinutes);
             
             return (offensiveImpact + defensiveImpact) * 10f; // Scale to 0-100
         }
@@ -529,6 +530,30 @@ namespace AFLCoachSim.Core.Engine.Match
             var mean = values.Average();
             var squaredDifferences = values.Select(x => Math.Pow(x - mean, 2));
             return (float)Math.Sqrt(squaredDifferences.Average());
+        }
+        
+        /// <summary>
+        /// Get statistics for a specific player
+        /// </summary>
+        public PlayerStatistics GetPlayerStatistics(string playerId)
+        {
+            return _playerStats.GetValueOrDefault(playerId);
+        }
+        
+        /// <summary>
+        /// Get all player statistics for the current match
+        /// </summary>
+        public Dictionary<string, PlayerStatistics> GetAllPlayerStatistics()
+        {
+            return new Dictionary<string, PlayerStatistics>(_playerStats);
+        }
+        
+        /// <summary>
+        /// Get team statistics for a specific team
+        /// </summary>
+        public TeamStatistics GetTeamStatistics(int teamId)
+        {
+            return _teamStats.GetValueOrDefault(teamId);
         }
         
         private StatisticalSummary GenerateStatisticalSummary()

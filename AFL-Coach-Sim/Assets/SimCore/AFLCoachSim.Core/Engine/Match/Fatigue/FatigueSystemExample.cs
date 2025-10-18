@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Domain.Aggregates;
 using AFLCoachSim.Core.Engine.Match.Fatigue;
 using AFLCoachSim.Core.Engine.Match.Weather;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Examples
 {
@@ -19,9 +21,8 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
 
         public FatigueSystemExample()
         {
-            // Initialize fatigue system with custom configuration
-            var fatigueConfig = FatigueConfiguration.CreateChallengingConfiguration();
-            _fatigueSystem = new AdvancedFatigueSystem(fatigueConfig);
+            // Initialize fatigue system with deterministic seed
+            _fatigueSystem = new AdvancedFatigueSystem(42); // Use seed for deterministic behavior
             _weatherSystem = new WeatherImpactSystem();
         }
 
@@ -39,15 +40,14 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             // Initialize fatigue system for match
             _fatigueSystem.InitializeForMatch(homeTeam.Players.ToList(), awayTeam.Players.ToList());
             
-            // Set up starting conditions
-            var weatherConditions = new WeatherConditions
+            // Set up starting conditions  
+            var weatherConditions = new WeatherConditions(WeatherCondition.Hot)
             {
                 Temperature = 28f,
-                Humidity = 0.65f,
+                Humidity = 65f, // Percentage, not decimal
                 WindSpeed = 15f,
                 WindDirection = WindDirection.North,
-                RainIntensity = 0.2f,
-                WeatherType = WeatherType.Overcast
+                Intensity = 0.8f // Use intensity instead of rain intensity
             };
             
             _fatigueSystem.UpdateWeatherConditions(weatherConditions);
@@ -142,7 +142,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             }
             
             // Analyze team fatigue
-            var teamAnalysis = _fatigueSystem.AnalyzeTeamFatigue(team.Players.Select(p => p.Id).ToList());
+            var teamAnalysis = _fatigueSystem.AnalyzeTeamFatigue(team.Players.Select(p => (Guid)p.Id).ToList());
             
             Console.WriteLine($"Team Fatigue Analysis:");
             Console.WriteLine($"- Status: {teamAnalysis.GetTeamFatigueStatus()}");
@@ -153,14 +153,14 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             
             // Fatigue zone distribution
             Console.WriteLine($"\nFatigue Zone Distribution:");
-            foreach (var zone in Enum.GetValues<FatigueZone>())
+            foreach (FatigueZone zone in (FatigueZone[])Enum.GetValues(typeof(FatigueZone)))
             {
                 int count = teamAnalysis.ZoneDistribution.GetValueOrDefault(zone, 0);
                 Console.WriteLine($"- {zone}: {count} players");
             }
             
             // Get tactical recommendations
-            var recommendations = _fatigueSystem.GetTacticalRecommendations(team.Players.Select(p => p.Id).ToList());
+            var recommendations = _fatigueSystem.GetTacticalRecommendations(team.Players.Select(p => (Guid)p.Id).ToList());
             
             Console.WriteLine($"\nTactical Recommendations ({recommendations.Count}):");
             foreach (var recommendation in recommendations.Take(3))
@@ -185,10 +185,10 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             // Test different weather conditions
             var weatherScenarios = new[]
             {
-                new WeatherConditions { Temperature = 35f, Humidity = 0.8f, WeatherType = WeatherType.Hot },
-                new WeatherConditions { Temperature = 15f, Humidity = 0.4f, WeatherType = WeatherType.Clear },
-                new WeatherConditions { Temperature = 25f, RainIntensity = 0.6f, WeatherType = WeatherType.Rainy },
-                new WeatherConditions { Temperature = 8f, WindSpeed = 25f, WeatherType = WeatherType.Cold }
+                new WeatherConditions(WeatherCondition.Hot) { Temperature = 35f, Humidity = 80f, Intensity = 1.2f },
+                new WeatherConditions(WeatherCondition.Clear) { Temperature = 15f, Humidity = 40f, Intensity = 0.5f },
+                new WeatherConditions(WeatherCondition.Wet) { Temperature = 25f, Intensity = 0.6f },
+                new WeatherConditions(WeatherCondition.Cold) { Temperature = 8f, WindSpeed = 25f, Intensity = 1.0f }
             };
             
             foreach (var weather in weatherScenarios)
@@ -254,7 +254,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             
             // Show position profiles
             Console.WriteLine("\nPosition Fatigue Profiles:");
-            foreach (var position in Enum.GetValues<Role>())
+            foreach (Role position in (Role[])Enum.GetValues(typeof(Role)))
             {
                 var profile = _fatigueSystem.GetPositionProfile(position);
                 if (profile != null)
@@ -328,7 +328,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
                 var activityCount = random.Next(15, 35);
                 for (int i = 0; i < activityCount; i++)
                 {
-                    var activity = (FatigueActivity)random.Next(0, Enum.GetValues<FatigueActivity>().Length);
+                    var activity = (FatigueActivity)random.Next(0, Enum.GetValues(typeof(FatigueActivity)).Length);
                     var duration = random.Next(5, 30);
                     _fatigueSystem.UpdateFatigue(player.Id, activity, duration);
                 }

@@ -155,7 +155,7 @@ namespace AFLCoachSim.Core.Season.Tests
             Assert.IsTrue(validation.IsValid, $"Bye configuration invalid: {string.Join(", ", validation.Errors)}");
             
             // Check all teams have exactly one bye
-            var allTeams = Enum.GetValues<TeamId>().Where(t => t != TeamId.None).ToList();
+            var allTeams = Enum.GetValues(typeof(TeamId)).Cast<TeamId>().Where(t => t != TeamId.None).ToList();
             var allByeTeams = byeConfig.ByeRoundAssignments.Values.SelectMany(teams => teams).ToList();
             
             foreach (var team in allTeams)
@@ -169,7 +169,7 @@ namespace AFLCoachSim.Core.Season.Tests
         public void GenerateSeasonCalendar_EachTeamPlaysCorrectNumberOfMatches()
         {
             var season = _fixtureEngine.GenerateSeasonCalendar(2024);
-            var allTeams = Enum.GetValues<TeamId>().Where(t => t != TeamId.None).ToList();
+            var allTeams = Enum.GetValues(typeof(TeamId)).Cast<TeamId>().Where(t => t != TeamId.None).ToList();
             
             foreach (var team in allTeams)
             {

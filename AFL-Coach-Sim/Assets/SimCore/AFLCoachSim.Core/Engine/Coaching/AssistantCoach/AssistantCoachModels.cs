@@ -128,7 +128,7 @@ namespace AFLCoachSim.Core.Engine.Coaching.AssistantCoach
         public List<Guid> ParticipatingPlayers { get; set; } = new List<Guid>();
         public float IntensityLevel { get; set; } = 50f; // 0-100
         public int DurationMinutes { get; set; } = 90;
-        public Weather WeatherConditions { get; set; } = Weather.Clear;
+        public AFLCoachSim.Core.Engine.Match.Weather.Weather WeatherConditions { get; set; } = AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear;
         public Dictionary<string, float> CustomParameters { get; set; } = new Dictionary<string, float>();
     }
 

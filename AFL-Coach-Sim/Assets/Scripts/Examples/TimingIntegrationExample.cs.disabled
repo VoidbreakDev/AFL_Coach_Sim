@@ -1,0 +1,419 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLManager.Models;
+using AFLManager.Managers;
+using AFLManager.Systems.Timing;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Domain.ValueObjects;
+
+namespace AFLManager.Examples
+{
+    /// <summary>
+    /// Example script demonstrating the timing-integrated season flow with sample configurations.
+    /// This script shows how to set up and use the new timing systems in a season context.
+    /// </summary>
+    public class TimingIntegrationExample : MonoBehaviour
+    {
+        [Header("Example Configuration")]
+        public bool runExampleOnStart = false;
+        public bool enableDetailedLogging = true;
+        
+        [Header("Sample Teams")]
+        public List<Team> sampleTeams = new List<Team>();
+        
+        [Header("Timing Configuration")]
+        public SeasonTimingConfiguration customTimingConfig;
+        
+        // Example components
+        private TimingIntegratedSeasonBoot seasonBoot;
+        private TimingIntegratedSeasonScreenManager seasonScreen;
+        
+        void Start()
+        {
+            if (runExampleOnStart)
+            {
+                StartCoroutine(RunTimingIntegrationExample());
+            }
+        }
+        
+        /// <summary>
+        /// Run a complete example of timing integration
+        /// </summary>
+        public System.Collections.IEnumerator RunTimingIntegrationExample()
+        {
+            LogExample("=== AFL Coach Sim - Timing Integration Example ===");
+            
+            // Step 1: Create sample configuration
+            LogExample("Step 1: Creating sample timing configuration...");
+            var timingConfig = CreateSampleTimingConfiguration();
+            
+            // Step 2: Generate sample teams
+            LogExample("Step 2: Generating sample teams...");
+            var teams = CreateSampleTeams();
+            
+            // Step 3: Generate timing-integrated season
+            LogExample("Step 3: Generating timing-integrated season...");
+            var seasonSchedule = GenerateTimingIntegratedSeason(teams, timingConfig);
+            
+            yield return new WaitForSeconds(0.5f);
+            
+            // Step 4: Demonstrate different timing scenarios
+            LogExample("Step 4: Demonstrating timing scenarios...");
+            yield return StartCoroutine(DemonstrateTimingScenarios(seasonSchedule));
+            
+            // Step 5: Show timing statistics
+            LogExample("Step 5: Analyzing timing statistics...");
+            AnalyzeTimingStatistics(seasonSchedule);
+            
+            // Step 6: Demonstrate season boot integration
+            LogExample("Step 6: Testing season boot integration...");
+            yield return StartCoroutine(TestSeasonBootIntegration(teams, timingConfig));
+            
+            LogExample("=== Timing Integration Example Complete ===");
+        }
+        
+        /// <summary>
+        /// Create a sample timing configuration with various scenarios
+        /// </summary>
+        private SeasonTimingConfiguration CreateSampleTimingConfiguration()
+        {
+            // This would normally be a ScriptableObject created in the editor
+            // For the example, we'll simulate the configuration programmatically
+            
+            LogExample("  - Setting up adaptive timing for different match types");
+            LogExample("  - Grand Finals: Variable Speed (forced)");
+            LogExample("  - Player team matches: Variable Speed preferred");
+            LogExample("  - Early season non-player matches: Compressed timing");
+            LogExample("  - Close matches: Variable Speed");
+            LogExample("  - Blowouts: Compressed timing");
+            
+            return customTimingConfig; // Use the configured ScriptableObject
+        }
+        
+        /// <summary>
+        /// Create sample teams for testing
+        /// </summary>
+        private List<Team> CreateSampleTeams()
+        {
+            if (sampleTeams != null && sampleTeams.Count > 0)
+            {
+                LogExample($"  - Using {sampleTeams.Count} configured sample teams");
+                return sampleTeams;
+            }
+            
+            // Create basic sample teams if none configured
+            var teams = new List<Team>();
+            
+            var teamNames = new[]
+            {
+                "Adelaide Crows", "Brisbane Lions", "Carlton Blues", "Collingwood Magpies",
+                "Essendon Bombers", "Fremantle Dockers", "Geelong Cats", "Gold Coast Suns",
+                "GWS Giants", "Hawthorn Hawks", "Melbourne Demons", "North Melbourne Kangaroos",
+                "Port Adelaide Power", "Richmond Tigers", "St Kilda Saints", "Sydney Swans",
+                "West Coast Eagles", "Western Bulldogs"
+            };
+            
+            for (int i = 0; i < teamNames.Length; i++)
+            {
+                var team = new Team
+                {
+                    Id = $"team_{i:D2}",
+                    Name = teamNames[i],
+                    Level = LeagueLevel.Professional,
+                    Roster = CreateSampleRoster()
+                };
+                teams.Add(team);
+            }
+            
+            LogExample($"  - Created {teams.Count} sample teams");
+            return teams;
+        }
+        
+        /// <summary>
+        /// Generate timing-integrated season schedule
+        /// </summary>
+        private TimingEnabledSeasonSchedule GenerateTimingIntegratedSeason(
+            List<Team> teams, 
+            SeasonTimingConfiguration timingConfig)
+        {
+            var options = new TimingSeasonGenerationOptions
+            {
+                DaysBetweenMatches = 7,
+                TotalRounds = 23,
+                PlayerTeamId = teams[0].Id, // First team is the "player" team
+                PlayerExperienceLevel = AFLManager.Models.PlayerExperienceLevel.Intermediate,
+                EnableSpecialMatches = true,
+                EnableRivalryDetection = true,
+                EnableTimingSystemRecommendations = true
+            };
+            
+            // Add some rivalry pairs
+            options.RivalryPairs["team_00"] = new List<string> { "team_01", "team_02" }; // Adelaide vs Brisbane, Carlton
+            options.RivalryPairs["team_03"] = new List<string> { "team_04" }; // Collingwood vs Essendon
+            
+            var schedule = TimingIntegratedSeasonScheduler.GenerateTimingIntegratedSeason(
+                teams, DateTime.Today, timingConfig, options);
+            
+            LogExample($"  - Generated {schedule.Fixtures.Count} fixtures across {schedule.TotalRounds} rounds");
+            LogExample($"  - Player team matches: {schedule.Fixtures.Count(f => f.IsPlayerTeamMatch)}");
+            LogExample($"  - Rivalry matches: {schedule.Fixtures.Count(f => f.IsRivalryMatch)}");
+            LogExample($"  - Close matches expected: {schedule.Fixtures.Count(f => f.IsCloseMatch)}");
+            
+            return schedule;
+        }
+        
+        /// <summary>
+        /// Demonstrate different timing scenarios
+        /// </summary>
+        private System.Collections.IEnumerator DemonstrateTimingScenarios(TimingEnabledSeasonSchedule schedule)
+        {
+            LogExample("  Timing System Recommendations:");
+            
+            var timingSystemCounts = new Dictionary<TimingSystemType, int>();
+            
+            foreach (var fixture in schedule.Fixtures.Take(10)) // Show first 10 for brevity
+            {
+                var timingSystem = fixture.PreferredTimingSystem ?? TimingSystemType.VariableSpeed;
+                
+                if (!timingSystemCounts.ContainsKey(timingSystem))
+                    timingSystemCounts[timingSystem] = 0;
+                timingSystemCounts[timingSystem]++;
+                
+                var context = GetMatchContextDescription(fixture);
+                LogExample($"    R{fixture.Round}: {fixture.HomeTeamName} vs {fixture.AwayTeamName} → {timingSystem} ({context})");
+                
+                yield return new WaitForSeconds(0.1f);
+            }
+            
+            LogExample("  Summary of first 10 matches:");
+            foreach (var kvp in timingSystemCounts)
+            {
+                LogExample($"    {kvp.Key}: {kvp.Value} matches");
+            }
+        }
+        
+        /// <summary>
+        /// Analyze timing statistics for the season
+        /// </summary>
+        private void AnalyzeTimingStatistics(TimingEnabledSeasonSchedule schedule)
+        {
+            var stats = schedule.GetTimingStatistics();
+            
+            LogExample($"  Season Timing Analysis:");
+            LogExample($"    Total matches: {stats.TotalMatches}");
+            LogExample($"    Player team matches: {stats.PlayerTeamMatches} ({stats.PlayerTeamMatches * 100f / stats.TotalMatches:F1}%)");
+            LogExample($"    Rivalry matches: {stats.RivalryMatches} ({stats.RivalryMatches * 100f / stats.TotalMatches:F1}%)");
+            LogExample($"    Expected close matches: {stats.CloseMatches} ({stats.CloseMatches * 100f / stats.TotalMatches:F1}%)");
+            
+            LogExample("  Timing System Distribution:");
+            foreach (var kvp in stats.TimingSystemDistribution)
+            {
+                var percentage = stats.GetTimingSystemPercentage(kvp.Key);
+                LogExample($"    {kvp.Key}: {kvp.Value} matches ({percentage:F1}%)");
+            }
+        }
+        
+        /// <summary>
+        /// Test season boot integration
+        /// </summary>
+        private System.Collections.IEnumerator TestSeasonBootIntegration(
+            List<Team> teams, 
+            SeasonTimingConfiguration timingConfig)
+        {
+            // Create a temporary season boot component for testing
+            var testBootObject = new GameObject("Test Season Boot");
+            var testBoot = testBootObject.AddComponent<TimingIntegratedSeasonBoot>();
+            
+            // Configure the boot component
+            testBoot.seasonTimingConfig = timingConfig;
+            testBoot.playerExperienceLevel = AFLManager.Models.PlayerExperienceLevel.Intermediate;
+            testBoot.simulateAllMatches = false; // Interactive mode for testing
+            testBoot.enableSeasonTelemetry = true;
+            
+            // Subscribe to events
+            testBoot.OnMatchCompleted += (fixture, result) =>
+            {
+                LogExample($"    Match completed: {fixture.HomeTeamName} {result.HomeScore}-{result.AwayScore} {fixture.AwayTeamName}");
+            };
+            
+            testBoot.OnRoundCompleted += (round) =>
+            {
+                LogExample($"    Round {round} completed");
+            };
+            
+            LogExample("  - Created timing-integrated season boot");
+            LogExample("  - Configured for interactive simulation");
+            LogExample("  - Event handlers attached");
+            
+            // Simulate a few matches
+            yield return new WaitForSeconds(0.5f);
+            
+            if (testBoot.Fixtures != null && testBoot.Fixtures.Count > 0)
+            {
+                LogExample($"  - Simulating first 3 matches of {testBoot.Fixtures.Count} total");
+                
+                for (int i = 0; i < Math.Min(3, testBoot.Fixtures.Count); i++)
+                {
+                    var fixture = testBoot.Fixtures[i];
+                    LogExample($"    Simulating: R{fixture.Round} {fixture.HomeTeamName} vs {fixture.AwayTeamName}");
+                    
+                    var result = testBoot.SimulateMatch(fixture);
+                    yield return new WaitForSeconds(0.2f);
+                }
+            }
+            
+            // Get timing system status
+            var timingStatus = testBoot.GetTimingSystemStatus();
+            if (timingStatus != null)
+            {
+                LogExample($"  - Active timing system: {timingStatus.ActiveSystem}");
+                LogExample($"  - Match paused: {timingStatus.IsMatchPaused}");
+            }
+            
+            // Clean up
+            DestroyImmediate(testBootObject);
+        }
+        
+        /// <summary>
+        /// Get contextual description for a match
+        /// </summary>
+        private string GetMatchContextDescription(TimingEnabledMatch fixture)
+        {
+            var contexts = new List<string>();
+            
+            if (fixture.IsPlayerTeamMatch) contexts.Add("Player Team");
+            if (fixture.IsRivalryMatch) contexts.Add("Rivalry");
+            if (fixture.IsCloseMatch) contexts.Add("Expected Close");
+            if (fixture.MatchType != MatchType.Regular) contexts.Add(fixture.MatchType.ToString());
+            if (fixture.SeasonPhase != SeasonPhase.MidSeason) contexts.Add(fixture.SeasonPhase.ToString());
+            
+            return contexts.Count > 0 ? string.Join(", ", contexts) : "Regular";
+        }
+        
+        /// <summary>
+        /// Create a sample roster for testing
+        /// </summary>
+        private List<Player> CreateSampleRoster()
+        {
+            var roster = new List<Player>();
+            
+            // Create 22 players with basic stats
+            for (int i = 0; i < 22; i++)
+            {
+                var player = new Player
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = $"Player {i + 1}",
+                    Stats = new PlayerStats
+                    {
+                        Speed = UnityEngine.Random.Range(60, 95),
+                        Kicking = UnityEngine.Random.Range(60, 95),
+                        Marking = UnityEngine.Random.Range(60, 95),
+                        Tackling = UnityEngine.Random.Range(60, 95)
+                    }
+                };
+                roster.Add(player);
+            }
+            
+            return roster;
+        }
+        
+        /// <summary>
+        /// Enhanced logging for examples
+        /// </summary>
+        private void LogExample(string message)
+        {
+            if (enableDetailedLogging)
+            {
+                Debug.Log($"[TimingIntegrationExample] {message}");
+            }
+        }
+        
+        /// <summary>
+        /// Manual test methods for editor testing
+        /// </summary>
+        [ContextMenu("Run Timing Configuration Test")]
+        public void TestTimingConfiguration()
+        {
+            if (customTimingConfig == null)
+            {
+                Debug.LogWarning("No custom timing configuration assigned!");
+                return;
+            }
+            
+            // Test different match contexts
+            var testScenarios = new[]
+            {
+                new MatchTimingRequest
+                {
+                    MatchType = MatchType.Regular,
+                    SeasonPhase = SeasonPhase.EarlySeason,
+                    IsPlayerTeamMatch = false,
+                    IsCloseMatch = false,
+                    PlayerExperienceLevel = PlayerExperienceLevel.Beginner
+                },
+                new MatchTimingRequest
+                {
+                    MatchType = MatchType.Regular,
+                    SeasonPhase = SeasonPhase.MidSeason,
+                    IsPlayerTeamMatch = true,
+                    IsCloseMatch = true,
+                    PlayerExperienceLevel = PlayerExperienceLevel.Intermediate
+                },
+                new MatchTimingRequest
+                {
+                    MatchType = MatchType.GrandFinal,
+                    SeasonPhase = SeasonPhase.Finals,
+                    IsPlayerTeamMatch = true,
+                    IsCloseMatch = true,
+                    PlayerExperienceLevel = PlayerExperienceLevel.Expert
+                }
+            };
+            
+            Debug.Log("Testing timing configuration scenarios:");
+            
+            foreach (var scenario in testScenarios)
+            {
+                var recommendedSystem = customTimingConfig.GetRecommendedTimingSystem(scenario);
+                var canSwitch = customTimingConfig.CanSwitchTiming(scenario);
+                var config = customTimingConfig.GetConfigurationForMatch(scenario);
+                
+                Debug.Log($"  {scenario.MatchType} ({scenario.SeasonPhase}, Player: {scenario.IsPlayerTeamMatch}, Close: {scenario.IsCloseMatch}):");
+                Debug.Log($"    Recommended: {recommendedSystem}, Can Switch: {canSwitch}");
+                Debug.Log($"    Default System: {config.DefaultTimingSystem}");
+            }
+        }
+        
+        [ContextMenu("Test Season Generation")]
+        public void TestSeasonGeneration()
+        {
+            var teams = CreateSampleTeams();
+            if (teams.Count < 2)
+            {
+                Debug.LogWarning("Need at least 2 teams for season generation test!");
+                return;
+            }
+            
+            Debug.Log($"Testing season generation with {teams.Count} teams...");
+            
+            var schedule = TimingIntegratedSeasonScheduler.GenerateTimingIntegratedSeason(
+                teams.Take(8).ToList(), // Use first 8 teams for quicker test
+                DateTime.Today,
+                customTimingConfig
+            );
+            
+            Debug.Log($"Generated {schedule.Fixtures.Count} fixtures:");
+            
+            var stats = schedule.GetTimingStatistics();
+            Debug.Log($"  Player team matches: {stats.PlayerTeamMatches}");
+            Debug.Log($"  Rivalry matches: {stats.RivalryMatches}");
+            Debug.Log($"  Close matches: {stats.CloseMatches}");
+            
+            foreach (var kvp in stats.TimingSystemDistribution)
+            {
+                Debug.Log($"  {kvp.Key}: {kvp.Value} matches");
+            }
+        }
+    }
+}

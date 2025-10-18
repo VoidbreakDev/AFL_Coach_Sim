@@ -518,6 +518,8 @@ namespace AFLManager.Systems.Development
             return weightedItems.First().item; // Fallback
         }
 
+        #endregion
+
         #region Additional Helper Methods (Simplified for brevity)
 
         private int GenerateNaturalCeiling(Player player) => 

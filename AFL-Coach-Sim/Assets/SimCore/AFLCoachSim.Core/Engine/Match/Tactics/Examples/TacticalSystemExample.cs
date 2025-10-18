@@ -5,6 +5,7 @@ using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match.Runtime;
 using AFLCoachSim.Core.Engine.Match.Tactics;
+using AFLCoachSim.Core.Engine.Match.Weather;
 using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics.Examples
@@ -22,8 +23,8 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics.Examples
             CoreLogger.Log("=== Advanced Tactical System Example ===");
 
             // 1. Create team IDs
-            var homeTeam = new TeamId { Value = Guid.NewGuid() };
-            var awayTeam = new TeamId { Value = Guid.NewGuid() };
+            var homeTeam = new TeamId(Guid.NewGuid().GetHashCode());
+            var awayTeam = new TeamId(Guid.NewGuid().GetHashCode());
 
             // 2. Set up coaching profiles
             var homeCoach = CoachingProfileFactory.CreateTacticalGenius();
@@ -148,7 +149,7 @@ foreach (var player in homePlayers) {
                 ElapsedTime = 0f,
                 TotalGameTime = 6000f, // 100 minutes
                 CurrentPhase = Phase.CenterBounce,
-                Weather = Weather.Clear,
+                Weather = AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear,
                 TeamMomentum = new Dictionary<TeamId, float>
                 {
                     [homeTeam] = 0f,
@@ -171,12 +172,12 @@ foreach (var player in homePlayers) {
             {
                 var player = new Player
                 {
-                    Id = Guid.NewGuid(),
+                    Id = new PlayerId(Guid.NewGuid().GetHashCode()),
                     Name = $"Player {i + 1}",
                     PrimaryRole = (Role)(i % Enum.GetValues(typeof(Role)).Length)
                 };
                 
-                players.Add(new PlayerRuntime(player));
+                players.Add(new PlayerRuntime(player, new TeamId(1), false));
             }
             
             return players;

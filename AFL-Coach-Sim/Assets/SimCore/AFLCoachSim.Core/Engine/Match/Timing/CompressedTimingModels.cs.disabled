@@ -1,0 +1,437 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace AFLCoachSim.Core.Engine.Match.Timing
+{
+    /// <summary>
+    /// Configuration for compressed match timing system
+    /// </summary>
+    public class CompressedTimingConfiguration
+    {
+        // Base compressed durations (total ~15-20 minutes)
+        public float CompressedQuarterDuration { get; set; } = 3 * 60; // 3 minutes per quarter
+        public float CompressedQuarterBreak { get; set; } = 20f; // 20 seconds
+        public float CompressedHalfTime { get; set; } = 60f; // 1 minute
+        public float CompressedThreeQuarterBreak { get; set; } = 20f; // 20 seconds
+        
+        // Compression rates for different phases (lower = slower, higher = faster)
+        public float ShotCompressionRate { get; set; } = 0.3f; // Slow down significantly for shots
+        public float Inside50CompressionRate { get; set; } = 0.5f; // Moderate slow for scoring chances
+        public float BounceCompressionRate { get; set; } = 0.8f; // Quick center bounces
+        public float StoppageCompressionRate { get; set; } = 0.4f; // Slow for stoppages
+        public float OpenPlayCompressionRate { get; set; } = 2.0f; // Speed up general play
+        public float KickInCompressionRate { get; set; } = 1.2f; // Moderate pace for kick-ins
+        
+        // Key moment handling
+        public float KeyMomentCompressionRate { get; set; } = 0.2f; // Very slow for key moments
+        public float KeyMomentDuration { get; set; } = 8f; // 8 seconds in key moment mode
+        public float TacticalDecisionCompressionRate { get; set; } = 0.1f; // Nearly pause for decisions
+        public float TacticalDecisionTimeout { get; set; } = 30f; // 30 seconds to make decision
+        
+        // Compression bounds
+        public float MinCompressionRate { get; set; } = 0.1f; // Never completely pause
+        public float MaxCompressionRate { get; set; } = 5.0f; // Never too fast to follow
+        public float DefaultCompressionRate { get; set; } = 1.5f; // Default acceleration
+        
+        // AI Coach intervention
+        public float MinAiCoachInterval { get; set; } = 45f; // Minimum 45 seconds between interventions
+        public float AiCoachInterventionDuration { get; set; } = 5f; // 5 seconds for AI coach input
+        
+        // Engagement system
+        public float EngagementDecayRate { get; set; } = 0.999f; // How quickly engagement decays
+        public float EngagementBoostThreshold { get; set; } = 0.6f; // When to boost engagement
+        public float LowEngagementSpeedBoost { get; set; } = 1.8f; // Speed boost when engagement is low
+        
+        public static CompressedTimingConfiguration Default => new CompressedTimingConfiguration();
+    }
+    
+    /// <summary>
+    /// Update information from compressed timing system
+    /// </summary>
+    public class CompressedTimingUpdate
+    {
+        public TimingUpdate BaseTiming { get; set; }
+        public float CompressionMultiplier { get; set; }
+        public float CurrentEngagementLevel { get; set; }
+        public bool IsInKeyMoment { get; set; }
+        public double KeyMomentTimeRemaining { get; set; }
+        
+        // AI Coach integration
+        public bool ShouldShowAiCoachSuggestion { get; set; }
+        public bool TacticalDecisionAvailable { get; set; }
+        public TacticalDecisionPoint ActiveTacticalDecision { get; set; }
+        
+        // Key moments
+        public bool NewKeyMomentTriggered { get; set; }
+        public KeyMomentType KeyMomentType { get; set; }
+        
+        // Engagement and pacing
+        public EngagementMetrics EngagementMetrics { get; set; }
+        public PacingRecommendation RecommendedPacing { get; set; }
+        
+        // Convenience properties
+        public bool ShouldPauseForDecision => TacticalDecisionAvailable && CompressionMultiplier <= 0.2f;
+        public bool IsHighEngagement => CurrentEngagementLevel > 0.8f;
+        public bool NeedsSpeedBoost => CurrentEngagementLevel < 0.4f && !IsInKeyMoment;
+    }
+    
+    /// <summary>
+    /// Types of key moments that deserve special attention
+    /// </summary>
+    public enum KeyMomentType
+    {
+        Goal,
+        Injury, 
+        QuarterTransition,
+        CriticalMoment,
+        MajorTurnover,
+        CloseFinish,
+        Comeback,
+        Record
+    }
+    
+    /// <summary>
+    /// Tactical decision point requiring player input
+    /// </summary>
+    public class TacticalDecisionPoint
+    {
+        public Guid DecisionId { get; set; } = Guid.NewGuid();
+        public DateTime CreatedTime { get; set; } = DateTime.Now;
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public TacticalDecisionType Type { get; set; }
+        public List<TacticalOption> Options { get; set; } = new();
+        public bool IsUrgent { get; set; }
+        public float RecommendedTimeToDecide { get; set; } = 15f; // seconds
+        public Dictionary<string, object> Context { get; set; } = new();
+    }
+    
+    /// <summary>
+    /// Types of tactical decisions
+    /// </summary>
+    public enum TacticalDecisionType
+    {
+        Substitution,
+        TacticalChange,
+        InjuryResponse,
+        MatchStrategy,
+        TimeManagement,
+        PlayerInstruction
+    }
+    
+    /// <summary>
+    /// Option for tactical decision
+    /// </summary>
+    public class TacticalOption
+    {
+        public int OptionId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public float RecommendationScore { get; set; } // AI coach recommendation (0-1)
+        public List<string> Consequences { get; set; } = new();
+        public Dictionary<string, object> Parameters { get; set; } = new();
+    }
+    
+    /// <summary>
+    /// Engagement tracking event
+    /// </summary>
+    public class EngagementEvent
+    {
+        public DateTime Timestamp { get; set; }
+        public EngagementEventType Type { get; set; }
+        public string Description { get; set; }
+        public float EngagementLevel { get; set; }
+        public Dictionary<string, object> Context { get; set; } = new();
+    }
+    
+    /// <summary>
+    /// Types of engagement events
+    /// </summary>
+    public enum EngagementEventType
+    {
+        KeyMoment,
+        AiCoachIntervention,
+        TacticalDecision,
+        PhaseChange,
+        ScoreChange,
+        EngagementBoost,
+        EngagementDrop
+    }
+    
+    /// <summary>
+    /// Engagement metrics for analysis
+    /// </summary>
+    public class EngagementMetrics
+    {
+        public float CurrentLevel { get; set; }
+        public int RecentEventCount { get; set; }
+        public int KeyMomentFrequency { get; set; }
+        public int AiCoachInterventions { get; set; }
+        public EngagementTrend TrendDirection { get; set; }
+        
+        // Quality indicators
+        public float AttentionScore { get; set; }
+        public float InteractionRate { get; set; }
+        public float SatisfactionPrediction { get; set; }
+    }
+    
+    /// <summary>
+    /// Engagement trend directions
+    /// </summary>
+    public enum EngagementTrend
+    {
+        Increasing,
+        Stable,
+        Decreasing
+    }
+    
+    /// <summary>
+    /// Pacing recommendations for UI
+    /// </summary>
+    public enum PacingRecommendation
+    {
+        Pause,      // Stop for decision
+        SlowDown,   // Slow for key moment
+        Normal,     // Standard pace
+        SpeedUp     // Accelerate through boring parts
+    }
+    
+    /// <summary>
+    /// Statistics for compressed timing system
+    /// </summary>
+    public class CompressedTimingStatistics
+    {
+        public MatchTimingStatistics BaseStatistics { get; set; }
+        public float AverageCompressionRate { get; set; }
+        public float TotalRealTimeElapsed { get; set; }
+        
+        // Key moments
+        public int KeyMomentsTriggered { get; set; }
+        public Dictionary<KeyMomentType, int> KeyMomentsByType { get; set; } = new();
+        public float AverageKeyMomentDuration { get; set; }
+        
+        // AI Coach
+        public int AiCoachInterventions { get; set; }
+        public float AverageInterventionGap { get; set; }
+        public List<string> AiCoachTopics { get; set; } = new();
+        
+        // Tactical decisions
+        public int TacticalDecisionsPresented { get; set; }
+        public float AverageDecisionTime { get; set; }
+        public Dictionary<TacticalDecisionType, int> DecisionsByType { get; set; } = new();
+        
+        // Engagement
+        public List<EngagementEvent> EngagementHistory { get; set; } = new();
+        public float AverageEngagementLevel { get; set; }
+        public EngagementTrend OverallEngagementTrend { get; set; }
+        
+        // Performance
+        public float CompressionEfficiency { get; set; } // How well we maintained engagement vs time saved
+        public float PlayerSatisfactionScore { get; set; } // Predicted player satisfaction
+    }
+    
+    /// <summary>
+    /// Clock display optimized for compressed timing
+    /// </summary>
+    public class CompressedClockDisplay
+    {
+        public string TimeDisplay { get; set; }
+        public string CompressionRate { get; set; }
+        public float EngagementLevel { get; set; }
+        public bool IsInKeyMoment { get; set; }
+        public string KeyMomentDescription { get; set; }
+        public PacingRecommendation PacingRecommendation { get; set; }
+        
+        // Visual indicators
+        public string EngagementColor => EngagementLevel switch
+        {
+            > 0.8f => "Green",
+            > 0.6f => "Yellow", 
+            > 0.4f => "Orange",
+            _ => "Red"
+        };
+        
+        public string CompressionColor => CompressionRate switch
+        {
+            var rate when rate.StartsWith("0.") => "Blue", // Slowed down
+            "1.0x" => "White", // Normal
+            _ => "Orange" // Sped up
+        };
+        
+        public string GetStatusText()
+        {
+            if (IsInKeyMoment) return KeyMomentDescription;
+            if (PacingRecommendation == PacingRecommendation.SpeedUp) return "Speeding through routine play";
+            if (PacingRecommendation == PacingRecommendation.SlowDown) return "Savoring the moment";
+            if (PacingRecommendation == PacingRecommendation.Pause) return "Decision required";
+            return "Following the action";
+        }
+    }
+    
+    /// <summary>
+    /// Extension methods for compressed timing
+    /// </summary>
+    public static class CompressedTimingExtensions
+    {
+        public static bool IsSignificantMoment(this CompressedTimingUpdate update)
+        {
+            return update.IsInKeyMoment || 
+                   update.TacticalDecisionAvailable || 
+                   update.ShouldShowAiCoachSuggestion ||
+                   update.BaseTiming.QuarterEnded ||
+                   update.BaseTiming.MatchEnded;
+        }
+        
+        public static float GetEffectiveGameSpeed(this CompressedTimingUpdate update)
+        {
+            return 1.0f / update.CompressionMultiplier;
+        }
+        
+        public static bool ShouldShowSpeedIndicator(this CompressedTimingUpdate update)
+        {
+            return Math.Abs(update.CompressionMultiplier - 1.0f) > 0.1f;
+        }
+        
+        public static string GetPacingDescription(this CompressedTimingUpdate update)
+        {
+            return update.CompressionMultiplier switch
+            {
+                < 0.3f => "Paused",
+                < 0.7f => "Slow Motion", 
+                < 1.2f => "Normal Speed",
+                < 2.0f => "Fast Forward",
+                _ => "Very Fast"
+            };
+        }
+        
+        public static bool RequiresPlayerAttention(this CompressedTimingUpdate update)
+        {
+            return update.TacticalDecisionAvailable || 
+                   update.IsInKeyMoment ||
+                   update.CurrentEngagementLevel < 0.3f;
+        }
+    }
+    
+    /// <summary>
+    /// AI Coach integration data
+    /// </summary>
+    public class AiCoachSuggestion
+    {
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+        public string Title { get; set; }
+        public string Message { get; set; }
+        public AiCoachSuggestionType Type { get; set; }
+        public float Confidence { get; set; } // 0-1 how confident the AI is
+        public List<string> Reasoning { get; set; } = new();
+        public List<TacticalOption> SuggestedActions { get; set; } = new();
+        public bool RequiresResponse { get; set; }
+        public float UrgencyLevel { get; set; } // 0-1 how urgent this is
+    }
+    
+    /// <summary>
+    /// Types of AI coach suggestions
+    /// </summary>
+    public enum AiCoachSuggestionType
+    {
+        TacticalAdjustment,
+        PlayerManagement,
+        MatchStrategy,
+        InjuryAlert,
+        OpportunityAlert,
+        WarningAlert,
+        PerformanceInsight
+    }
+    
+    /// <summary>
+    /// Utilities for compressed timing calculations
+    /// </summary>
+    public static class CompressedTimingUtilities
+    {
+        /// <summary>
+        /// Calculate total expected match time with compression
+        /// </summary>
+        public static float CalculateExpectedMatchTime(CompressedTimingConfiguration config)
+        {
+            // Base game time
+            float gameTime = config.CompressedQuarterDuration * 4;
+            
+            // Add breaks
+            float breakTime = config.CompressedQuarterBreak * 2 + 
+                             config.CompressedHalfTime + 
+                             config.CompressedThreeQuarterBreak;
+            
+            return gameTime + breakTime;
+        }
+        
+        /// <summary>
+        /// Calculate compression efficiency (engagement maintained vs time saved)
+        /// </summary>
+        public static float CalculateCompressionEfficiency(List<EngagementEvent> engagementHistory, 
+            float totalTime, float originalTime)
+        {
+            var avgEngagement = engagementHistory.Count > 0 
+                ? engagementHistory.Average(e => e.EngagementLevel) 
+                : 0.7f;
+            
+            var timeSaved = (originalTime - totalTime) / originalTime;
+            
+            // Efficiency = (engagement maintained) × (time saved)
+            return avgEngagement * timeSaved;
+        }
+        
+        /// <summary>
+        /// Generate engagement report
+        /// </summary>
+        public static EngagementReport GenerateEngagementReport(CompressedTimingStatistics stats)
+        {
+            return new EngagementReport
+            {
+                TotalKeyMoments = stats.KeyMomentsTriggered,
+                AverageEngagement = stats.AverageEngagementLevel,
+                EngagementTrend = stats.OverallEngagementTrend,
+                TimeEfficiency = stats.CompressionEfficiency,
+                PredictedSatisfaction = stats.PlayerSatisfactionScore,
+                Recommendations = GenerateEngagementRecommendations(stats)
+            };
+        }
+        
+        private static List<string> GenerateEngagementRecommendations(CompressedTimingStatistics stats)
+        {
+            var recommendations = new List<string>();
+            
+            if (stats.AverageEngagementLevel < 0.6f)
+                recommendations.Add("Consider more frequent key moments to boost engagement");
+            
+            if (stats.AverageCompressionRate > 3.0f)
+                recommendations.Add("Compression rate may be too high - key moments might be missed");
+            
+            if (stats.AiCoachInterventions < 3)
+                recommendations.Add("AI coach could intervene more frequently to maintain player connection");
+            
+            if (stats.TacticalDecisionsPresented == 0)
+                recommendations.Add("Add tactical decision points to increase player agency");
+            
+            return recommendations;
+        }
+    }
+    
+    /// <summary>
+    /// Engagement analysis report
+    /// </summary>
+    public class EngagementReport
+    {
+        public int TotalKeyMoments { get; set; }
+        public float AverageEngagement { get; set; }
+        public EngagementTrend EngagementTrend { get; set; }
+        public float TimeEfficiency { get; set; }
+        public float PredictedSatisfaction { get; set; }
+        public List<string> Recommendations { get; set; } = new();
+        
+        public string GetSummary()
+        {
+            return $"Engagement: {AverageEngagement:P1}, Efficiency: {TimeEfficiency:P1}, " +
+                   $"Satisfaction: {PredictedSatisfaction:P1}";
+        }
+    }
+}

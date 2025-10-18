@@ -101,7 +101,7 @@ namespace AFLManager.Systems.Development
             public PlayerPotentialManager.CoachInsightLevel InsightLevel { get; set; }
             public CoachingBackground Background { get; set; }
             public int ExperienceYears { get; set; }
-            public Dictionary<string, float> SpecialtyModifiers { get; set; } = new();
+            public System.Collections.Generic.Dictionary<string, float> SpecialtyModifiers { get; set; } = new();
             
             /// <summary>
             /// Create coach profile based on selected coaching background
@@ -114,7 +114,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Good,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["YoungPlayerDevelopment"] = 1.5f,
                             ["PotentialIdentification"] = 1.3f,
@@ -126,7 +126,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Average,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["TacticalDevelopment"] = 1.4f,
                             ["SystemFit"] = 1.3f,
@@ -138,7 +138,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Average,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["MotivationalBreakthroughs"] = 1.6f,
                             ["MentalDevelopment"] = 1.3f,
@@ -150,7 +150,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Good,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["TechnicalSkills"] = 1.3f,
                             ["GameReading"] = 1.4f,
@@ -162,7 +162,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Excellent,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["PotentialIdentification"] = 1.8f,
                             ["HiddenAttributes"] = 1.5f,
@@ -174,7 +174,7 @@ namespace AFLManager.Systems.Development
                     {
                         Background = background,
                         InsightLevel = PlayerPotentialManager.CoachInsightLevel.Legendary,
-                        SpecialtyModifiers = new Dictionary<string, float>
+                        SpecialtyModifiers = new System.Collections.Generic.Dictionary<string, float>
                         {
                             ["AllAspects"] = 1.3f,
                             ["Intuition"] = 1.5f,
@@ -221,7 +221,7 @@ namespace AFLManager.Systems.Development
             public PotentialStatusLevel Status { get; set; }
             public int EstimatedMonthsToReachCeiling { get; set; }
             public string WarningMessage { get; set; }
-            public List<string> Recommendations { get; set; } = new();
+            public System.Collections.Generic.List<string> Recommendations { get; set; } = new();
         }
 
         /// <summary>
@@ -298,9 +298,9 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Generate training recommendations based on potential status
         /// </summary>
-        private List<string> GenerateTrainingRecommendations(PlayerPotentialManager.PlayerPotentialAssessment assessment)
+        private System.Collections.Generic.List<string> GenerateTrainingRecommendations(PlayerPotentialManager.PlayerPotentialAssessment assessment)
         {
-            var recommendations = new List<string>();
+            var recommendations = new System.Collections.Generic.List<string>();
             
             int gapToCeiling = assessment.PredictedCeiling - assessment.CurrentOverall;
             

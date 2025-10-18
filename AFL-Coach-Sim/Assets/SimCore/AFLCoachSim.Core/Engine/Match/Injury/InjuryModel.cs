@@ -6,7 +6,6 @@ using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Engine.Match.Tuning;
 using AFLCoachSim.Core.Injuries;
 using AFLCoachSim.Core.Injuries.Domain;
-using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Injury
 {
@@ -17,13 +16,13 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
     {
         private readonly InjuryManager _injuryManager;
         private readonly Dictionary<int, PlayerRuntimeInjuryState> _playerInjuryStates;
-        private readonly ILogger _logger;
+        private readonly System.Action<string> _logger;
         
-        public InjuryModel(InjuryManager injuryManager, ILogger logger = null)
+        public InjuryModel(InjuryManager injuryManager, System.Action<string> logger = null)
         {
             _injuryManager = injuryManager;
             _playerInjuryStates = new Dictionary<int, PlayerRuntimeInjuryState>();
-            _logger = logger ?? NullLogger.Instance;
+            _logger = logger ?? (msg => System.Console.WriteLine(msg));
         }
         
         /// <summary>
@@ -35,7 +34,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             
             foreach (var playerRuntime in allPlayers)
             {
-                var playerId = playerRuntime.Player.ID;
+                var playerId = playerRuntime.Player.Id;
                 
                 // Get current injury status from unified system
                 var performanceMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerId);
@@ -59,7 +58,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                 ApplyPreExistingInjuriesToRuntime(playerRuntime, injuryState);
             }
             
-            _logger.Log($"[InjuryModel] Initialized injury states for {allPlayers.Count} players, {_playerInjuryStates.Values.Count(s => s.PreExistingInjuries.Any())} with pre-existing injuries");
+            _logger($"[InjuryModel] Initialized injury states for {allPlayers.Count} players, {_playerInjuryStates.Values.Count(s => s.PreExistingInjuries.Any())} with pre-existing injuries");
         }
         
         /// <summary>
@@ -81,7 +80,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                 if (existingInjuries + newInjuries >= maxInjuries) break;
                 if (playerRuntime.InjuredOut) continue;
                 
-                var playerId = playerRuntime.Player.ID;
+                var playerId = playerRuntime.Player.Id;
                 
                 // Calculate comprehensive injury risk
                 if (ShouldPlayerSustainInjury(playerRuntime, phase, phaseRiskMultiplier, dtSeconds, rng, tuning))
@@ -93,7 +92,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                         UpdatePlayerInjuryState(playerId, newInjury);
                         newInjuries++;
                         
-                        _logger.Log($"[InjuryModel] Player {playerId} sustained {newInjury.Severity} {newInjury.Type} injury during {phase}");
+                        _logger($"[InjuryModel] Player {playerId} sustained {newInjury.Severity} {newInjury.Type} injury during {phase}");
                     }
                 }
             }
@@ -156,7 +155,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                                              float phaseRiskMultiplier, int dtSeconds, 
                                              DeterministicRandom rng, MatchTuning tuning)
         {
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             var player = playerRuntime.Player;
             
             // Get player attributes for risk calculation
@@ -182,7 +181,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
         
         private AFLCoachSim.Core.Injuries.Domain.Injury CreateMatchInjury(PlayerRuntime playerRuntime, Phase phase, DeterministicRandom rng)
         {
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             var player = playerRuntime.Player;
             
             // Determine injury severity based on fatigue and durability
@@ -196,9 +195,8 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
                 playerId,
                 injuryType,
                 severity,
-                GetMatchSpecificBodyPart(injuryType, phase, rng),
-                "Match",
-                GetPhaseIntensityMultiplier(phase)
+                InjurySource.Match,
+                $"Match injury - {GetMatchSpecificBodyPart(injuryType, phase, rng)} {injuryType.ToString().ToLower()}"
             );
             
             return injury;
@@ -207,7 +205,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
         private void ApplyNewInjuryToRuntime(PlayerRuntime playerRuntime, AFLCoachSim.Core.Injuries.Domain.Injury injury)
         {
             // Apply immediate performance impact
-            var currentMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerRuntime.Player.ID);
+            var currentMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerRuntime.Player.Id);
             playerRuntime.InjuryMult = currentMultiplier;
             
             // Determine if player needs to leave field
@@ -348,7 +346,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury
             multiplier += fatigueImpact * 0.8f;
             
             // Previous injuries in this match increase risk slightly
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             if (_playerInjuryStates.TryGetValue(playerId, out var state) && state.NewMatchInjuries.Any())
             {
                 multiplier += 0.2f; // 20% increased risk if already injured this match

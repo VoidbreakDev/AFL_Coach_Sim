@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 6ceab9c8578f4d445b37a293b15a959f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 299071
+  packageName: UI Wizard
+  packageVersion: 1.0
+  assetPath: Assets/CodeSculptLabs/UIFramework/Scripts/UIManager.cs
+  uploadId: 699721

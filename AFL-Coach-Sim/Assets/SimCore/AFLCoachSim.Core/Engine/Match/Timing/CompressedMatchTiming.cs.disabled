@@ -1,0 +1,510 @@
+using System;
+using System.Collections.Generic;
+using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
+
+namespace AFLCoachSim.Core.Engine.Match.Timing
+{
+    /// <summary>
+    /// Compressed match timing system designed for engaging 15-20 minute match experience.
+    /// Focuses on key moments while maintaining tactical depth and decision points.
+    /// </summary>
+    public class CompressedMatchTiming
+    {
+        private readonly CompressedTimingConfiguration _config;
+        private readonly EnhancedMatchTiming _baseTiming;
+        
+        // Compression state
+        private float _compressionMultiplier = 1.0f;
+        private bool _inKeyMoment = false;
+        private DateTime _keyMomentStartTime;
+        private readonly Queue<KeyMomentType> _upcomingKeyMoments;
+        private readonly List<TacticalDecisionPoint> _tacticalDecisions;
+        
+        // AI Coach integration
+        private readonly Dictionary<Phase, float> _aiCoachInterventionProbability;
+        private DateTime _lastAiCoachIntervention;
+        
+        // Engagement tracking
+        private float _currentEngagementLevel = 0.7f;
+        private readonly List<EngagementEvent> _engagementHistory;
+        
+        public CompressedMatchTiming(CompressedTimingConfiguration config = null)
+        {
+            _config = config ?? CompressedTimingConfiguration.Default;
+            _baseTiming = new EnhancedMatchTiming(CreateBaseConfiguration());
+            
+            _upcomingKeyMoments = new Queue<KeyMomentType>();
+            _tacticalDecisions = new List<TacticalDecisionPoint>();
+            _engagementHistory = new List<EngagementEvent>();
+            _aiCoachInterventionProbability = InitializeAiCoachProbabilities();
+            
+            InitializeCompression();
+        }
+        
+        /// <summary>
+        /// Update the compressed timing system
+        /// </summary>
+        public CompressedTimingUpdate UpdateTiming(float deltaTime, Phase currentPhase, MatchContext context)
+        {
+            // Calculate dynamic compression based on current game state
+            UpdateCompressionMultiplier(currentPhase, context);
+            
+            // Apply compression to delta time
+            float adjustedDeltaTime = deltaTime * _compressionMultiplier;
+            
+            // Update base timing system
+            var baseTiming = _baseTiming.UpdateTiming(adjustedDeltaTime, currentPhase, context);
+            
+            // Create compressed update
+            var compressedUpdate = new CompressedTimingUpdate
+            {
+                BaseTiming = baseTiming,
+                CompressionMultiplier = _compressionMultiplier,
+                CurrentEngagementLevel = _currentEngagementLevel,
+                IsInKeyMoment = _inKeyMoment,
+                KeyMomentTimeRemaining = _inKeyMoment ? 
+                    _config.KeyMomentDuration - (DateTime.Now - _keyMomentStartTime).TotalSeconds : 0,
+                
+                // AI Coach information
+                ShouldShowAiCoachSuggestion = ShouldTriggerAiCoach(currentPhase, context),
+                TacticalDecisionAvailable = HasActiveTacticalDecision(),
+                
+                // Engagement metrics
+                EngagementMetrics = CalculateEngagementMetrics(),
+                RecommendedPacing = CalculateRecommendedPacing(currentPhase, context)
+            };
+            
+            // Handle key moments
+            ProcessKeyMoments(currentPhase, context, compressedUpdate);
+            
+            // Handle tactical decisions
+            ProcessTacticalDecisions(context, compressedUpdate);
+            
+            // Update engagement tracking
+            UpdateEngagementTracking(currentPhase, context, compressedUpdate);
+            
+            return compressedUpdate;
+        }
+        
+        /// <summary>
+        /// Trigger a key moment (goal, injury, etc.) to slow down and highlight
+        /// </summary>
+        public void TriggerKeyMoment(KeyMomentType momentType, string description = "")
+        {
+            if (_inKeyMoment) return; // Don't interrupt existing key moment
+            
+            _inKeyMoment = true;
+            _keyMomentStartTime = DateTime.Now;
+            _compressionMultiplier = _config.KeyMomentCompressionRate; // Slow down significantly
+            
+            // Boost engagement for key moments
+            _currentEngagementLevel = Math.Min(1.0f, _currentEngagementLevel + 0.3f);
+            
+            RecordEngagementEvent(EngagementEventType.KeyMoment, $"{momentType}: {description}");
+        }
+        
+        /// <summary>
+        /// Add a tactical decision point that requires player input
+        /// </summary>
+        public void AddTacticalDecision(TacticalDecisionPoint decision)
+        {
+            _tacticalDecisions.Add(decision);
+            
+            // Slow down when tactical decisions are available
+            _compressionMultiplier = Math.Min(_compressionMultiplier, _config.TacticalDecisionCompressionRate);
+        }
+        
+        /// <summary>
+        /// Force immediate AI Coach intervention
+        /// </summary>
+        public void RequestAiCoachIntervention(string context)
+        {
+            _lastAiCoachIntervention = DateTime.Now;
+            RecordEngagementEvent(EngagementEventType.AiCoachIntervention, context);
+        }
+        
+        // Private methods
+        private void UpdateCompressionMultiplier(Phase currentPhase, MatchContext context)
+        {
+            if (_inKeyMoment)
+            {
+                // Check if key moment should end
+                if ((DateTime.Now - _keyMomentStartTime).TotalSeconds >= _config.KeyMomentDuration)
+                {
+                    _inKeyMoment = false;
+                }
+                else
+                {
+                    return; // Stay in key moment compression
+                }
+            }
+            
+            // Base compression based on phase
+            float baseCompression = GetPhaseCompressionRate(currentPhase);
+            
+            // Adjust based on match situation
+            float situationalMultiplier = CalculateSituationalMultiplier(context);
+            
+            // Adjust based on engagement level
+            float engagementMultiplier = CalculateEngagementMultiplier();
+            
+            _compressionMultiplier = baseCompression * situationalMultiplier * engagementMultiplier;
+            
+            // Ensure we stay within reasonable bounds
+            _compressionMultiplier = Math.Max(_config.MinCompressionRate, 
+                Math.Min(_config.MaxCompressionRate, _compressionMultiplier));
+        }
+        
+        private float GetPhaseCompressionRate(Phase phase)
+        {
+            return phase switch
+            {
+                Phase.ShotOnGoal => _config.ShotCompressionRate,     // Slow down for shots
+                Phase.Inside50 => _config.Inside50CompressionRate,   // Moderate slow for scoring chances
+                Phase.CenterBounce => _config.BounceCompressionRate, // Medium pace for center bounces
+                Phase.Stoppage => _config.StoppageCompressionRate,   // Slow for stoppages
+                Phase.OpenPlay => _config.OpenPlayCompressionRate,   // Fastest for general play
+                Phase.KickIn => _config.KickInCompressionRate,       // Medium pace for kick-ins
+                _ => 1.0f
+            };
+        }
+        
+        private float CalculateSituationalMultiplier(MatchContext context)
+        {
+            float multiplier = 1.0f;
+            
+            // Close match - slow down slightly
+            var margin = Math.Abs(context.Score.HomePoints - context.Score.AwayPoints);
+            if (margin <= 12) multiplier *= 0.9f; // Within 2 goals
+            else if (margin <= 24) multiplier *= 0.95f; // Within 4 goals
+            
+            // Final quarter - adjust based on time remaining
+            if (context.Quarter == 4)
+            {
+                if (context.TimeRemaining <= 300) // Last 5 minutes
+                    multiplier *= 0.8f; // Slow down for exciting finish
+                else
+                    multiplier *= 1.1f; // Speed up early 4th quarter
+            }
+            
+            // First quarter - slightly slower to establish context
+            if (context.Quarter == 1 && context.TimeRemaining > 900) // First 15 minutes
+                multiplier *= 0.9f;
+            
+            return multiplier;
+        }
+        
+        private float CalculateEngagementMultiplier()
+        {
+            // Higher engagement = slower pace (more attention to detail)
+            // Lower engagement = faster pace (speed up boring parts)
+            
+            if (_currentEngagementLevel > 0.8f) return 0.85f;      // High engagement - savor the moment
+            if (_currentEngagementLevel > 0.6f) return 1.0f;       // Medium engagement - normal pace
+            if (_currentEngagementLevel > 0.4f) return 1.3f;       // Lower engagement - speed up
+            return 1.6f;                                            // Low engagement - much faster
+        }
+        
+        private bool ShouldTriggerAiCoach(Phase currentPhase, MatchContext context)
+        {
+            // Don't trigger too frequently
+            if ((DateTime.Now - _lastAiCoachIntervention).TotalSeconds < _config.MinAiCoachInterval)
+                return false;
+            
+            // Check phase-based probability
+            if (!_aiCoachInterventionProbability.TryGetValue(currentPhase, out float baseProbability))
+                baseProbability = 0.1f;
+            
+            // Increase probability in critical situations
+            float situationalBonus = 0f;
+            
+            // Close match bonus
+            var margin = Math.Abs(context.Score.HomePoints - context.Score.AwayPoints);
+            if (margin <= 6) situationalBonus += 0.3f;      // Very close
+            else if (margin <= 18) situationalBonus += 0.15f; // Reasonably close
+            
+            // Final quarter bonus
+            if (context.Quarter == 4) situationalBonus += 0.2f;
+            
+            // Low engagement bonus (AI coach helps re-engage)
+            if (_currentEngagementLevel < 0.5f) situationalBonus += 0.25f;
+            
+            float totalProbability = baseProbability + situationalBonus;
+            return UnityEngine.Random.value < totalProbability;
+        }
+        
+        private bool HasActiveTacticalDecision()
+        {
+            // Clean up expired decisions
+            _tacticalDecisions.RemoveAll(d => 
+                (DateTime.Now - d.CreatedTime).TotalSeconds > _config.TacticalDecisionTimeout);
+            
+            return _tacticalDecisions.Count > 0;
+        }
+        
+        private void ProcessKeyMoments(Phase currentPhase, MatchContext context, CompressedTimingUpdate update)
+        {
+            // Check for natural key moments based on game state
+            if (ShouldCreateKeyMoment(currentPhase, context))
+            {
+                var momentType = DetermineKeyMomentType(currentPhase, context);
+                TriggerKeyMoment(momentType, CreateKeyMomentDescription(momentType, context));
+                update.NewKeyMomentTriggered = true;
+                update.KeyMomentType = momentType;
+            }
+        }
+        
+        private bool ShouldCreateKeyMoment(Phase currentPhase, MatchContext context)
+        {
+            // Goals always create key moments
+            if (context.Telemetry.TotalGoals != _lastKnownGoalCount)
+            {
+                _lastKnownGoalCount = context.Telemetry.TotalGoals;
+                return true;
+            }
+            
+            // Injuries create key moments
+            if (context.Telemetry.HomeInjuryEvents + context.Telemetry.AwayInjuryEvents != _lastKnownInjuryCount)
+            {
+                _lastKnownInjuryCount = context.Telemetry.HomeInjuryEvents + context.Telemetry.AwayInjuryEvents;
+                return true;
+            }
+            
+            // Quarter transitions
+            if (context.Quarter != _lastKnownQuarter)
+            {
+                _lastKnownQuarter = context.Quarter;
+                return true;
+            }
+            
+            // Close match in final moments
+            if (context.Quarter == 4 && context.TimeRemaining <= 120 && // Last 2 minutes
+                Math.Abs(context.Score.HomePoints - context.Score.AwayPoints) <= 12) // Within 2 goals
+            {
+                return UnityEngine.Random.value < 0.3f; // 30% chance per update
+            }
+            
+            return false;
+        }
+        
+        private int _lastKnownGoalCount = 0;
+        private int _lastKnownInjuryCount = 0;
+        private int _lastKnownQuarter = 1;
+        
+        private KeyMomentType DetermineKeyMomentType(Phase currentPhase, MatchContext context)
+        {
+            if (context.Telemetry.TotalGoals != _lastKnownGoalCount) return KeyMomentType.Goal;
+            if (context.Telemetry.HomeInjuryEvents + context.Telemetry.AwayInjuryEvents != _lastKnownInjuryCount) 
+                return KeyMomentType.Injury;
+            if (context.Quarter != _lastKnownQuarter) return KeyMomentType.QuarterTransition;
+            return KeyMomentType.CriticalMoment;
+        }
+        
+        private string CreateKeyMomentDescription(KeyMomentType type, MatchContext context)
+        {
+            return type switch
+            {
+                KeyMomentType.Goal => "Goal scored!",
+                KeyMomentType.Injury => "Player injury",
+                KeyMomentType.QuarterTransition => $"Quarter {context.Quarter} begins",
+                KeyMomentType.CriticalMoment => "Critical match moment",
+                _ => "Key moment"
+            };
+        }
+        
+        private void ProcessTacticalDecisions(MatchContext context, CompressedTimingUpdate update)
+        {
+            if (!HasActiveTacticalDecision()) return;
+            
+            var activeDecision = _tacticalDecisions[0]; // Process oldest first
+            update.ActiveTacticalDecision = activeDecision;
+            update.TacticalDecisionAvailable = true;
+        }
+        
+        private void UpdateEngagementTracking(Phase currentPhase, MatchContext context, CompressedTimingUpdate update)
+        {
+            // Decay engagement over time
+            _currentEngagementLevel *= 0.999f;
+            
+            // Boost engagement for exciting phases
+            if (currentPhase == Phase.ShotOnGoal)
+                _currentEngagementLevel += 0.02f;
+            else if (currentPhase == Phase.Inside50)
+                _currentEngagementLevel += 0.01f;
+            
+            // Boost for close matches
+            var margin = Math.Abs(context.Score.HomePoints - context.Score.AwayPoints);
+            if (margin <= 6) _currentEngagementLevel += 0.01f;
+            
+            // Clamp engagement level
+            _currentEngagementLevel = Math.Max(0.1f, Math.Min(1.0f, _currentEngagementLevel));
+        }
+        
+        private EngagementMetrics CalculateEngagementMetrics()
+        {
+            var recentEvents = _engagementHistory
+                .Where(e => (DateTime.Now - e.Timestamp).TotalMinutes <= 2)
+                .ToList();
+            
+            return new EngagementMetrics
+            {
+                CurrentLevel = _currentEngagementLevel,
+                RecentEventCount = recentEvents.Count,
+                KeyMomentFrequency = recentEvents.Count(e => e.Type == EngagementEventType.KeyMoment),
+                AiCoachInterventions = recentEvents.Count(e => e.Type == EngagementEventType.AiCoachIntervention),
+                TrendDirection = CalculateEngagementTrend()
+            };
+        }
+        
+        private PacingRecommendation CalculateRecommendedPacing(Phase currentPhase, MatchContext context)
+        {
+            if (_inKeyMoment) return PacingRecommendation.SlowDown;
+            if (_currentEngagementLevel < 0.4f) return PacingRecommendation.SpeedUp;
+            if (HasActiveTacticalDecision()) return PacingRecommendation.Pause;
+            if (currentPhase == Phase.ShotOnGoal) return PacingRecommendation.SlowDown;
+            if (currentPhase == Phase.OpenPlay && _currentEngagementLevel > 0.7f) return PacingRecommendation.Normal;
+            return PacingRecommendation.Normal;
+        }
+        
+        private EngagementTrend CalculateEngagementTrend()
+        {
+            if (_engagementHistory.Count < 5) return EngagementTrend.Stable;
+            
+            var recent = _engagementHistory.TakeLast(5).Select(e => e.EngagementLevel).ToList();
+            var slope = CalculateTrendSlope(recent);
+            
+            if (slope > 0.1f) return EngagementTrend.Increasing;
+            if (slope < -0.1f) return EngagementTrend.Decreasing;
+            return EngagementTrend.Stable;
+        }
+        
+        private float CalculateTrendSlope(List<float> values)
+        {
+            if (values.Count < 2) return 0f;
+            
+            float sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            int n = values.Count;
+            
+            for (int i = 0; i < n; i++)
+            {
+                float x = i;
+                float y = values[i];
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumX2 += x * x;
+            }
+            
+            return (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        }
+        
+        private void RecordEngagementEvent(EngagementEventType type, string description)
+        {
+            _engagementHistory.Add(new EngagementEvent
+            {
+                Timestamp = DateTime.Now,
+                Type = type,
+                Description = description,
+                EngagementLevel = _currentEngagementLevel
+            });
+            
+            // Keep only recent history
+            while (_engagementHistory.Count > 50)
+                _engagementHistory.RemoveAt(0);
+        }
+        
+        private MatchTimingConfiguration CreateBaseConfiguration()
+        {
+            return new MatchTimingConfiguration
+            {
+                QuarterDurationSeconds = _config.CompressedQuarterDuration,
+                QuarterBreakDuration = _config.CompressedQuarterBreak,
+                HalfTimeDuration = _config.CompressedHalfTime,
+                ThreeQuarterBreakDuration = _config.CompressedThreeQuarterBreak,
+                
+                // Adjust all timing modifiers for compression
+                ShotPhaseTimeModifier = _config.ShotCompressionRate,
+                Inside50TimeModifier = _config.Inside50CompressionRate,
+                OpenPlayTimeModifier = _config.OpenPlayCompressionRate,
+                StoppageTimeModifier = _config.StoppageCompressionRate
+            };
+        }
+        
+        private void InitializeCompression()
+        {
+            _compressionMultiplier = _config.DefaultCompressionRate;
+            _lastAiCoachIntervention = DateTime.Now.AddSeconds(-_config.MinAiCoachInterval);
+        }
+        
+        private Dictionary<Phase, float> InitializeAiCoachProbabilities()
+        {
+            return new Dictionary<Phase, float>
+            {
+                [Phase.CenterBounce] = 0.05f,
+                [Phase.OpenPlay] = 0.08f,
+                [Phase.Inside50] = 0.15f,
+                [Phase.ShotOnGoal] = 0.02f, // Don't interrupt shots
+                [Phase.Stoppage] = 0.12f,
+                [Phase.KickIn] = 0.06f
+            };
+        }
+        
+        /// <summary>
+        /// Get comprehensive timing statistics for the compressed system
+        /// </summary>
+        public CompressedTimingStatistics GetTimingStatistics()
+        {
+            var baseStats = _baseTiming.GetTimingStatistics();
+            
+            return new CompressedTimingStatistics
+            {
+                BaseStatistics = baseStats,
+                AverageCompressionRate = CalculateAverageCompression(),
+                KeyMomentsTriggered = CountKeyMoments(),
+                TacticalDecisionsPresented = _tacticalDecisions.Count,
+                AiCoachInterventions = CountAiCoachInterventions(),
+                EngagementHistory = new List<EngagementEvent>(_engagementHistory),
+                TotalRealTimeElapsed = baseStats.TotalRealTime / _compressionMultiplier
+            };
+        }
+        
+        private float CalculateAverageCompression()
+        {
+            // This would track compression over time
+            return _compressionMultiplier; // Simplified for now
+        }
+        
+        private int CountKeyMoments()
+        {
+            return _engagementHistory.Count(e => e.Type == EngagementEventType.KeyMoment);
+        }
+        
+        private int CountAiCoachInterventions()
+        {
+            return _engagementHistory.Count(e => e.Type == EngagementEventType.AiCoachIntervention);
+        }
+        
+        /// <summary>
+        /// Check if match is complete in compressed time
+        /// </summary>
+        public bool IsMatchComplete => _baseTiming.IsMatchComplete;
+        
+        /// <summary>
+        /// Get current display information optimized for compressed timing
+        /// </summary>
+        public CompressedClockDisplay GetClockDisplay()
+        {
+            var baseDisplay = _baseTiming.GetDetailedTimeDisplay();
+            
+            return new CompressedClockDisplay
+            {
+                TimeDisplay = baseDisplay,
+                CompressionRate = $"{_compressionMultiplier:F1}x",
+                EngagementLevel = _currentEngagementLevel,
+                IsInKeyMoment = _inKeyMoment,
+                KeyMomentDescription = _inKeyMoment ? "Key Moment Active" : "",
+                PacingRecommendation = CalculateRecommendedPacing(Phase.OpenPlay, null) // Simplified context
+            };
+        }
+    }
+}

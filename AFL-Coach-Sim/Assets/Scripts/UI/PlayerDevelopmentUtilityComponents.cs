@@ -265,7 +265,7 @@ namespace AFLManager.UI
         [SerializeField] private Transform timelineContainer;
         [SerializeField] private GameObject timelineEntryPrefab;
         
-        public void DisplayTimeline(AFLManager.Models.Player player, PlayerDevelopmentProfile profile)
+        public void DisplayTimeline(AFLManager.Models.Player player, AFLCoachSim.Core.Development.PlayerDevelopmentProfile profile)
         {
             // Clear existing entries
             foreach (Transform child in timelineContainer)
@@ -303,7 +303,7 @@ namespace AFLManager.UI
         [SerializeField] private Transform plannerContainer;
         [SerializeField] private TextMeshProUGUI plannerStatusText;
         
-        public void DisplayPlanningOptions(AFLManager.Models.Player player, PlayerDevelopmentProfile profile)
+        public void DisplayPlanningOptions(AFLManager.Models.Player player, AFLCoachSim.Core.Development.PlayerDevelopmentProfile profile)
         {
             if (plannerStatusText != null)
             {

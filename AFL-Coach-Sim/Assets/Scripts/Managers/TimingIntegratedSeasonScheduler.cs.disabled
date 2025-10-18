@@ -1,0 +1,610 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLManager.Models;
+using AFLManager.Systems.Timing;
+using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Engine.Match;
+
+namespace AFLManager.Managers
+{
+    /// <summary>
+    /// Enhanced season scheduler that integrates timing system preferences into fixture generation.
+    /// Supports special match types, timing configurations, and context-aware scheduling.
+    /// </summary>
+    public static class TimingIntegratedSeasonScheduler
+    {
+        /// <summary>
+        /// Generate a season with timing integration support
+        /// </summary>
+        public static TimingEnabledSeasonSchedule GenerateTimingIntegratedSeason(
+            List<Team> teams,
+            DateTime startDate,
+            SeasonTimingConfiguration timingConfig = null,
+            TimingSeasonGenerationOptions options = null)
+        {
+            if (teams == null || teams.Count < 2)
+            {
+                Debug.LogWarning(
+                    $"TimingSeasonScheduler: Need at least 2 teams (found {teams?.Count ?? 0}). Returning empty schedule.");
+                return new TimingEnabledSeasonSchedule
+                {
+                    Level = (teams != null && teams.Count > 0) ? teams[0].Level : LeagueLevel.Local,
+                    Fixtures = new List<TimingEnabledMatch>(),
+                    TimingConfiguration = timingConfig,
+                    GenerationOptions = options ?? TimingSeasonGenerationOptions.Default
+                };
+            }
+
+            options ??= TimingSeasonGenerationOptions.Default;
+            
+            // Generate base fixtures using round-robin
+            var baseFixtures = GenerateBaseFixtures(teams, options.DaysBetweenMatches);
+            
+            // Enhance fixtures with timing metadata
+            var timingFixtures = EnhanceWithTimingMetadata(baseFixtures, teams, startDate, timingConfig, options);
+            
+            // Apply special match designations
+            ApplySpecialMatchDesignations(timingFixtures, options);
+            
+            // Generate rivalry pairings if configured
+            if (options.EnableRivalryDetection)
+            {
+                ApplyRivalryDesignations(timingFixtures, options.RivalryPairs);
+            }
+            
+            // Calculate expected margins and match difficulty
+            CalculateMatchMetrics(timingFixtures, teams);
+            
+            var schedule = new TimingEnabledSeasonSchedule
+            {
+                Level = teams[0].Level,
+                Fixtures = timingFixtures,
+                TimingConfiguration = timingConfig,
+                GenerationOptions = options,
+                GeneratedDate = DateTime.Now,
+                SeasonStartDate = startDate,
+                TotalRounds = timingFixtures.Count > 0 ? timingFixtures[^1].Round : 0
+            };
+            
+            // Apply timing system recommendations
+            if (timingConfig != null)
+            {
+                ApplyTimingSystemRecommendations(schedule);
+            }
+            
+            Debug.Log($"[TimingSeasonScheduler] Generated {timingFixtures.Count} timing-integrated fixtures");
+            return schedule;
+        }
+        
+        /// <summary>
+        /// Generate basic season schedule compatible with existing system
+        /// </summary>
+        public static SeasonSchedule GenerateStandardSeason(
+            List<Team> teams,
+            DateTime startDate,
+            int daysBetweenMatches = 7)
+        {
+            var options = new TimingSeasonGenerationOptions
+            {
+                DaysBetweenMatches = daysBetweenMatches,
+                DoubleRoundRobin = true
+            };
+            
+            var timingSchedule = GenerateTimingIntegratedSeason(teams, startDate, null, options);
+            
+            // Convert to standard schedule format
+            var standardFixtures = new List<Match>();
+            foreach (var timingMatch in timingSchedule.Fixtures)
+            {
+                standardFixtures.Add(new Match
+                {
+                    HomeTeamId = timingMatch.HomeTeamId,
+                    AwayTeamId = timingMatch.AwayTeamId,
+                    FixtureDate = timingMatch.FixtureDate,
+                    Result = string.Empty
+                });
+            }
+            
+            return new SeasonSchedule
+            {
+                Level = timingSchedule.Level,
+                Fixtures = standardFixtures
+            };
+        }
+        
+        private static List<(int round, string home, string away, DateTime date)> GenerateBaseFixtures(
+            List<Team> teams, int daysBetweenMatches)
+        {
+            var fixtures = new List<(int round, string home, string away, DateTime date)>();
+            var workingTeams = new List<Team>(teams);
+            
+            // Add BYE team if odd number of teams
+            if (workingTeams.Count % 2 != 0)
+            {
+                workingTeams.Add(new Team { Name = "BYE", Id = "BYE" });
+            }
+            
+            int n = workingTeams.Count;
+            int rounds = n - 1;
+            int matchesPerRound = n / 2;
+            
+            var baseDate = DateTime.Today;
+            
+            for (int round = 0; round < rounds; round++)
+            {
+                var roundDate = baseDate.AddDays(round * daysBetweenMatches);
+                
+                for (int i = 0; i < matchesPerRound; i++)
+                {
+                    var homeTeam = workingTeams[i];
+                    var awayTeam = workingTeams[n - 1 - i];
+                    
+                    if (homeTeam.Name != "BYE" && awayTeam.Name != "BYE")
+                    {
+                        fixtures.Add((round + 1, homeTeam.Id, awayTeam.Id, roundDate));
+                    }
+                }
+                
+                // Rotate teams (keeping first team fixed)
+                if (n > 2)
+                {
+                    var lastTeam = workingTeams[n - 1];
+                    workingTeams.RemoveAt(n - 1);
+                    workingTeams.Insert(1, lastTeam);
+                }
+            }
+            
+            return fixtures;
+        }
+        
+        private static List<TimingEnabledMatch> EnhanceWithTimingMetadata(
+            List<(int round, string home, string away, DateTime date)> baseFixtures,
+            List<Team> teams,
+            DateTime startDate,
+            SeasonTimingConfiguration timingConfig,
+            TimingSeasonGenerationOptions options)
+        {
+            var enhancedFixtures = new List<TimingEnabledMatch>();
+            var teamLookup = teams.ToDictionary(t => t.Id, t => t);
+            
+            foreach (var (round, home, away, date) in baseFixtures)
+            {
+                var homeTeam = teamLookup[home];
+                var awayTeam = teamLookup[away];
+                
+                var timingMatch = new TimingEnabledMatch
+                {
+                    // Basic match data
+                    Round = round,
+                    HomeTeamId = home,
+                    AwayTeamId = away,
+                    HomeTeamName = homeTeam.Name,
+                    AwayTeamName = awayTeam.Name,
+                    FixtureDate = date,
+                    Result = string.Empty,
+                    
+                    // Timing metadata
+                    MatchType = DetermineMatchType(round, options.TotalRounds, date),
+                    SeasonPhase = DetermineSeasonPhase(round, options.TotalRounds),
+                    IsPlayerTeamMatch = IsPlayerTeamMatch(home, away, options.PlayerTeamId),
+                    IsRivalryMatch = false, // Set later in rivalry detection
+                    ExpectedMargin = 0, // Calculated later
+                    Weather = DetermineWeather(date, options),
+                    Venue = DetermineVenue(homeTeam, options),
+                    
+                    // Timing system preferences
+                    PreferredTimingSystem = null, // Determined later based on context
+                    TimingConfiguration = null, // Set when timing system is determined
+                    
+                    // Match importance and context
+                    ImportanceRating = CalculateImportanceRating(round, options.TotalRounds, date),
+                    ExpectedAttendance = EstimateAttendance(homeTeam, awayTeam, round, options.TotalRounds),
+                    
+                    // Schedule metadata
+                    ScheduleNotes = new List<string>()
+                };
+                
+                enhancedFixtures.Add(timingMatch);
+            }
+            
+            return enhancedFixtures;
+        }
+        
+        private static void ApplySpecialMatchDesignations(
+            List<TimingEnabledMatch> fixtures, 
+            TimingSeasonGenerationOptions options)
+        {
+            if (!options.EnableSpecialMatches) return;
+            
+            foreach (var fixture in fixtures)
+            {
+                // Check for special dates/occasions
+                if (IsAnzacDay(fixture.FixtureDate))
+                {
+                    fixture.MatchType = AFLManager.Models.MatchType.Special;
+                    fixture.ScheduleNotes.Add("ANZAC Day match");
+                    fixture.ImportanceRating += 0.3f;
+                }
+                else if (IsGrandFinalDate(fixture.FixtureDate, fixtures.Count))
+                {
+                    fixture.MatchType = AFLManager.Models.MatchType.GrandFinal;
+                    fixture.ScheduleNotes.Add("Grand Final");
+                    fixture.ImportanceRating = 1.0f;
+                }
+                else if (IsFinalSeries(fixture.Round, options.TotalRounds))
+                {
+                    fixture.MatchType = fixture.Round == options.TotalRounds ? AFLManager.Models.MatchType.PreliminaryFinal : AFLManager.Models.MatchType.Final;
+                    fixture.ScheduleNotes.Add($"Finals series - Week {fixture.Round - options.TotalRounds + options.FinalsWeeks}");
+                    fixture.ImportanceRating += 0.4f;
+                }
+            }
+        }
+        
+        private static void ApplyRivalryDesignations(
+            List<TimingEnabledMatch> fixtures,
+            Dictionary<string, List<string>> rivalryPairs)
+        {
+            if (rivalryPairs == null || rivalryPairs.Count == 0) return;
+            
+            foreach (var fixture in fixtures)
+            {
+                if (IsRivalryMatch(fixture.HomeTeamId, fixture.AwayTeamId, rivalryPairs))
+                {
+                    fixture.IsRivalryMatch = true;
+                    fixture.ScheduleNotes.Add("Rivalry match");
+                    fixture.ImportanceRating += 0.2f;
+                }
+            }
+        }
+        
+        private static void CalculateMatchMetrics(List<TimingEnabledMatch> fixtures, List<Team> teams)
+        {
+            var teamLookup = teams.ToDictionary(t => t.Id, t => t);
+            
+            foreach (var fixture in fixtures)
+            {
+                var homeTeam = teamLookup.GetValueOrDefault(fixture.HomeTeamId);
+                var awayTeam = teamLookup.GetValueOrDefault(fixture.AwayTeamId);
+                
+                if (homeTeam != null && awayTeam != null)
+                {
+                    // Calculate expected margin based on team strength
+                    fixture.ExpectedMargin = CalculateExpectedMargin(homeTeam, awayTeam);
+                    
+                    // Determine if it's likely to be a close match
+                    fixture.IsCloseMatch = Math.Abs(fixture.ExpectedMargin) <= 12; // Within 2 goals
+                }
+            }
+        }
+        
+        private static void ApplyTimingSystemRecommendations(TimingEnabledSeasonSchedule schedule)
+        {
+            var timingConfig = schedule.TimingConfiguration;
+            if (timingConfig == null) return;
+            
+            foreach (var fixture in schedule.Fixtures)
+            {
+                var timingRequest = CreateTimingRequest(fixture, schedule);
+                
+                // Get recommended timing system for this match
+                fixture.PreferredTimingSystem = timingConfig.GetRecommendedTimingSystem(timingRequest);
+                
+                // Get timing configuration for this match
+                fixture.TimingConfiguration = timingConfig.GetConfigurationForMatch(timingRequest);
+                
+                // Add timing notes
+                if (fixture.PreferredTimingSystem != TimingSystemType.VariableSpeed)
+                {
+                    fixture.ScheduleNotes.Add($"Recommended: {fixture.PreferredTimingSystem} timing");
+                }
+            }
+        }
+        
+        private static MatchTimingRequest CreateTimingRequest(TimingEnabledMatch fixture, TimingEnabledSeasonSchedule schedule)
+        {
+            return new MatchTimingRequest
+            {
+                MatchType = fixture.MatchType,
+                SeasonPhase = fixture.SeasonPhase,
+                CurrentRound = fixture.Round,
+                TotalRounds = schedule.TotalRounds,
+                IsPlayerTeamMatch = fixture.IsPlayerTeamMatch,
+                IsCloseMatch = fixture.IsCloseMatch,
+                IsRivalryMatch = fixture.IsRivalryMatch,
+                ExpectedMargin = fixture.ExpectedMargin,
+                PlayerExperienceLevel = schedule.GenerationOptions.PlayerExperienceLevel,
+                HomeTeamId = new TeamId(fixture.HomeTeamId),
+                AwayTeamId = new TeamId(fixture.AwayTeamId),
+                MatchDate = fixture.FixtureDate
+            };
+        }
+        
+        // Helper methods for match classification
+        private static AFLManager.Models.MatchType DetermineMatchType(int round, int totalRounds, DateTime date)
+        {
+            // Basic implementation - could be enhanced with calendar awareness
+            if (round > totalRounds) return AFLManager.Models.MatchType.Final;
+            return AFLManager.Models.MatchType.Regular;
+        }
+        
+        private static AFLManager.Systems.Training.SeasonPhase DetermineSeasonPhase(int round, int totalRounds)
+        {
+            if (round <= totalRounds * 0.25) return AFLManager.Systems.Training.SeasonPhase.EarlySeason;
+            if (round <= totalRounds * 0.75) return AFLManager.Systems.Training.SeasonPhase.MidSeason;
+            if (round <= totalRounds) return AFLManager.Systems.Training.SeasonPhase.LateSeason;
+            return AFLManager.Systems.Training.SeasonPhase.Finals;
+        }
+        
+        private static bool IsPlayerTeamMatch(string home, string away, string playerTeamId)
+        {
+            return !string.IsNullOrEmpty(playerTeamId) && (home == playerTeamId || away == playerTeamId);
+        }
+        
+        private static AFLCoachSim.Core.Engine.Match.Weather DetermineWeather(DateTime date, TimingSeasonGenerationOptions options)
+        {
+            if (!options.EnableWeatherVariation) return AFLCoachSim.Core.Engine.Match.Weather.Clear;
+            
+            // Simple seasonal weather model
+            var month = date.Month;
+            var random = new System.Random(date.GetHashCode());
+            
+            // Winter months more likely to have rain
+            if (month >= 6 && month <= 8) // Australian winter
+            {
+                var roll = random.NextDouble();
+                if (roll < 0.3) return AFLCoachSim.Core.Engine.Match.Weather.LightRain;
+                if (roll < 0.4) return AFLCoachSim.Core.Engine.Match.Weather.HeavyRain;
+                if (roll < 0.6) return AFLCoachSim.Core.Engine.Match.Weather.Windy;
+            }
+            
+            return AFLCoachSim.Core.Engine.Match.Weather.Clear;
+        }
+        
+        private static string DetermineVenue(Team homeTeam, TimingSeasonGenerationOptions options)
+        {
+            // Simple venue assignment - could be enhanced with actual venue data
+            return $"{homeTeam.Name} Stadium";
+        }
+        
+        private static float CalculateImportanceRating(int round, int totalRounds, DateTime date)
+        {
+            float baseImportance = 0.5f;
+            
+            // Later rounds are more important
+            float roundFactor = (float)round / totalRounds;
+            baseImportance += roundFactor * 0.3f;
+            
+            // Special dates increase importance
+            if (IsAnzacDay(date))
+                baseImportance += 0.3f;
+            
+            return Math.Min(1.0f, baseImportance);
+        }
+        
+        private static int EstimateAttendance(Team home, Team away, int round, int totalRounds)
+        {
+            // Simple attendance model based on team popularity and round importance
+            int baseAttendance = 35000;
+            
+            // Adjust for round importance
+            float roundFactor = (float)round / totalRounds;
+            baseAttendance += (int)(baseAttendance * roundFactor * 0.2f);
+            
+            // Add some randomness
+            var random = new System.Random($"{home.Id}{away.Id}{round}".GetHashCode());
+            baseAttendance += random.Next(-5000, 10000);
+            
+            return Math.Max(15000, baseAttendance);
+        }
+        
+        private static int CalculateExpectedMargin(Team home, Team away)
+        {
+            // Calculate expected margin based on team ratings with home advantage
+            float homePower = (home.Roster?.Count ?? 22) * 50 * 1.03f; // Home advantage
+            float awayPower = (away.Roster?.Count ?? 22) * 50;
+            
+            // Simple margin calculation
+            float marginFloat = (homePower - awayPower) / 100f;
+            return Mathf.RoundToInt(marginFloat * 6f); // Convert to points
+        }
+        
+        private static bool IsAnzacDay(DateTime date)
+        {
+            return date.Month == 4 && date.Day == 25;
+        }
+        
+        private static bool IsGrandFinalDate(DateTime date, int totalFixtures)
+        {
+            // Simple heuristic - could be enhanced with proper finals calculation
+            return false; // Placeholder
+        }
+        
+        private static bool IsFinalSeries(int round, int totalRounds)
+        {
+            return round > totalRounds;
+        }
+        
+        private static bool IsRivalryMatch(string home, string away, Dictionary<string, List<string>> rivalryPairs)
+        {
+            if (rivalryPairs.TryGetValue(home, out var homeRivals) && homeRivals.Contains(away))
+                return true;
+            if (rivalryPairs.TryGetValue(away, out var awayRivals) && awayRivals.Contains(home))
+                return true;
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Enhanced match with timing system integration
+    /// </summary>
+    [Serializable]
+    public class TimingEnabledMatch : Match
+    {
+        [Header("Timing Integration")]
+        public MatchType MatchType = MatchType.Regular;
+        public SeasonPhase SeasonPhase = SeasonPhase.MidSeason;
+        public bool IsPlayerTeamMatch;
+        public bool IsRivalryMatch;
+        public bool IsCloseMatch;
+        public int ExpectedMargin;
+        public Weather Weather = Weather.Clear;
+        public string Venue;
+        
+        [Header("Timing System Preferences")]
+        public TimingSystemType? PreferredTimingSystem;
+        public TimingIntegrationConfiguration TimingConfiguration;
+        
+        [Header("Match Metadata")]
+        public string HomeTeamName;
+        public string AwayTeamName;
+        public float ImportanceRating = 0.5f;
+        public int ExpectedAttendance = 35000;
+        public List<string> ScheduleNotes = new List<string>();
+        
+        public int Round;
+        
+        /// <summary>
+        /// Create a timing request for this match
+        /// </summary>
+        public MatchTimingRequest CreateTimingRequest(PlayerExperienceLevel playerExperience = PlayerExperienceLevel.Intermediate)
+        {
+            return new MatchTimingRequest
+            {
+                MatchType = MatchType,
+                SeasonPhase = SeasonPhase,
+                CurrentRound = Round,
+                TotalRounds = 23, // Default, should be set from season context
+                IsPlayerTeamMatch = IsPlayerTeamMatch,
+                IsCloseMatch = IsCloseMatch,
+                IsRivalryMatch = IsRivalryMatch,
+                ExpectedMargin = ExpectedMargin,
+                PlayerExperienceLevel = playerExperience,
+                HomeTeamId = new TeamId(HomeTeamId),
+                AwayTeamId = new TeamId(AwayTeamId),
+                MatchDate = FixtureDate
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Enhanced season schedule with timing integration
+    /// </summary>
+    [Serializable]
+    public class TimingEnabledSeasonSchedule : SeasonSchedule
+    {
+        [Header("Timing Integration")]
+        public SeasonTimingConfiguration TimingConfiguration;
+        public TimingSeasonGenerationOptions GenerationOptions;
+        
+        [Header("Season Metadata")]
+        public DateTime GeneratedDate;
+        public DateTime SeasonStartDate;
+        public int TotalRounds;
+        
+        public new List<TimingEnabledMatch> Fixtures;
+        
+        /// <summary>
+        /// Get matches for a specific round
+        /// </summary>
+        public List<TimingEnabledMatch> GetRoundFixtures(int round)
+        {
+            return Fixtures?.FindAll(f => f.Round == round) ?? new List<TimingEnabledMatch>();
+        }
+        
+        /// <summary>
+        /// Get all matches involving a specific team
+        /// </summary>
+        public List<TimingEnabledMatch> GetTeamFixtures(string teamId)
+        {
+            return Fixtures?.FindAll(f => f.HomeTeamId == teamId || f.AwayTeamId == teamId) ?? new List<TimingEnabledMatch>();
+        }
+        
+        /// <summary>
+        /// Get timing statistics for the season
+        /// </summary>
+        public SeasonTimingStats GetTimingStatistics()
+        {
+            var stats = new SeasonTimingStats();
+            
+            if (Fixtures != null)
+            {
+                stats.TotalMatches = Fixtures.Count;
+                stats.PlayerTeamMatches = Fixtures.Count(f => f.IsPlayerTeamMatch);
+                stats.RivalryMatches = Fixtures.Count(f => f.IsRivalryMatch);
+                stats.CloseMatches = Fixtures.Count(f => f.IsCloseMatch);
+                
+                foreach (var fixture in Fixtures)
+                {
+                    if (fixture.PreferredTimingSystem.HasValue)
+                    {
+                        var system = fixture.PreferredTimingSystem.Value;
+                        stats.TimingSystemDistribution[system] = stats.TimingSystemDistribution.GetValueOrDefault(system, 0) + 1;
+                    }
+                }
+            }
+            
+            return stats;
+        }
+    }
+    
+    /// <summary>
+    /// Options for timing-integrated season generation
+    /// </summary>
+    [Serializable]
+    public class TimingSeasonGenerationOptions
+    {
+        [Header("Basic Schedule")]
+        public int DaysBetweenMatches = 7;
+        public bool DoubleRoundRobin = true;
+        public int TotalRounds = 23;
+        public int FinalsWeeks = 4;
+        
+        [Header("Team Context")]
+        public string PlayerTeamId;
+        public PlayerExperienceLevel PlayerExperienceLevel = PlayerExperienceLevel.Intermediate;
+        public Dictionary<string, List<string>> RivalryPairs = new Dictionary<string, List<string>>();
+        
+        [Header("Match Enhancement")]
+        public bool EnableSpecialMatches = true;
+        public bool EnableRivalryDetection = true;
+        public bool EnableWeatherVariation = true;
+        public bool EnableVenueAssignment = false;
+        
+        [Header("Timing System Integration")]
+        public bool EnableTimingSystemRecommendations = true;
+        public TimingSystemType DefaultTimingSystem = TimingSystemType.VariableSpeed;
+        
+        public static TimingSeasonGenerationOptions Default => new TimingSeasonGenerationOptions
+        {
+            DaysBetweenMatches = 7,
+            DoubleRoundRobin = true,
+            TotalRounds = 23,
+            FinalsWeeks = 4,
+            EnableSpecialMatches = true,
+            EnableRivalryDetection = true,
+            EnableWeatherVariation = true,
+            EnableTimingSystemRecommendations = true,
+            DefaultTimingSystem = TimingSystemType.VariableSpeed
+        };
+    }
+    
+    /// <summary>
+    /// Statistics about timing systems in a season
+    /// </summary>
+    [Serializable]
+    public class SeasonTimingStats
+    {
+        public int TotalMatches;
+        public int PlayerTeamMatches;
+        public int RivalryMatches;
+        public int CloseMatches;
+        public Dictionary<TimingSystemType, int> TimingSystemDistribution = new Dictionary<TimingSystemType, int>();
+        
+        public float GetTimingSystemPercentage(TimingSystemType system)
+        {
+            if (TotalMatches == 0) return 0f;
+            return (TimingSystemDistribution.GetValueOrDefault(system, 0) / (float)TotalMatches) * 100f;
+        }
+    }
+}

@@ -81,8 +81,8 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
                 var awaySituation = CreateMatchSituation(awayTeam, matchState, homeTeam);
 
                 // Process tactical decisions for both teams
-                ProcessTeamTacticalDecisions(homeTeam, matchState, homeSituation, elapsedTime, impacts);
-                ProcessTeamTacticalDecisions(awayTeam, matchState, awaySituation, elapsedTime, impacts);
+                ProcessTeamTacticalDecisions(homeTeam, matchState, homeSituation, elapsedTime, impacts, homeTeam);
+                ProcessTeamTacticalDecisions(awayTeam, matchState, awaySituation, elapsedTime, impacts, homeTeam);
 
                 // Calculate formation effectiveness
                 impacts.HomeFormationEffectiveness = _tacticalSystem.CalculateFormationEffectiveness(
@@ -139,7 +139,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         #region Private Methods
 
         private void ProcessTeamTacticalDecisions(TeamId teamId, MatchState matchState, MatchSituation situation, 
-            float elapsedTime, TacticalImpacts impacts)
+            float elapsedTime, TacticalImpacts impacts, TeamId homeTeam)
         {
             // Evaluate tactical situation
             var decision = _coachingAI.EvaluateTacticalSituation(teamId, matchState, situation, elapsedTime);
@@ -159,8 +159,8 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
                 };
                 adjustmentHistory.Add(fakeResult);
 
-                // Add to impacts for this update
-                if (teamId == impacts.HomeFormationEffectiveness?.GetType().GetProperty("TeamId")?.GetValue(impacts.HomeFormationEffectiveness) as TeamId? ?? new TeamId())
+                // Add to impacts for this update - check if this team is the home team
+                if (teamId == homeTeam)
                 {
                     impacts.HomeTacticalDecision = decision;
                 }

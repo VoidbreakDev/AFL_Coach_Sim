@@ -6,6 +6,9 @@ using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
 using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Persistence;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Tests
 {
@@ -43,12 +46,14 @@ namespace AFLCoachSim.Core.Tests
             };
 
             int trials = 200, homeWins = 0;
+            var injuryManager = new InjuryManager(new JsonInjuryRepository());
+            
             for (int i = 0; i < trials; i++)
             {
                 var result = MatchEngine.PlayMatch(
                     round: 1, homeId: new TeamId(1), awayId: new TeamId(2),
-                    teams: teams, rosters: rosters, tactics: null,
-                    weather: Weather.Clear, ground: new Ground(),
+                    teams: teams, injuryManager: injuryManager, rosters: rosters, tactics: null,
+                    weather: WeatherCondition.Clear, ground: new Ground(),
                     quarterSeconds: 2 * 60, rng: new DeterministicRandom(42 + i));
 
                 if (result.HomeScore > result.AwayScore) homeWins++;

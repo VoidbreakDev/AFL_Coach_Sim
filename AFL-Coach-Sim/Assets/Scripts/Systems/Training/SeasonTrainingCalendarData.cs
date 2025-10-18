@@ -463,7 +463,7 @@ namespace AFLManager.Systems.Training
     /// <summary>
     /// Extension methods for training intensity levels
     /// </summary>
-    public static class TrainingIntensityExtensions
+    public static class SeasonTrainingIntensityExtensions
     {
         public static Color GetIntensityColor(this TrainingIntensityLevel intensity)
         {

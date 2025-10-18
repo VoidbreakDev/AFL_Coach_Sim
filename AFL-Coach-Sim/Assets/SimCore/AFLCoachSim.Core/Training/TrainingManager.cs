@@ -409,7 +409,7 @@ namespace AFLCoachSim.Core.Training
             float priority = program.CalculateEffectiveness(player, stage, potential);
             
             // Boost priority for programs targeting weak areas
-            var attributes = player.Attributes;
+            var attributes = player.Attr;
             var weakestAttribute = GetWeakestAttribute(attributes);
             if (program.AttributeTargets.ContainsKey(weakestAttribute))
             {
@@ -436,7 +436,7 @@ namespace AFLCoachSim.Core.Training
             if (potential.PreferredTraining.Contains(program.PrimaryFocus))
                 reasons.Add("Matches player's training preferences");
                 
-            var weakestAttribute = GetWeakestAttribute(player.Attributes);
+            var weakestAttribute = GetWeakestAttribute(player.Attr);
             if (program.AttributeTargets.ContainsKey(weakestAttribute))
                 reasons.Add($"Addresses weak area: {weakestAttribute}");
                 
@@ -448,13 +448,13 @@ namespace AFLCoachSim.Core.Training
 
         private string GetWeakestAttribute(Attributes attributes)
         {
-            var attributeValues = new Dictionary<string, float>
+            var attributeValues = new Dictionary<string, int>
             {
                 {"Kicking", attributes.Kicking},
                 {"Marking", attributes.Marking},
-                {"Handballing", attributes.Handballing},
-                {"Contested", attributes.Contested},
-                {"Endurance", attributes.Endurance}
+                {"Handball", attributes.Handball},
+                {"Tackling", attributes.Tackling},
+                {"Speed", attributes.Speed}
             };
             
             return attributeValues.OrderBy(kv => kv.Value).First().Key;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Engine.Match.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics
 {
@@ -289,7 +290,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
             };
         }
 
-        public static TacticalTrigger CreateWeatherTrigger(Weather targetWeather, 
+        public static TacticalTrigger CreateWeatherTrigger(AFLCoachSim.Core.Engine.Match.Weather.Weather targetWeather, 
             TacticalAdjustmentType adjustmentType)
         {
             return new TacticalTrigger
@@ -347,7 +348,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         public float TotalGameTime { get; set; } = 6000f; // 100 minutes default
         public Phase CurrentPhase { get; set; }
         public TeamId? PossessionTeam { get; set; }
-        public Weather Weather { get; set; }
+        public AFLCoachSim.Core.Engine.Match.Weather.Weather Weather { get; set; }
         public Dictionary<TeamId, float> TeamMomentum { get; set; } = new Dictionary<TeamId, float>();
         public Dictionary<TeamId, Dictionary<string, float>> TeamStats { get; set; } = 
             new Dictionary<TeamId, Dictionary<string, float>>();

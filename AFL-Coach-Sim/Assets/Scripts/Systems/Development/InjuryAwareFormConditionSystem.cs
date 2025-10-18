@@ -43,7 +43,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Enhanced match update that integrates with injury system
         /// </summary>
-        public override void UpdateAfterMatch(MatchPerformanceRating performance, int minutesPlayed, bool injured = false)
+        public new void UpdateAfterMatch(MatchPerformanceRating performance, int minutesPlayed, bool injured = false)
         {
             // Update form based on performance
             UpdateForm(performance);
@@ -77,7 +77,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Enhanced daily recovery that considers unified injury system
         /// </summary>
-        public override void ProcessDailyRecovery()
+        public new void ProcessDailyRecovery()
         {
             // Standard recovery processing
             base.ProcessDailyRecovery();
@@ -93,7 +93,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Gets performance modifier including unified injury system impact
         /// </summary>
-        public override float GetPerformanceModifier()
+        public new float GetPerformanceModifier()
         {
             float baseModifier = base.GetPerformanceModifier();
             
@@ -110,7 +110,7 @@ namespace AFLManager.Systems.Development
         /// <summary>
         /// Enhanced player status that considers unified injury system
         /// </summary>
-        public override PlayerStatus GetCurrentStatus()
+        public new PlayerStatus GetCurrentStatus()
         {
             // Check unified injury system first if available
             if (UseUnifiedInjurySystem && _injuryManager != null)

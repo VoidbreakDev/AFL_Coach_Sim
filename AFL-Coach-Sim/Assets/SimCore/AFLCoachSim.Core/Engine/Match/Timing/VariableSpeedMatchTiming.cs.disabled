@@ -1,0 +1,710 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
+
+namespace AFLCoachSim.Core.Engine.Match.Timing
+{
+    /// <summary>
+    /// Variable speed match timing system allowing players to control simulation speed (1x-5x)
+    /// with intelligent auto-pause functionality for key decision moments
+    /// </summary>
+    public class VariableSpeedMatchTiming
+    {
+        private readonly VariableSpeedConfiguration _config;
+        private readonly EnhancedMatchTiming _baseTiming;
+        
+        // Speed control state
+        private float _currentSpeedMultiplier = 1.0f;
+        private float _targetSpeedMultiplier = 1.0f;
+        private bool _isAutoPaused = false;
+        private DateTime _autoPauseStartTime;
+        private AutoPauseReason _currentPauseReason;
+        
+        // Smart pause tracking
+        private readonly List<AutoPauseEvent> _autoPauseHistory;
+        private readonly Dictionary<AutoPauseReason, DateTime> _lastPauseByType;
+        private readonly Queue<PendingSpeedChange> _pendingSpeedChanges;
+        
+        // Decision tracking
+        private readonly List<TacticalDecisionPoint> _activeTacticalDecisions;
+        private readonly Dictionary<Guid, DateTime> _decisionResponseTimes;
+        
+        // Player behavior analysis
+        private SpeedPreferences _playerPreferences;
+        private readonly List<SpeedChangeEvent> _speedChangeHistory;
+        private float _averageSpeedPreference = 2.0f;
+        
+        public VariableSpeedMatchTiming(VariableSpeedConfiguration config = null)
+        {
+            _config = config ?? VariableSpeedConfiguration.Default;
+            _baseTiming = new EnhancedMatchTiming(_config.BaseTimingConfiguration);
+            
+            _autoPauseHistory = new List<AutoPauseEvent>();
+            _lastPauseByType = new Dictionary<AutoPauseReason, DateTime>();
+            _pendingSpeedChanges = new Queue<PendingSpeedChange>();
+            _activeTacticalDecisions = new List<TacticalDecisionPoint>();
+            _decisionResponseTimes = new Dictionary<Guid, DateTime>();
+            _speedChangeHistory = new List<SpeedChangeEvent>();
+            
+            InitializeSpeedControl();
+        }
+        
+        /// <summary>
+        /// Update the variable speed timing system
+        /// </summary>
+        public VariableSpeedUpdate UpdateTiming(float deltaTime, Phase currentPhase, MatchContext context)
+        {
+            // Process pending speed changes
+            ProcessPendingSpeedChanges();
+            
+            // Check for auto-pause conditions
+            CheckForAutoPause(currentPhase, context);
+            
+            // Apply speed multiplier (0 if paused)
+            float effectiveSpeed = _isAutoPaused ? 0f : _currentSpeedMultiplier;
+            float adjustedDeltaTime = deltaTime * effectiveSpeed;
+            
+            // Update base timing system
+            var baseTiming = _baseTiming.UpdateTiming(adjustedDeltaTime, currentPhase, context);
+            
+            // Create variable speed update
+            var speedUpdate = new VariableSpeedUpdate
+            {
+                BaseTiming = baseTiming,
+                CurrentSpeedMultiplier = _currentSpeedMultiplier,
+                TargetSpeedMultiplier = _targetSpeedMultiplier,
+                IsAutoPaused = _isAutoPaused,
+                AutoPauseReason = _currentPauseReason,
+                AutoPauseTimeElapsed = _isAutoPaused ? 
+                    (DateTime.Now - _autoPauseStartTime).TotalSeconds : 0,
+                
+                // Decision information
+                ActiveTacticalDecisions = new List<TacticalDecisionPoint>(_activeTacticalDecisions),
+                HasPendingDecisions = _activeTacticalDecisions.Count > 0,
+                
+                // Speed control information
+                AvailableSpeedOptions = GetAvailableSpeedOptions(currentPhase, context),
+                RecommendedSpeed = CalculateRecommendedSpeed(currentPhase, context),
+                SpeedChangeAllowed = CanChangeSpeed(currentPhase, context),
+                
+                // Player analytics
+                PlayerSpeedPreferences = _playerPreferences,
+                SpeedEfficiency = CalculateSpeedEfficiency(),
+                
+                // Auto-pause information
+                NextLikelyAutoPause = PredictNextAutoPause(currentPhase, context),
+                AutoPauseHistory = GetRecentAutoPauses()
+            };
+            
+            // Update internal tracking
+            UpdatePlayerBehaviorAnalysis(speedUpdate);
+            
+            return speedUpdate;
+        }
+        
+        /// <summary>
+        /// Set the target speed multiplier
+        /// </summary>
+        public bool SetSpeed(float speedMultiplier)
+        {
+            // Validate speed
+            if (speedMultiplier < _config.MinSpeedMultiplier || 
+                speedMultiplier > _config.MaxSpeedMultiplier)
+                return false;
+                
+            // Record speed change
+            RecordSpeedChange(_currentSpeedMultiplier, speedMultiplier, SpeedChangeSource.Manual);
+            
+            _targetSpeedMultiplier = speedMultiplier;
+            
+            // Apply immediately or queue for smooth transition
+            if (_config.UsesSmoothSpeedTransitions)
+            {
+                QueueSpeedTransition(speedMultiplier);
+            }
+            else
+            {
+                _currentSpeedMultiplier = speedMultiplier;
+            }
+            
+            // Update player preferences
+            _playerPreferences.RecordSpeedSelection(speedMultiplier);
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Manually pause the simulation
+        /// </summary>
+        public void Pause()
+        {
+            if (!_isAutoPaused)
+            {
+                TriggerAutoPause(AutoPauseReason.ManualPause, "Player requested pause");
+            }
+        }
+        
+        /// <summary>
+        /// Resume from pause
+        /// </summary>
+        public void Resume()
+        {
+            if (_isAutoPaused)
+            {
+                EndAutoPause();
+            }
+        }
+        
+        /// <summary>
+        /// Add a tactical decision that will trigger auto-pause
+        /// </summary>
+        public void AddTacticalDecision(TacticalDecisionPoint decision)
+        {
+            _activeTacticalDecisions.Add(decision);
+            _decisionResponseTimes[decision.DecisionId] = DateTime.Now;
+            
+            // Auto-pause for tactical decisions if enabled
+            if (_config.AutoPauseForDecisions)
+            {
+                TriggerAutoPause(AutoPauseReason.TacticalDecision, decision.Title);
+            }
+        }
+        
+        /// <summary>
+        /// Respond to a tactical decision
+        /// </summary>
+        public bool RespondToDecision(Guid decisionId, int selectedOptionId)
+        {
+            var decision = _activeTacticalDecisions.FirstOrDefault(d => d.DecisionId == decisionId);
+            if (decision == null) return false;
+            
+            // Record response time
+            if (_decisionResponseTimes.TryGetValue(decisionId, out var startTime))
+            {
+                var responseTime = (DateTime.Now - startTime).TotalSeconds;
+                _playerPreferences.RecordDecisionTime(responseTime);
+            }
+            
+            // Remove decision
+            _activeTacticalDecisions.Remove(decision);
+            _decisionResponseTimes.Remove(decisionId);
+            
+            // Resume if this was the only decision
+            if (_activeTacticalDecisions.Count == 0 && 
+                _currentPauseReason == AutoPauseReason.TacticalDecision)
+            {
+                EndAutoPause();
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Get available speed options based on current context
+        /// </summary>
+        public List<SpeedOption> GetAvailableSpeedOptions(Phase currentPhase, MatchContext context)
+        {
+            var options = new List<SpeedOption>
+            {
+                new SpeedOption { Multiplier = 1.0f, Label = "1x", Description = "Normal Speed", IsRecommended = false },
+                new SpeedOption { Multiplier = 2.0f, Label = "2x", Description = "Double Speed", IsRecommended = false },
+                new SpeedOption { Multiplier = 3.0f, Label = "3x", Description = "Triple Speed", IsRecommended = false },
+                new SpeedOption { Multiplier = 4.0f, Label = "4x", Description = "Quadruple Speed", IsRecommended = false },
+                new SpeedOption { Multiplier = 5.0f, Label = "5x", Description = "Maximum Speed", IsRecommended = false }
+            };
+            
+            // Mark recommended speed
+            float recommendedSpeed = CalculateRecommendedSpeed(currentPhase, context);
+            var closestOption = options.OrderBy(o => Math.Abs(o.Multiplier - recommendedSpeed)).First();
+            closestOption.IsRecommended = true;
+            
+            // Disable options based on context
+            foreach (var option in options)
+            {
+                option.IsAvailable = IsSpeedAvailable(option.Multiplier, currentPhase, context);
+            }
+            
+            return options;
+        }
+        
+        // Private methods
+        private void CheckForAutoPause(Phase currentPhase, MatchContext context)
+        {
+            if (_isAutoPaused) return; // Already paused
+            
+            // Check for goal scored
+            if (ShouldAutoPauseForGoal(context))
+            {
+                TriggerAutoPause(AutoPauseReason.GoalScored, "Goal scored - celebrating the moment!");
+                return;
+            }
+            
+            // Check for injury
+            if (ShouldAutoPauseForInjury(context))
+            {
+                TriggerAutoPause(AutoPauseReason.InjuryOccurred, "Player injury requires attention");
+                return;
+            }
+            
+            // Check for quarter end
+            if (ShouldAutoPauseForQuarterEnd(context))
+            {
+                TriggerAutoPause(AutoPauseReason.QuarterEnd, $"End of Quarter {context.Quarter}");
+                return;
+            }
+            
+            // Check for close finish
+            if (ShouldAutoPauseForCloseFinish(context))
+            {
+                TriggerAutoPause(AutoPauseReason.CloseFinish, "Thrilling finish - every second counts!");
+                return;
+            }
+            
+            // Check for major momentum shift
+            if (ShouldAutoPauseForMomentumShift(context))
+            {
+                TriggerAutoPause(AutoPauseReason.MomentumShift, "Major momentum shift detected");
+                return;
+            }
+        }
+        
+        private bool ShouldAutoPauseForGoal(MatchContext context)
+        {
+            if (!_config.AutoPauseForGoals) return false;
+            
+            // Check if there's been a new goal since last check
+            var currentGoals = context.Telemetry.TotalGoals;
+            if (currentGoals != _lastKnownGoalCount)
+            {
+                _lastKnownGoalCount = currentGoals;
+                
+                // Don't pause too frequently for goals
+                if (_lastPauseByType.TryGetValue(AutoPauseReason.GoalScored, out var lastGoalPause))
+                {
+                    if ((DateTime.Now - lastGoalPause).TotalSeconds < _config.MinTimeBetweenGoalPauses)
+                        return false;
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        private int _lastKnownGoalCount = 0;
+        private int _lastKnownInjuryCount = 0;
+        private int _lastKnownQuarter = 1;
+        
+        private bool ShouldAutoPauseForInjury(MatchContext context)
+        {
+            if (!_config.AutoPauseForInjuries) return false;
+            
+            var currentInjuries = context.Telemetry.HomeInjuryEvents + context.Telemetry.AwayInjuryEvents;
+            if (currentInjuries != _lastKnownInjuryCount)
+            {
+                _lastKnownInjuryCount = currentInjuries;
+                return true;
+            }
+            
+            return false;
+        }
+        
+        private bool ShouldAutoPauseForQuarterEnd(MatchContext context)
+        {
+            if (!_config.AutoPauseForQuarterEnd) return false;
+            
+            if (context.Quarter != _lastKnownQuarter)
+            {
+                _lastKnownQuarter = context.Quarter;
+                return context.Quarter > 1; // Don't pause at start of first quarter
+            }
+            
+            return false;
+        }
+        
+        private bool ShouldAutoPauseForCloseFinish(MatchContext context)
+        {
+            if (!_config.AutoPauseForCloseFinish) return false;
+            
+            // Only in final quarter
+            if (context.Quarter != 4) return false;
+            
+            // Only in final minutes
+            if (context.TimeRemaining > 300) return false; // More than 5 minutes left
+            
+            // Only if close
+            var margin = Math.Abs(context.Score.HomePoints - context.Score.AwayPoints);
+            if (margin > 12) return false; // More than 2 goals
+            
+            // Don't pause too frequently
+            if (_lastPauseByType.TryGetValue(AutoPauseReason.CloseFinish, out var lastPause))
+            {
+                if ((DateTime.Now - lastPause).TotalSeconds < 60) // Max once per minute
+                    return false;
+            }
+            
+            return true;
+        }
+        
+        private bool ShouldAutoPauseForMomentumShift(MatchContext context)
+        {
+            // This would require momentum tracking system
+            // For now, simplified logic based on rapid scoring
+            return false;
+        }
+        
+        private void TriggerAutoPause(AutoPauseReason reason, string description)
+        {
+            _isAutoPaused = true;
+            _autoPauseStartTime = DateTime.Now;
+            _currentPauseReason = reason;
+            
+            // Record the pause
+            var pauseEvent = new AutoPauseEvent
+            {
+                Timestamp = DateTime.Now,
+                Reason = reason,
+                Description = description,
+                SpeedBeforePause = _currentSpeedMultiplier
+            };
+            
+            _autoPauseHistory.Add(pauseEvent);
+            _lastPauseByType[reason] = DateTime.Now;
+            
+            // Auto-resume timer for certain pause types
+            if (ShouldAutoResume(reason))
+            {
+                var resumeDelay = GetAutoResumeDelay(reason);
+                QueueSpeedTransition(_currentSpeedMultiplier, resumeDelay);
+            }
+        }
+        
+        private void EndAutoPause()
+        {
+            if (!_isAutoPaused) return;
+            
+            var pauseDuration = (DateTime.Now - _autoPauseStartTime).TotalSeconds;
+            
+            // Update the most recent pause event with duration
+            var lastPause = _autoPauseHistory.LastOrDefault();
+            if (lastPause != null)
+            {
+                lastPause.Duration = pauseDuration;
+            }
+            
+            _isAutoPaused = false;
+            _currentPauseReason = AutoPauseReason.None;
+        }
+        
+        private bool ShouldAutoResume(AutoPauseReason reason)
+        {
+            return reason switch
+            {
+                AutoPauseReason.GoalScored => _config.AutoResumeAfterGoals,
+                AutoPauseReason.InjuryOccurred => false, // Always require manual resume
+                AutoPauseReason.QuarterEnd => _config.AutoResumeAfterQuarters,
+                AutoPauseReason.CloseFinish => false, // Let player decide
+                _ => false
+            };
+        }
+        
+        private float GetAutoResumeDelay(AutoPauseReason reason)
+        {
+            return reason switch
+            {
+                AutoPauseReason.GoalScored => _config.GoalCelebrationDuration,
+                AutoPauseReason.QuarterEnd => _config.QuarterBreakViewTime,
+                _ => 5f
+            };
+        }
+        
+        private float CalculateRecommendedSpeed(Phase currentPhase, MatchContext context)
+        {
+            // Base recommendation on phase
+            float recommendedSpeed = currentPhase switch
+            {
+                Phase.ShotOnGoal => 1.0f,        // Never speed up shots
+                Phase.Inside50 => 1.5f,          // Slight speed up for build-up
+                Phase.CenterBounce => 2.0f,      // Can speed up bounces
+                Phase.OpenPlay => 3.0f,          // Speed up general play
+                Phase.Stoppage => 2.0f,          // Moderate speed for stoppages
+                Phase.KickIn => 2.5f,            // Can speed up kick-ins
+                _ => 2.0f
+            };
+            
+            // Adjust based on match situation
+            var margin = Math.Abs(context.Score.HomePoints - context.Score.AwayPoints);
+            
+            // Slow down for close matches
+            if (margin <= 6) recommendedSpeed *= 0.7f;      // Very close
+            else if (margin <= 18) recommendedSpeed *= 0.85f; // Reasonably close
+            
+            // Slow down in final quarter
+            if (context.Quarter == 4)
+            {
+                if (context.TimeRemaining <= 300) // Last 5 minutes
+                    recommendedSpeed *= 0.6f;
+                else
+                    recommendedSpeed *= 0.8f;
+            }
+            
+            // Consider player preferences
+            recommendedSpeed = (recommendedSpeed + _averageSpeedPreference) / 2f;
+            
+            // Clamp to valid range
+            return Math.Max(_config.MinSpeedMultiplier, 
+                   Math.Min(_config.MaxSpeedMultiplier, recommendedSpeed));
+        }
+        
+        private bool CanChangeSpeed(Phase currentPhase, MatchContext context)
+        {
+            // Can't change speed while auto-paused for decisions
+            if (_isAutoPaused && _currentPauseReason == AutoPauseReason.TacticalDecision)
+                return false;
+                
+            // Can't change speed during critical moments if configured
+            if (_config.LockSpeedDuringCriticalMoments)
+            {
+                if (currentPhase == Phase.ShotOnGoal) return false;
+                
+                // Final 30 seconds of close match
+                if (context.Quarter == 4 && context.TimeRemaining <= 30 && 
+                    Math.Abs(context.Score.HomePoints - context.Score.AwayPoints) <= 6)
+                    return false;
+            }
+            
+            return true;
+        }
+        
+        private bool IsSpeedAvailable(float speed, Phase currentPhase, MatchContext context)
+        {
+            // Some speeds might not be available during certain phases
+            if (currentPhase == Phase.ShotOnGoal && speed > 2.0f)
+                return false; // Don't allow high speeds during shots
+                
+            return true;
+        }
+        
+        private void ProcessPendingSpeedChanges()
+        {
+            while (_pendingSpeedChanges.Count > 0)
+            {
+                var change = _pendingSpeedChanges.Peek();
+                if (DateTime.Now >= change.ScheduledTime)
+                {
+                    _pendingSpeedChanges.Dequeue();
+                    
+                    if (change.IsResume)
+                    {
+                        EndAutoPause();
+                    }
+                    else
+                    {
+                        _currentSpeedMultiplier = change.TargetSpeed;
+                    }
+                }
+                else
+                {
+                    break; // Not time yet
+                }
+            }
+        }
+        
+        private void QueueSpeedTransition(float targetSpeed, float delaySeconds = 0f)
+        {
+            var change = new PendingSpeedChange
+            {
+                TargetSpeed = targetSpeed,
+                ScheduledTime = DateTime.Now.AddSeconds(delaySeconds),
+                IsResume = _isAutoPaused && delaySeconds > 0
+            };
+            
+            _pendingSpeedChanges.Enqueue(change);
+        }
+        
+        private void RecordSpeedChange(float fromSpeed, float toSpeed, SpeedChangeSource source)
+        {
+            _speedChangeHistory.Add(new SpeedChangeEvent
+            {
+                Timestamp = DateTime.Now,
+                FromSpeed = fromSpeed,
+                ToSpeed = toSpeed,
+                Source = source
+            });
+            
+            // Keep recent history
+            if (_speedChangeHistory.Count > 50)
+                _speedChangeHistory.RemoveAt(0);
+        }
+        
+        private void UpdatePlayerBehaviorAnalysis(VariableSpeedUpdate update)
+        {
+            // Update average speed preference
+            if (!_isAutoPaused)
+            {
+                _averageSpeedPreference = (_averageSpeedPreference * 0.98f) + (_currentSpeedMultiplier * 0.02f);
+            }
+        }
+        
+        private float CalculateSpeedEfficiency()
+        {
+            // Calculate how efficiently the player is using speed controls
+            // Higher efficiency = good use of speed to maintain engagement while saving time
+            
+            var recentSpeeds = _speedChangeHistory
+                .Where(e => (DateTime.Now - e.Timestamp).TotalMinutes <= 10)
+                .Select(e => e.ToSpeed)
+                .ToList();
+            
+            if (recentSpeeds.Count == 0) return 0.75f; // Default efficiency
+            
+            var variance = recentSpeeds.Count > 1 ? CalculateVariance(recentSpeeds) : 0f;
+            var averageSpeed = recentSpeeds.Average();
+            
+            // Good efficiency = reasonable average speed with moderate variance
+            var speedScore = Math.Min(1f, averageSpeed / 3f); // Higher speeds are more efficient
+            var varianceScore = Math.Max(0f, 1f - (variance / 2f)); // Too much variance is bad
+            
+            return (speedScore + varianceScore) / 2f;
+        }
+        
+        private float CalculateVariance(List<float> values)
+        {
+            var mean = values.Average();
+            return values.Sum(v => (v - mean) * (v - mean)) / values.Count;
+        }
+        
+        private AutoPausePrediction PredictNextAutoPause(Phase currentPhase, MatchContext context)
+        {
+            // Simple prediction based on current match state
+            var prediction = new AutoPausePrediction
+            {
+                LikelyReason = AutoPauseReason.None,
+                EstimatedTimeToNext = float.MaxValue,
+                Confidence = 0f
+            };
+            
+            // Predict quarter end
+            if (context.TimeRemaining <= 60) // Less than 1 minute left
+            {
+                prediction.LikelyReason = AutoPauseReason.QuarterEnd;
+                prediction.EstimatedTimeToNext = context.TimeRemaining;
+                prediction.Confidence = 0.9f;
+            }
+            
+            // Predict close finish drama
+            else if (context.Quarter == 4 && context.TimeRemaining <= 300 &&
+                     Math.Abs(context.Score.HomePoints - context.Score.AwayPoints) <= 12)
+            {
+                prediction.LikelyReason = AutoPauseReason.CloseFinish;
+                prediction.EstimatedTimeToNext = 120f; // Guess 2 minutes
+                prediction.Confidence = 0.6f;
+            }
+            
+            return prediction;
+        }
+        
+        private List<AutoPauseEvent> GetRecentAutoPauses()
+        {
+            return _autoPauseHistory
+                .Where(e => (DateTime.Now - e.Timestamp).TotalMinutes <= 5)
+                .ToList();
+        }
+        
+        private void InitializeSpeedControl()
+        {
+            _playerPreferences = new SpeedPreferences();
+            _currentSpeedMultiplier = _config.DefaultSpeedMultiplier;
+            _targetSpeedMultiplier = _config.DefaultSpeedMultiplier;
+        }
+        
+        /// <summary>
+        /// Get comprehensive statistics for the variable speed system
+        /// </summary>
+        public VariableSpeedStatistics GetSpeedStatistics()
+        {
+            var baseStats = _baseTiming.GetTimingStatistics();
+            
+            return new VariableSpeedStatistics
+            {
+                BaseStatistics = baseStats,
+                CurrentSpeed = _currentSpeedMultiplier,
+                AverageSpeed = _averageSpeedPreference,
+                TotalAutoPauses = _autoPauseHistory.Count,
+                AutoPausesByReason = _autoPauseHistory.GroupBy(e => e.Reason)
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                TotalSpeedChanges = _speedChangeHistory.Count,
+                SpeedEfficiency = CalculateSpeedEfficiency(),
+                PlayerPreferences = _playerPreferences,
+                TotalTimeSaved = CalculateTimeSaved(baseStats),
+                EngagementMaintained = CalculateEngagementScore()
+            };
+        }
+        
+        private float CalculateTimeSaved(MatchTimingStatistics baseStats)
+        {
+            // Calculate time saved vs playing at 1x speed
+            var realTimeElapsed = baseStats.TotalRealTime;
+            var normalSpeedTime = baseStats.TotalGameTime; // What it would take at 1x
+            
+            return Math.Max(0f, normalSpeedTime - realTimeElapsed);
+        }
+        
+        private float CalculateEngagementScore()
+        {
+            // Estimate how well engagement was maintained
+            // This would integrate with actual engagement tracking in a full system
+            var pauseFrequency = _autoPauseHistory.Count / Math.Max(1f, _baseTiming.GetTimingStatistics().TotalRealTime / 3600f);
+            var speedVariance = CalculateVariance(_speedChangeHistory.Select(e => e.ToSpeed).ToList());
+            
+            // Good engagement = reasonable pause frequency + appropriate speed variance
+            var pauseScore = Math.Max(0f, Math.Min(1f, pauseFrequency / 5f)); // 5 pauses per hour is optimal
+            var varianceScore = Math.Max(0f, 1f - speedVariance / 4f);
+            
+            return (pauseScore + varianceScore) / 2f;
+        }
+        
+        /// <summary>
+        /// Check if match is complete
+        /// </summary>
+        public bool IsMatchComplete => _baseTiming.IsMatchComplete;
+        
+        /// <summary>
+        /// Get current display information for UI
+        /// </summary>
+        public VariableSpeedDisplay GetSpeedDisplay()
+        {
+            var baseDisplay = _baseTiming.GetDetailedTimeDisplay();
+            
+            return new VariableSpeedDisplay
+            {
+                TimeDisplay = baseDisplay,
+                CurrentSpeed = $"{_currentSpeedMultiplier:F1}x",
+                TargetSpeed = $"{_targetSpeedMultiplier:F1}x",
+                IsAutoPaused = _isAutoPaused,
+                PauseReason = _currentPauseReason.ToString(),
+                PauseDescription = GetPauseDescription(),
+                CanChangeSpeed = CanChangeSpeed(Phase.OpenPlay, null), // Simplified check
+                SpeedEfficiencyIndicator = CalculateSpeedEfficiency()
+            };
+        }
+        
+        private string GetPauseDescription()
+        {
+            if (!_isAutoPaused) return "";
+            
+            return _currentPauseReason switch
+            {
+                AutoPauseReason.GoalScored => "🏈 Goal! Taking a moment to celebrate",
+                AutoPauseReason.InjuryOccurred => "🏥 Player injury - assess the situation",
+                AutoPauseReason.TacticalDecision => "🤔 Tactical decision required",
+                AutoPauseReason.QuarterEnd => "⏰ Quarter break - review progress",
+                AutoPauseReason.CloseFinish => "🔥 Thrilling finish - every moment counts!",
+                AutoPauseReason.MomentumShift => "⚡ Major momentum shift detected",
+                AutoPauseReason.ManualPause => "⏸️ Paused by player",
+                _ => "Paused"
+            };
+        }
+    }
+}

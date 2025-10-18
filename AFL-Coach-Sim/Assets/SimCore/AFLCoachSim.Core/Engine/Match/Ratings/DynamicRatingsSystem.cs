@@ -5,6 +5,7 @@ using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match.Fatigue;
 using AFLCoachSim.Core.Engine.Match.Weather;
+using AFLCoachSim.Core.Engine.Match;
 
 namespace AFLCoachSim.Core.Engine.Match.Ratings
 {

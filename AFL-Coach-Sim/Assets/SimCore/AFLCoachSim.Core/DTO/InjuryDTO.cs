@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.Injuries.Domain;
-using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.DTO
 {
@@ -76,7 +75,7 @@ namespace AFLCoachSim.Core.DTO
                 // Use reflection to set private fields for persistence
                 var injuryType = typeof(Injury);
                 
-                injuryType.GetProperty("Id")?.SetValue(injury, InjuryId.From(InjuryId));
+                injuryType.GetProperty("Id")?.SetValue(injury, InjuryId);
                 injuryType.GetProperty("OccurredDate")?.SetValue(injury, DateTime.Parse(OccurredDate));
                 injuryType.GetProperty("ExpectedRecoveryDays")?.SetValue(injury, ExpectedRecoveryDays);
                 injuryType.GetProperty("Status")?.SetValue(injury, (InjuryStatus)Status);
@@ -102,7 +101,7 @@ namespace AFLCoachSim.Core.DTO
             }
             catch (Exception e)
             {
-                CoreLogger.Log($"[InjuryDTO] Failed to convert injury {InjuryId} to domain: {e.Message}");
+                Console.WriteLine($"[InjuryDTO] Failed to convert injury {InjuryId} to domain: {e.Message}");
                 return null;
             }
         }
@@ -175,7 +174,7 @@ namespace AFLCoachSim.Core.DTO
             }
             catch (Exception e)
             {
-                CoreLogger.Log($"[PlayerInjuryHistoryDTO] Failed to convert injury history for player {PlayerId}: {e.Message}");
+                Console.WriteLine($"[PlayerInjuryHistoryDTO] Failed to convert injury history for player {PlayerId}: {e.Message}");
                 return new PlayerInjuryHistory(PlayerId);
             }
         }

@@ -7,11 +7,12 @@ using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.DTO;
 using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Match.Tuning;
+using AFLCoachSim.Core.Engine.Match.Weather;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Injuries;
 using AFLCoachSim.Core.Injuries.Domain;
 using AFLCoachSim.Core.Persistence;
-using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
 {
@@ -25,7 +26,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
         /// </summary>
         public static void RunMatchExample()
         {
-            CoreLogger.Log("=== Modern Match Injury System Example ===");
+            Console.WriteLine("=== Modern Match Injury System Example ===");
             
             // 1. Set up the unified injury system
             var injuryManager = CreateInjuryManager();
@@ -42,7 +43,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
             var rng = new DeterministicRandom(42); // Fixed seed for reproducible results
             
             // 5. Run the match with enhanced injury system
-            CoreLogger.Log("Starting match with modern injury system...");
+            Console.WriteLine("Starting match with modern injury system...");
             
             var result = MatchEngine.PlayMatch(
                 round: 1,
@@ -52,7 +53,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
                 injuryManager: injuryManager, // Required parameter
                 rosters: rosters,
                 tactics: null,
-                weather: Weather.Clear,
+                weather: WeatherCondition.Clear,
                 ground: null,
                 quarterSeconds: 5 * 60, // Shorter match for demo
                 rng: rng,
@@ -61,12 +62,12 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
             );
             
             // 6. Display results
-            CoreLogger.Log($"Match Result: {result.Home} {result.HomeScore} - {result.AwayScore} {result.Away}");
+            Console.WriteLine($"Match Result: {result.Home} {result.HomeScore} - {result.AwayScore} {result.Away}");
             
             // 7. Show injury summary
             DisplayInjurySummary(injuryManager, rosters);
             
-            CoreLogger.Log("=== Modern Match Example Complete ===");
+            Console.WriteLine("=== Modern Match Example Complete ===");
         }
         
         
@@ -76,12 +77,11 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
         {
             // Create in-memory persistence for the example
             var repository = new InMemoryInjuryRepository();
-            var service = new InjuryService(repository);
             
-            // Create injury manager with default configuration
-            var injuryManager = new InjuryManager(service);
+            // Create injury manager with repository directly
+            var injuryManager = new InjuryManager(repository);
             
-            CoreLogger.Log("Created injury management system");
+            Console.WriteLine("Created injury management system");
             return injuryManager;
         }
         
@@ -115,7 +115,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
             {
                 var player = new Domain.Entities.Player
                 {
-                    ID = i + (teamPrefix == "ADE" ? 0 : 100), // Offset Brisbane IDs
+                    Id = new PlayerId(i + (teamPrefix == "ADE" ? 0 : 100)), // Offset Brisbane IDs
                     // Add other required player properties here
                     Durability = random.Next(70, 95) // Random durability for variety
                 };
@@ -128,43 +128,43 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
         
         private static void SetupPreExistingInjuries(InjuryManager injuryManager, Dictionary<TeamId, List<Domain.Entities.Player>> rosters)
         {
-            CoreLogger.Log("Setting up some pre-existing injuries for demonstration...");
+            Console.WriteLine("Setting up some pre-existing injuries for demonstration...");
             
             // Give Adelaide player #5 a niggle
-            injuryManager.RecordInjury(5, InjuryType.Muscle, InjurySeverity.Niggle, BodyPart.UpperLeg, "Training", 1.0f);
+            injuryManager.RecordInjury(5, InjuryType.Muscle, InjurySeverity.Niggle, InjurySource.Training, "Upper leg muscle strain");
             
             // Give Brisbane player #110 a minor injury
-            injuryManager.RecordInjury(110, InjuryType.Joint, InjurySeverity.Minor, BodyPart.LowerLeg, "Training", 1.2f);
+            injuryManager.RecordInjury(110, InjuryType.Joint, InjurySeverity.Minor, InjurySource.Training, "Lower leg joint injury");
             
-            CoreLogger.Log("Pre-existing injuries set up");
+            Console.WriteLine("Pre-existing injuries set up");
         }
         
         private static void DisplayInjurySummary(InjuryManager injuryManager, Dictionary<TeamId, List<Domain.Entities.Player>> rosters)
         {
-            CoreLogger.Log("=== Post-Match Injury Summary ===");
+            Console.WriteLine("=== Post-Match Injury Summary ===");
             
             var allPlayers = rosters.Values.SelectMany(r => r).ToList();
             
             foreach (var player in allPlayers)
             {
-                var injuries = injuryManager.GetActiveInjuries(player.ID).ToList();
+                var injuries = injuryManager.GetActiveInjuries(player.Id).ToList();
                 if (injuries.Any())
                 {
-                    CoreLogger.Log($"Player {player.ID}:");
+                    Console.WriteLine($"Player {player.Id}:");
                     foreach (var injury in injuries)
                     {
                         var description = injuryManager.GetInjuryDescription(injury.Id);
-                        CoreLogger.Log($"  - {injury.Severity} {injury.Type} ({injury.BodyPart}): {description}");
+                        Console.WriteLine($"  - {injury.Severity} {injury.Type} ({injury.BodyPart}): {description}");
                     }
                     
-                    var canPlay = injuryManager.CanPlayerPlay(player.ID);
-                    var performance = injuryManager.GetPlayerPerformanceMultiplier(player.ID);
-                    CoreLogger.Log($"    Can play: {canPlay}, Performance: {performance:P0}");
+                    var canPlay = injuryManager.CanPlayerPlay(player.Id);
+                    var performance = injuryManager.GetPlayerPerformanceMultiplier(player.Id);
+                    Console.WriteLine($"    Can play: {canPlay}, Performance: {performance:P0}");
                 }
             }
             
-            var totalActiveInjuries = allPlayers.Sum(p => injuryManager.GetActiveInjuries(p.ID).Count());
-            CoreLogger.Log($"Total active injuries: {totalActiveInjuries}");
+            var totalActiveInjuries = allPlayers.Sum(p => injuryManager.GetActiveInjuries(p.Id).Count());
+            Console.WriteLine($"Total active injuries: {totalActiveInjuries}");
         }
         
         #endregion
@@ -183,19 +183,19 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Examples
             // Placeholder implementations to satisfy interface - needs proper DTO conversion
             public void SavePlayerInjuryHistory(AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory history) { }
             public AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory LoadPlayerInjuryHistory(int playerId) { return null; }
-            public List<AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> LoadAllPlayerInjuryHistories() { return new List<AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory>(); }
+            public IDictionary<int, AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> LoadAllPlayerInjuryHistories() { return new Dictionary<int, AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory>(); }
             public void RemovePlayerInjuryHistory(int playerId) { }
             public void SaveInjury(AFLCoachSim.Core.Injuries.Domain.Injury injury) { }
             public AFLCoachSim.Core.Injuries.Domain.Injury LoadInjury(AFLCoachSim.Core.Injuries.Domain.InjuryId injuryId) { return null; }
-            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadPlayerInjuries(int playerId) { return new List<AFLCoachSim.Core.Injuries.Domain.Injury>(); }
-            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadActiveInjuries() { return new List<AFLCoachSim.Core.Injuries.Domain.Injury>(); }
+            public IEnumerable<AFLCoachSim.Core.Injuries.Domain.Injury> LoadPlayerInjuries(int playerId) { return new List<AFLCoachSim.Core.Injuries.Domain.Injury>(); }
+            public IEnumerable<AFLCoachSim.Core.Injuries.Domain.Injury> LoadActiveInjuries() { return new List<AFLCoachSim.Core.Injuries.Domain.Injury>(); }
             public void SaveAllInjuryData(InjuryDataDTO data) { }
             public InjuryDataDTO LoadAllInjuryData() { return new InjuryDataDTO(); }
             public void ClearAllInjuryData() { }
             public void ClearPlayerInjuryData(int playerId) { }
             public bool HasInjuryData() { return false; }
-            public bool BackupInjuryData(string backupPath) { return true; }
-            public bool RestoreInjuryData(string backupPath) { return true; }
+            public void BackupInjuryData(string backupSuffix) { }
+            public bool RestoreInjuryData(string backupSuffix) { return true; }
         }
     }
 }

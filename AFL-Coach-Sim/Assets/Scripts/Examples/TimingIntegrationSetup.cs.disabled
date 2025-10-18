@@ -1,0 +1,244 @@
+using UnityEngine;
+using AFLManager.Models;
+using AFLManager.Managers;
+using AFLManager.Systems.Timing;
+
+namespace AFLManager.Examples
+{
+    /// <summary>
+    /// Helper script to quickly setup timing integration on your existing SeasonBoot GameObject.
+    /// Use this in the Editor to automatically configure timing integration.
+    /// </summary>
+    public class TimingIntegrationSetup : MonoBehaviour
+    {
+        [Header("Setup Configuration")]
+        [Tooltip("The SeasonBoot GameObject to enhance with timing")]
+        public SeasonBoot targetSeasonBoot;
+        
+        [Tooltip("Create and assign a default timing configuration")]
+        public bool createDefaultTimingConfig = true;
+        
+        [Header("Player Context")]
+        public string playerTeamId = "team_00";
+        public PlayerExperienceLevel playerExperience = PlayerExperienceLevel.Intermediate;
+        public string[] rivalryTeamIds = { "team_01", "team_02" };
+        
+        [Header("Setup Actions")]
+        [SerializeField] private bool setupCompleted = false;
+        
+        [ContextMenu("Setup Timing Integration")]
+        public void SetupTimingIntegration()
+        {
+            if (setupCompleted)
+            {
+                Debug.Log("[TimingSetup] Timing integration already setup. Use 'Reset Setup' to reconfigure.");
+                return;
+            }
+            
+            // Find SeasonBoot if not assigned
+            if (targetSeasonBoot == null)
+            {
+                targetSeasonBoot = FindObjectOfType<SeasonBoot>();
+                if (targetSeasonBoot == null)
+                {
+                    Debug.LogError("[TimingSetup] No SeasonBoot found in scene. Please assign one manually.");
+                    return;
+                }
+            }
+            
+            // Add timing extension component
+            var timingExtension = targetSeasonBoot.GetComponent<SeasonBootTimingExtension>();
+            if (timingExtension == null)
+            {
+                timingExtension = targetSeasonBoot.gameObject.AddComponent<SeasonBootTimingExtension>();
+                Debug.Log("[TimingSetup] Added SeasonBootTimingExtension component");
+            }
+            
+            // Configure timing extension
+            ConfigureTimingExtension(timingExtension);
+            
+            // Create default configuration if requested
+            if (createDefaultTimingConfig)
+            {
+                CreateDefaultConfiguration(timingExtension);
+            }
+            
+            setupCompleted = true;
+            Debug.Log("[TimingSetup] ✅ Timing integration setup complete!");
+            Debug.Log("[TimingSetup] 🎮 Play the scene to test timing integration");
+        }
+        
+        [ContextMenu("Reset Setup")]
+        public void ResetSetup()
+        {
+            setupCompleted = false;
+            Debug.Log("[TimingSetup] Setup reset. You can now run 'Setup Timing Integration' again.");
+        }
+        
+        private void ConfigureTimingExtension(SeasonBootTimingExtension timingExtension)
+        {
+            // Configure player context
+            timingExtension.playerTeamId = playerTeamId;
+            timingExtension.playerExperienceLevel = playerExperience;
+            timingExtension.enableTimingIntegration = true;
+            
+            // Add rivalry teams
+            timingExtension.rivalryTeamIds.Clear();
+            foreach (var rivalryId in rivalryTeamIds)
+            {
+                if (!string.IsNullOrEmpty(rivalryId))
+                {
+                    timingExtension.rivalryTeamIds.Add(rivalryId);
+                }
+            }
+            
+            Debug.Log($"[TimingSetup] Configured timing extension for player team: {playerTeamId}");
+        }
+        
+        private void CreateDefaultConfiguration(SeasonBootTimingExtension timingExtension)
+        {
+#if UNITY_EDITOR
+            // Check if configuration already exists
+            if (timingExtension.seasonTimingConfig != null)
+            {
+                Debug.Log("[TimingSetup] Timing configuration already assigned");
+                return;
+            }
+            
+            // Create new configuration asset
+            var config = ScriptableObject.CreateInstance<SeasonTimingConfiguration>();
+            
+            // Set up default configuration values (this would normally be done in the inspector)
+            Debug.Log("[TimingSetup] Created default timing configuration");
+            Debug.Log("[TimingSetup] ⚠️ Please manually create a SeasonTimingConfiguration asset and assign it to the SeasonBootTimingExtension");
+            
+            // Note: We can't automatically create ScriptableObject assets in runtime
+            // The user needs to create the asset in the Editor
+#endif
+        }
+        
+        [ContextMenu("Test Current Setup")]
+        public void TestCurrentSetup()
+        {
+            if (targetSeasonBoot == null)
+            {
+                Debug.LogError("[TimingSetup] No SeasonBoot assigned");
+                return;
+            }
+            
+            var timingExtension = targetSeasonBoot.GetComponent<SeasonBootTimingExtension>();
+            if (timingExtension == null)
+            {
+                Debug.LogError("[TimingSetup] No SeasonBootTimingExtension found. Run 'Setup Timing Integration' first.");
+                return;
+            }
+            
+            Debug.Log("[TimingSetup] 🔍 Testing current setup...");
+            Debug.Log($"[TimingSetup] Player Team ID: {timingExtension.playerTeamId}");
+            Debug.Log($"[TimingSetup] Player Experience: {timingExtension.playerExperienceLevel}");
+            Debug.Log($"[TimingSetup] Rivalry Teams: {string.Join(", ", timingExtension.rivalryTeamIds)}");
+            Debug.Log($"[TimingSetup] Timing Config Assigned: {(timingExtension.seasonTimingConfig != null ? "✅ Yes" : "❌ No")}");
+            Debug.Log($"[TimingSetup] Integration Enabled: {(timingExtension.enableTimingIntegration ? "✅ Yes" : "❌ No")}");
+            
+            if (timingExtension.seasonTimingConfig == null)
+            {
+                Debug.LogWarning("[TimingSetup] ⚠️ No timing configuration assigned. Create a SeasonTimingConfiguration asset and assign it.");
+            }
+            else
+            {
+                Debug.Log("[TimingSetup] ✅ Setup looks good! Play the scene to test timing integration.");
+            }
+        }
+        
+        void Start()
+        {
+            // Auto-setup on start if in development
+            if (!setupCompleted && Application.isEditor)
+            {
+                Debug.Log("[TimingSetup] Use 'Setup Timing Integration' context menu or inspector button to configure timing.");
+            }
+        }
+        
+        // Helper methods for manual testing
+        [ContextMenu("Create Sample Timing Config")]
+        public void CreateSampleTimingConfig()
+        {
+            Debug.Log("[TimingSetup] To create a timing configuration:");
+            Debug.Log("1. Right-click in Project window");
+            Debug.Log("2. Create → AFL Manager → Season → Timing Configuration");
+            Debug.Log("3. Name it 'DefaultSeasonTiming'");
+            Debug.Log("4. Assign it to the SeasonBootTimingExtension component");
+        }
+        
+        [ContextMenu("Show Implementation Guide")]
+        public void ShowImplementationGuide()
+        {
+            Debug.Log("[TimingSetup] 📖 Implementation Guide Location:");
+            Debug.Log("Assets/Scripts/IMPLEMENTATION_GUIDE.md");
+            Debug.Log("Open this file for detailed setup instructions!");
+        }
+    }
+    
+#if UNITY_EDITOR
+    /// <summary>
+    /// Custom inspector for TimingIntegrationSetup to make it more user-friendly
+    /// </summary>
+    [UnityEditor.CustomEditor(typeof(TimingIntegrationSetup))]
+    public class TimingIntegrationSetupEditor : UnityEditor.Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var setup = (TimingIntegrationSetup)target;
+            
+            UnityEditor.EditorGUILayout.HelpBox(
+                "This helper script will configure timing integration on your SeasonBoot GameObject. " +
+                "Make sure you have a SeasonBoot in your scene first.", 
+                UnityEditor.MessageType.Info);
+            
+            DrawDefaultInspector();
+            
+            UnityEditor.EditorGUILayout.Space();
+            
+            UnityEditor.EditorGUILayout.LabelField("Quick Actions", UnityEditor.EditorStyles.boldLabel);
+            
+            if (GUILayout.Button("🚀 Setup Timing Integration", GUILayout.Height(30)))
+            {
+                setup.SetupTimingIntegration();
+            }
+            
+            UnityEditor.EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("🔍 Test Setup"))
+            {
+                setup.TestCurrentSetup();
+            }
+            if (GUILayout.Button("🔄 Reset"))
+            {
+                setup.ResetSetup();
+            }
+            UnityEditor.EditorGUILayout.EndHorizontal();
+            
+            UnityEditor.EditorGUILayout.Space();
+            
+            if (GUILayout.Button("📖 Open Implementation Guide"))
+            {
+                var guidePath = "Assets/Scripts/IMPLEMENTATION_GUIDE.md";
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(guidePath);
+                if (asset != null)
+                {
+                    UnityEditor.Selection.activeObject = asset;
+                    UnityEditor.EditorGUIUtility.PingObject(asset);
+                }
+                else
+                {
+                    Debug.Log("Implementation guide not found at: " + guidePath);
+                }
+            }
+            
+            if (GUILayout.Button("⚙️ Create Timing Config Asset"))
+            {
+                setup.CreateSampleTimingConfig();
+            }
+        }
+    }
+#endif
+}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AFLCoachSim.Core.DTO;
 using AFLCoachSim.Core.Domain.Aggregates; // Team
 using AFLCoachSim.Core.Domain.ValueObjects;
@@ -13,6 +14,7 @@ using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
 using AFLCoachSim.Core.Engine.Match.Tuning;
 using AFLCoachSim.Core.Injuries; // InjuryManager
 using AFLCoachSim.Core.Infrastructure.Logging;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -29,7 +31,7 @@ namespace AFLCoachSim.Core.Engine.Match
             InjuryManager injuryManager,
             Dictionary<TeamId, List<Domain.Entities.Player>> rosters = null,
             Dictionary<TeamId, TeamTactics> tactics = null,
-            Weather weather = Weather.Clear,
+            WeatherCondition weather = WeatherCondition.Clear,
             Ground ground = null,
             int quarterSeconds = 20 * 60,
             DeterministicRandom rng = null,
@@ -215,9 +217,9 @@ namespace AFLCoachSim.Core.Engine.Match
             float defensePressure = Rating.DefensePressure(defOn);
 
             // Weather penalty for progression
-            float weatherPenalty = ctx.Weather == Weather.Windy     ? ctx.Tuning.WeatherProgressPenalty_Windy
-                                 : ctx.Weather == Weather.LightRain ? ctx.Tuning.WeatherProgressPenalty_LightRain
-                                 : ctx.Weather == Weather.HeavyRain ? ctx.Tuning.WeatherProgressPenalty_HeavyRain : 0f;
+            float weatherPenalty = ctx.Weather == WeatherCondition.Windy     ? ctx.Tuning.WeatherProgressPenalty_Windy
+                                 : ctx.Weather == WeatherCondition.LightRain ? ctx.Tuning.WeatherProgressPenalty_LightRain
+                                 : ctx.Weather == WeatherCondition.HeavyRain ? ctx.Tuning.WeatherProgressPenalty_HeavyRain : 0f;
 
             float baseProgress = attackQuality - 0.6f * defensePressure - weatherPenalty;
             float pProgress    = Clamp01(ctx.Tuning.ProgressBase + baseProgress * ctx.Tuning.ProgressScale);
@@ -288,9 +290,9 @@ namespace AFLCoachSim.Core.Engine.Match
             float defensePressure = Rating.DefensePressure(defOn);
             float baseAcc = attackQuality - 0.5f * defensePressure; // normalized later via tuning
 
-            float weatherAccPenalty = ctx.Weather == Weather.Windy     ? ctx.Tuning.WeatherAccuracyPenalty_Windy
-                                     : ctx.Weather == Weather.LightRain ? ctx.Tuning.WeatherAccuracyPenalty_LightRain
-                                     : ctx.Weather == Weather.HeavyRain ? ctx.Tuning.WeatherAccuracyPenalty_HeavyRain : 0f;
+            float weatherAccPenalty = ctx.Weather == WeatherCondition.Windy     ? ctx.Tuning.WeatherAccuracyPenalty_Windy
+                                     : ctx.Weather == WeatherCondition.LightRain ? ctx.Tuning.WeatherAccuracyPenalty_LightRain
+                                     : ctx.Weather == WeatherCondition.HeavyRain ? ctx.Tuning.WeatherAccuracyPenalty_HeavyRain : 0f;
 
             float pGoal = Clamp01(ctx.Tuning.ShotBaseGoal + ctx.Tuning.ShotScaleWithQual * baseAcc - weatherAccPenalty);
 
@@ -397,25 +399,25 @@ namespace AFLCoachSim.Core.Engine.Match
             return matchContext;
         }
         
-        private static int GetTemperatureForWeather(Weather weather)
+        private static int GetTemperatureForWeather(WeatherCondition weather)
         {
             return weather switch
             {
-                Weather.Clear => 22,
-                Weather.Windy => 18,
-                Weather.LightRain => 15,
-                Weather.HeavyRain => 12,
+                WeatherCondition.Clear => 22,
+                WeatherCondition.Windy => 18,
+                WeatherCondition.LightRain => 15,
+                WeatherCondition.HeavyRain => 12,
                 _ => 20
             };
         }
         
-        private static int GetWindSpeedForWeather(Weather weather)
+        private static int GetWindSpeedForWeather(WeatherCondition weather)
         {
             return weather switch
             {
-                Weather.Windy => 35,     // Strong wind conditions
-                Weather.LightRain => 15, // Moderate breeze with rain
-                Weather.HeavyRain => 25, // Strong wind with heavy rain
+                WeatherCondition.Windy => 35,     // Strong wind conditions
+                WeatherCondition.LightRain => 15, // Moderate breeze with rain
+                WeatherCondition.HeavyRain => 25, // Strong wind with heavy rain
                 _ => 5                   // Light breeze
             };
         }

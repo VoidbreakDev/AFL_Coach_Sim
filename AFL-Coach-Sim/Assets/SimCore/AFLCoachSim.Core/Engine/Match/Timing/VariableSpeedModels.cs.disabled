@@ -1,0 +1,455 @@
+using System;
+using System.Collections.Generic;
+
+namespace AFLCoachSim.Core.Engine.Match.Timing
+{
+    /// <summary>
+    /// Configuration settings for variable speed match timing
+    /// </summary>
+    public class VariableSpeedConfiguration
+    {
+        // Speed control settings
+        public float MinSpeedMultiplier { get; set; } = 1.0f;
+        public float MaxSpeedMultiplier { get; set; } = 5.0f;
+        public float DefaultSpeedMultiplier { get; set; } = 2.0f;
+        public bool UsesSmoothSpeedTransitions { get; set; } = true;
+        
+        // Auto-pause settings
+        public bool AutoPauseForGoals { get; set; } = true;
+        public bool AutoPauseForInjuries { get; set; } = true;
+        public bool AutoPauseForDecisions { get; set; } = true;
+        public bool AutoPauseForQuarterEnd { get; set; } = true;
+        public bool AutoPauseForCloseFinish { get; set; } = true;
+        public bool AutoPauseForMomentumShifts { get; set; } = false; // More advanced feature
+        
+        // Auto-resume settings
+        public bool AutoResumeAfterGoals { get; set; } = true;
+        public bool AutoResumeAfterQuarters { get; set; } = false; // Let player decide
+        public float GoalCelebrationDuration { get; set; } = 3.0f; // seconds
+        public float QuarterBreakViewTime { get; set; } = 5.0f; // seconds
+        
+        // Pause frequency limits
+        public float MinTimeBetweenGoalPauses { get; set; } = 10f; // seconds
+        public float MinTimeBetweenInjuryPauses { get; set; } = 30f; // seconds
+        
+        // Speed restrictions
+        public bool LockSpeedDuringCriticalMoments { get; set; } = true;
+        public bool AllowPausingDuringShots { get; set; } = false;
+        
+        // Base timing configuration
+        public EnhancedTimingConfiguration BaseTimingConfiguration { get; set; } = EnhancedTimingConfiguration.Default;
+        
+        // Player engagement settings
+        public bool TrackPlayerEngagement { get; set; } = true;
+        public bool AdaptToPlayerBehavior { get; set; } = true;
+        public float EngagementAnalysisWindow { get; set; } = 600f; // 10 minutes
+        
+        public static VariableSpeedConfiguration Default => new VariableSpeedConfiguration();
+        
+        /// <summary>
+        /// Configuration optimized for casual players who want faster matches
+        /// </summary>
+        public static VariableSpeedConfiguration CasualOptimized => new VariableSpeedConfiguration
+        {
+            DefaultSpeedMultiplier = 3.0f,
+            AutoResumeAfterGoals = true,
+            AutoResumeAfterQuarters = true,
+            GoalCelebrationDuration = 2.0f,
+            QuarterBreakViewTime = 3.0f,
+            AutoPauseForMomentumShifts = false,
+            LockSpeedDuringCriticalMoments = false
+        };
+        
+        /// <summary>
+        /// Configuration optimized for engaged players who want tactical control
+        /// </summary>
+        public static VariableSpeedConfiguration TacticalOptimized => new VariableSpeedConfiguration
+        {
+            DefaultSpeedMultiplier = 1.5f,
+            AutoResumeAfterGoals = false,
+            AutoResumeAfterQuarters = false,
+            AutoPauseForMomentumShifts = true,
+            LockSpeedDuringCriticalMoments = true,
+            AllowPausingDuringShots = true
+        };
+    }
+    
+    /// <summary>
+    /// Reasons for automatic pause in variable speed timing
+    /// </summary>
+    public enum AutoPauseReason
+    {
+        None = 0,
+        GoalScored,
+        InjuryOccurred,
+        TacticalDecision,
+        QuarterEnd,
+        CloseFinish,
+        MomentumShift,
+        ManualPause,
+        CriticalMoment,
+        TimeOut
+    }
+    
+    /// <summary>
+    /// Source of a speed change event
+    /// </summary>
+    public enum SpeedChangeSource
+    {
+        Manual,
+        AutoRecommendation,
+        PhaseChange,
+        EmergencyPause,
+        SystemAdjustment
+    }
+    
+    /// <summary>
+    /// Complete update result from variable speed timing system
+    /// </summary>
+    public class VariableSpeedUpdate
+    {
+        // Core timing information
+        public MatchTimingUpdate BaseTiming { get; set; }
+        
+        // Speed control state
+        public float CurrentSpeedMultiplier { get; set; }
+        public float TargetSpeedMultiplier { get; set; }
+        public bool IsAutoPaused { get; set; }
+        public AutoPauseReason AutoPauseReason { get; set; }
+        public double AutoPauseTimeElapsed { get; set; }
+        
+        // Decision management
+        public List<TacticalDecisionPoint> ActiveTacticalDecisions { get; set; } = new List<TacticalDecisionPoint>();
+        public bool HasPendingDecisions { get; set; }
+        
+        // Speed control options
+        public List<SpeedOption> AvailableSpeedOptions { get; set; } = new List<SpeedOption>();
+        public float RecommendedSpeed { get; set; }
+        public bool SpeedChangeAllowed { get; set; }
+        
+        // Player analytics
+        public SpeedPreferences PlayerSpeedPreferences { get; set; }
+        public float SpeedEfficiency { get; set; }
+        
+        // Auto-pause predictions and history
+        public AutoPausePrediction NextLikelyAutoPause { get; set; }
+        public List<AutoPauseEvent> AutoPauseHistory { get; set; } = new List<AutoPauseEvent>();
+        
+        // Match pacing information
+        public MatchPacingInfo PacingInfo { get; set; }
+    }
+    
+    /// <summary>
+    /// Available speed option for player selection
+    /// </summary>
+    public class SpeedOption
+    {
+        public float Multiplier { get; set; }
+        public string Label { get; set; }
+        public string Description { get; set; }
+        public bool IsRecommended { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        public string DisabledReason { get; set; }
+    }
+    
+    /// <summary>
+    /// Tactical decision point that can trigger auto-pause
+    /// </summary>
+    public class TacticalDecisionPoint
+    {
+        public Guid DecisionId { get; set; } = Guid.NewGuid();
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public List<DecisionOption> Options { get; set; } = new List<DecisionOption>();
+        public DecisionUrgency Urgency { get; set; }
+        public float TimeoutSeconds { get; set; } = 30f; // Auto-timeout if no response
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool RequiresPause { get; set; } = true;
+        public MatchContext ContextSnapshot { get; set; }
+    }
+    
+    /// <summary>
+    /// Option within a tactical decision
+    /// </summary>
+    public class DecisionOption
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public string Description { get; set; }
+        public bool IsRecommended { get; set; }
+        public float ExpectedImpact { get; set; } // -1 to 1, negative to positive impact
+    }
+    
+    /// <summary>
+    /// Urgency level of a tactical decision
+    /// </summary>
+    public enum DecisionUrgency
+    {
+        Low,      // Can wait, informational
+        Medium,   // Should be addressed soon
+        High,     // Needs immediate attention
+        Critical  // Must be addressed now
+    }
+    
+    /// <summary>
+    /// Event representing an automatic pause
+    /// </summary>
+    public class AutoPauseEvent
+    {
+        public DateTime Timestamp { get; set; }
+        public AutoPauseReason Reason { get; set; }
+        public string Description { get; set; }
+        public float SpeedBeforePause { get; set; }
+        public double Duration { get; set; } // Set when pause ends
+        public bool WasAutoResumed { get; set; }
+        public MatchContext ContextSnapshot { get; set; }
+    }
+    
+    /// <summary>
+    /// Event representing a speed change
+    /// </summary>
+    public class SpeedChangeEvent
+    {
+        public DateTime Timestamp { get; set; }
+        public float FromSpeed { get; set; }
+        public float ToSpeed { get; set; }
+        public SpeedChangeSource Source { get; set; }
+        public string Reason { get; set; }
+        public MatchContext ContextSnapshot { get; set; }
+    }
+    
+    /// <summary>
+    /// Pending speed change to be executed later
+    /// </summary>
+    public class PendingSpeedChange
+    {
+        public float TargetSpeed { get; set; }
+        public DateTime ScheduledTime { get; set; }
+        public bool IsResume { get; set; } // True if this is resuming from auto-pause
+        public string Reason { get; set; }
+    }
+    
+    /// <summary>
+    /// Player's speed usage preferences and patterns
+    /// </summary>
+    public class SpeedPreferences
+    {
+        // Speed usage patterns
+        public float PreferredSpeed { get; set; } = 2.0f;
+        public float[] SpeedUsageDistribution { get; set; } = new float[6]; // 0x, 1x, 2x, 3x, 4x, 5x
+        public Dictionary<Phase, float> PreferredSpeedByPhase { get; set; } = new Dictionary<Phase, float>();
+        
+        // Decision making patterns
+        public float AverageDecisionTime { get; set; } = 10f; // seconds
+        public float DecisionTimeVariance { get; set; } = 5f;
+        public bool PrefersQuickDecisions { get; set; } = false;
+        
+        // Pause behavior
+        public float PauseFrequency { get; set; } = 0.5f; // pauses per match
+        public Dictionary<AutoPauseReason, bool> AutoPausePreferences { get; set; } = new Dictionary<AutoPauseReason, bool>();
+        
+        // Engagement patterns
+        public float EngagementLevel { get; set; } = 0.75f; // 0-1 scale
+        public List<float> RecentEngagementScores { get; set; } = new List<float>();
+        
+        // Learning and adaptation
+        public float SkillLevel { get; set; } = 0.5f; // 0-1 scale, higher = more skilled
+        public DateTime LastUpdated { get; set; } = DateTime.Now;
+        
+        public void RecordSpeedSelection(float speed)
+        {
+            // Update preferred speed (weighted average)
+            PreferredSpeed = (PreferredSpeed * 0.9f) + (speed * 0.1f);
+            
+            // Update usage distribution
+            int speedIndex = Math.Min(5, (int)Math.Round(speed));
+            SpeedUsageDistribution[speedIndex]++;
+            
+            LastUpdated = DateTime.Now;
+        }
+        
+        public void RecordDecisionTime(double timeSeconds)
+        {
+            // Update average decision time (weighted average)
+            AverageDecisionTime = (float)((AverageDecisionTime * 0.9) + (timeSeconds * 0.1));
+            
+            // Update variance calculation
+            var deviation = (float)Math.Abs(timeSeconds - AverageDecisionTime);
+            DecisionTimeVariance = (DecisionTimeVariance * 0.9f) + (deviation * 0.1f);
+            
+            // Update quick decision preference
+            PrefersQuickDecisions = AverageDecisionTime < 5f && DecisionTimeVariance < 3f;
+            
+            LastUpdated = DateTime.Now;
+        }
+        
+        public void RecordEngagementScore(float score)
+        {
+            RecentEngagementScores.Add(Math.Max(0f, Math.Min(1f, score)));
+            
+            // Keep only recent scores (last 10)
+            if (RecentEngagementScores.Count > 10)
+                RecentEngagementScores.RemoveAt(0);
+            
+            // Update overall engagement level
+            EngagementLevel = RecentEngagementScores.Count > 0 ? 
+                RecentEngagementScores.Average() : 0.75f;
+            
+            LastUpdated = DateTime.Now;
+        }
+    }
+    
+    /// <summary>
+    /// Prediction about the next likely auto-pause
+    /// </summary>
+    public class AutoPausePrediction
+    {
+        public AutoPauseReason LikelyReason { get; set; }
+        public float EstimatedTimeToNext { get; set; } // seconds
+        public float Confidence { get; set; } // 0-1 scale
+        public string Description { get; set; }
+    }
+    
+    /// <summary>
+    /// Information about match pacing and flow
+    /// </summary>
+    public class MatchPacingInfo
+    {
+        public float CurrentPaceRating { get; set; } // 0-1, where 1 is optimal pacing
+        public PacingTrend Trend { get; set; }
+        public List<PacingEvent> RecentPacingEvents { get; set; } = new List<PacingEvent>();
+        public float TimeCompressionRatio { get; set; } // actual time / game time
+        public float PlayerEngagementScore { get; set; } // 0-1 scale
+    }
+    
+    /// <summary>
+    /// Pacing trend indicator
+    /// </summary>
+    public enum PacingTrend
+    {
+        TooSlow,
+        SlightlySlow,
+        Optimal,
+        SlightlyFast,
+        TooFast
+    }
+    
+    /// <summary>
+    /// Event affecting match pacing
+    /// </summary>
+    public class PacingEvent
+    {
+        public DateTime Timestamp { get; set; }
+        public string EventType { get; set; }
+        public float ImpactOnPacing { get; set; } // -1 to 1
+        public string Description { get; set; }
+    }
+    
+    /// <summary>
+    /// Comprehensive statistics for variable speed system
+    /// </summary>
+    public class VariableSpeedStatistics
+    {
+        // Core timing statistics
+        public MatchTimingStatistics BaseStatistics { get; set; }
+        
+        // Speed usage statistics
+        public float CurrentSpeed { get; set; }
+        public float AverageSpeed { get; set; }
+        public float MedianSpeed { get; set; }
+        public float MaxSpeedUsed { get; set; }
+        public float MinSpeedUsed { get; set; }
+        
+        // Auto-pause statistics
+        public int TotalAutoPauses { get; set; }
+        public Dictionary<AutoPauseReason, int> AutoPausesByReason { get; set; } = new Dictionary<AutoPauseReason, int>();
+        public float AverageAutoPauseDuration { get; set; }
+        public float TotalTimePaused { get; set; }
+        
+        // Speed change statistics
+        public int TotalSpeedChanges { get; set; }
+        public float SpeedChangeFrequency { get; set; } // per hour
+        public float SpeedEfficiency { get; set; } // 0-1 scale
+        
+        // Player behavior statistics
+        public SpeedPreferences PlayerPreferences { get; set; }
+        public float TotalTimeSaved { get; set; } // vs 1x speed
+        public float EngagementMaintained { get; set; } // 0-1 scale
+        
+        // Match completion statistics
+        public float PercentageComplete { get; set; }
+        public TimeSpan EstimatedTimeRemaining { get; set; }
+        public TimeSpan ProjectedTotalDuration { get; set; }
+    }
+    
+    /// <summary>
+    /// Display information for variable speed UI
+    /// </summary>
+    public class VariableSpeedDisplay
+    {
+        // Time display information
+        public DetailedTimeDisplay TimeDisplay { get; set; }
+        
+        // Speed control display
+        public string CurrentSpeed { get; set; }
+        public string TargetSpeed { get; set; }
+        public bool IsAutoPaused { get; set; }
+        public string PauseReason { get; set; }
+        public string PauseDescription { get; set; }
+        
+        // Control availability
+        public bool CanChangeSpeed { get; set; }
+        public bool CanPause { get; set; }
+        public bool CanResume { get; set; }
+        
+        // Analytics display
+        public float SpeedEfficiencyIndicator { get; set; }
+        public string TimeSavedDisplay { get; set; }
+        public string EngagementStatus { get; set; }
+        
+        // Recommendations
+        public string SpeedRecommendation { get; set; }
+        public string PacingFeedback { get; set; }
+    }
+    
+    /// <summary>
+    /// Context information about current match state for decision making
+    /// </summary>
+    public class MatchContext
+    {
+        // Game state
+        public int Quarter { get; set; }
+        public float TimeRemaining { get; set; }
+        public MatchScore Score { get; set; }
+        public Phase CurrentPhase { get; set; }
+        
+        // Match situation
+        public bool IsCloseMatch { get; set; }
+        public float MomentumRating { get; set; } // -1 (away) to 1 (home)
+        public int RecentGoalCount { get; set; }
+        public int RecentInjuryCount { get; set; }
+        
+        // Telemetry
+        public MatchTelemetry Telemetry { get; set; }
+        
+        // Player state
+        public bool IsPlayerEngaged { get; set; }
+        public float PlayerFatigueLevel { get; set; } // Mental fatigue, not physical
+    }
+    
+    /// <summary>
+    /// Match score information
+    /// </summary>
+    public class MatchScore
+    {
+        public int HomeGoals { get; set; }
+        public int HomeBehinds { get; set; }
+        public int AwayGoals { get; set; }
+        public int AwayBehinds { get; set; }
+        
+        public int HomePoints => (HomeGoals * 6) + HomeBehinds;
+        public int AwayPoints => (AwayGoals * 6) + AwayBehinds;
+        public int Margin => Math.Abs(HomePoints - AwayPoints);
+        public bool IsClose => Margin <= 12; // Within 2 goals
+    }
+}

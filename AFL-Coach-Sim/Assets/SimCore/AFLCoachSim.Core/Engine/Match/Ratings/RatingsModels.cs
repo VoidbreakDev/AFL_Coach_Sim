@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Domain.Entities;
 
 namespace AFLCoachSim.Core.Engine.Match.Ratings
 {
@@ -608,7 +609,7 @@ namespace AFLCoachSim.Core.Engine.Match.Ratings
                 ("Momentum", MomentumModifier)
             };
 
-            return modifiers.OrderByDescending(m => m.Modifier.GetOverallImpact()).First();
+            return modifiers.OrderByDescending(m => m.Item2.GetOverallImpact()).First();
         }
     }
 

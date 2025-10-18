@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Training;
+using AFLCoachSim.Core.Domain.ValueObjects;
 
 namespace AFLCoachSim.Core.Development
 {
@@ -353,6 +354,299 @@ namespace AFLCoachSim.Core.Development
             // Keep only last 52 weeks (1 year) of history
             if (_developmentHistory[playerId].Count > 52)
                 _developmentHistory[playerId].RemoveAt(0);
+        }
+
+        #endregion
+
+        #region Missing Method Implementations
+
+        /// <summary>
+        /// Process training development gains
+        /// </summary>
+        private Dictionary<string, float> ProcessTrainingDevelopment(PlayerDevelopmentProfile profile, TrainingOutcome trainingOutcome)
+        {
+            var gains = new Dictionary<string, float>();
+            
+            if (trainingOutcome?.AttributeGains == null) return gains;
+            
+            foreach (var attributeGain in trainingOutcome.AttributeGains)
+            {
+                // Apply development profile modifiers
+                float modifiedGain = attributeGain.Value;
+                
+                if (profile.DevelopmentModifiers.ContainsKey(attributeGain.Key))
+                    modifiedGain *= profile.DevelopmentModifiers[attributeGain.Key];
+                    
+                gains[attributeGain.Key] = modifiedGain;
+            }
+            
+            return gains;
+        }
+
+        /// <summary>
+        /// Update development profile with new gains and progress
+        /// </summary>
+        private void UpdateProfile(PlayerDevelopmentProfile profile, PlayerDevelopmentUpdate update, float weeksElapsed)
+        {
+            // Update breakthrough readiness
+            profile.BreakthroughReadiness += CalculateBreakthroughReadinessIncrease(update);
+            
+            // Update career highs
+            var totalGains = update.GetTotalGains();
+            foreach (var gain in totalGains)
+            {
+                if (!profile.CareerHighs.ContainsKey(gain.Key) || gain.Value > profile.CareerHighs[gain.Key])
+                {
+                    profile.CareerHighs[gain.Key] = gain.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calculate breakthrough readiness increase
+        /// </summary>
+        private float CalculateBreakthroughReadinessIncrease(PlayerDevelopmentUpdate update)
+        {
+            float totalGain = 0f;
+            foreach (var gains in new[] { update.TrainingGains, update.ExperienceGains, update.SpecializationGains })
+            {
+                totalGain += gains.Values.Sum();
+            }
+            
+            return Math.Min(5f, totalGain * 10f); // Cap at 5 points per week
+        }
+
+        /// <summary>
+        /// Calculate total gain from update
+        /// </summary>
+        private float CalculateTotalGain(PlayerDevelopmentUpdate update)
+        {
+            return update.GetTotalGains().Values.Sum();
+        }
+
+        /// <summary>
+        /// Get primary gains from update
+        /// </summary>
+        private Dictionary<string, float> GetPrimaryGains(PlayerDevelopmentUpdate update)
+        {
+            var totalGains = update.GetTotalGains();
+            return totalGains.Where(g => g.Value >= 0.1f).ToDictionary(g => g.Key, g => g.Value);
+        }
+
+        /// <summary>
+        /// Calculate breakthrough probability
+        /// </summary>
+        private float CalculateBreakthroughProbability(PlayerDevelopmentProfile profile, Player player, PlayerDevelopmentUpdate update)
+        {
+            float baseProbability = 0.02f; // 2% base chance
+            
+            // Readiness factor
+            float readinessFactor = profile.BreakthroughReadiness / 100f;
+            
+            // Age factor (younger players more likely to breakthrough)
+            int age = CalculateAge(player.DateOfBirth);
+            float ageFactor = age < 23 ? 1.5f : age < 27 ? 1.0f : 0.5f;
+            
+            return Math.Min(0.15f, baseProbability * (1f + readinessFactor) * ageFactor);
+        }
+
+        /// <summary>
+        /// Determine breakthrough type
+        /// </summary>
+        private BreakthroughEventType DetermineBreakthroughType(PlayerDevelopmentProfile profile, Player player)
+        {
+            var breakthroughTypes = new[] { 
+                BreakthroughEventType.PhysicalBreakthrough, 
+                BreakthroughEventType.MentalBreakthrough, 
+                BreakthroughEventType.PositionMastery, 
+                BreakthroughEventType.PhenomenalRising 
+            };
+            return breakthroughTypes[_random.Next(breakthroughTypes.Length)];
+        }
+
+        /// <summary>
+        /// Get breakthrough description
+        /// </summary>
+        private string GetBreakthroughDescription(BreakthroughEventType breakthroughType, Player player)
+        {
+            return $"{player.Name} has experienced a {breakthroughType} breakthrough!";
+        }
+
+        /// <summary>
+        /// Get breakthrough multipliers
+        /// </summary>
+        private Dictionary<string, float> GetBreakthroughMultipliers(BreakthroughEventType breakthroughType)
+        {
+            return breakthroughType switch
+            {
+                BreakthroughEventType.PhysicalBreakthrough => new Dictionary<string, float> { { "Speed", 2.0f }, { "Strength", 2.0f }, { "Endurance", 1.8f } },
+                BreakthroughEventType.MentalBreakthrough => new Dictionary<string, float> { { "Decision Making", 2.5f }, { "Game Awareness", 2.0f } },
+                BreakthroughEventType.PositionMastery => new Dictionary<string, float> { { "Kicking", 2.2f }, { "Marking", 2.0f }, { "Handballing", 1.8f } },
+                BreakthroughEventType.PhenomenalRising => new Dictionary<string, float> { { "All", 2.0f } },
+                _ => new Dictionary<string, float>()
+            };
+        }
+
+        /// <summary>
+        /// Get breakthrough duration
+        /// </summary>
+        private int GetBreakthroughDuration(BreakthroughEventType breakthroughType)
+        {
+            return breakthroughType switch
+            {
+                BreakthroughEventType.PhysicalBreakthrough => 12, // 3 months
+                BreakthroughEventType.MentalBreakthrough => 16,   // 4 months
+                BreakthroughEventType.PositionMastery => 8,       // 2 months
+                BreakthroughEventType.PhenomenalRising => 20,     // 5 months
+                _ => 8 // Default 2 months
+            };
+        }
+        
+        /// <summary>
+        /// Check if breakthrough is positive
+        /// </summary>
+        private bool IsPositiveBreakthrough(BreakthroughEventType breakthroughType)
+        {
+            return breakthroughType switch
+            {
+                BreakthroughEventType.PhysicalBreakthrough => true,
+                BreakthroughEventType.MentalBreakthrough => true,
+                BreakthroughEventType.PositionMastery => true,
+                BreakthroughEventType.PhenomenalRising => true,
+                BreakthroughEventType.ConfidenceCrisis => false,
+                BreakthroughEventType.InjurySetback => false,
+                _ => true // Default positive
+            };
+        }
+
+        /// <summary>
+        /// Check experience milestones
+        /// </summary>
+        private void CheckExperienceMilestones(PlayerDevelopmentProfile profile, Player player)
+        {
+            // Implementation for experience milestones
+            var milestones = new[] { 100f, 500f, 1000f, 2000f, 5000f };
+            foreach (var milestone in milestones)
+            {
+                if (profile.CareerExperience >= milestone && !profile.DevelopmentModifiers.ContainsKey($"Milestone_{milestone}"))
+                {
+                    profile.DevelopmentModifiers[$"Milestone_{milestone}"] = 1.1f; // 10% bonus
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get experience attributes based on position and specialization
+        /// </summary>
+        private Dictionary<string, float> GetExperienceAttributes(Role position, PlayerSpecialization specialization)
+        {
+            var baseAttributes = new Dictionary<string, float>
+            {
+                { "Decision Making", 0.4f },
+                { "Game Awareness", 0.3f },
+                { "Leadership", 0.2f },
+                { "Positioning", 0.1f }
+            };
+            
+            // Position-specific adjustments would go here
+            
+            return baseAttributes;
+        }
+
+        /// <summary>
+        /// Determine initial specialization for player
+        /// </summary>
+        private PlayerSpecialization DetermineInitialSpecialization(Player player)
+        {
+            // Create a basic specialization based on player's primary role
+            return new PlayerSpecialization
+            {
+                Name = $"{player.PrimaryRole} Specialist",
+                Description = $"Specializing in {player.PrimaryRole} skills",
+                AttributeWeights = GetRoleAttributeWeights(player.PrimaryRole),
+                CanAdvance = true
+            };
+        }
+
+        /// <summary>
+        /// Get attribute weights for a role
+        /// </summary>
+        private Dictionary<string, float> GetRoleAttributeWeights(Role role)
+        {
+            return role switch
+            {
+                Role.KPF => new Dictionary<string, float> { { "Kicking", 0.4f }, { "Marking", 0.4f }, { "Goal Sense", 0.2f } },
+                Role.KPD => new Dictionary<string, float> { { "Marking", 0.4f }, { "Strength", 0.3f }, { "Positioning", 0.3f } },
+                Role.MID => new Dictionary<string, float> { { "Decision Making", 0.3f }, { "Endurance", 0.3f }, { "Handballing", 0.2f }, { "Kicking", 0.2f } },
+                Role.WING => new Dictionary<string, float> { { "Speed", 0.4f }, { "Endurance", 0.3f }, { "Kicking", 0.3f } },
+                Role.RUC => new Dictionary<string, float> { { "Marking", 0.4f }, { "Strength", 0.3f }, { "Tap Work", 0.3f } },
+                _ => new Dictionary<string, float> { { "Decision Making", 0.5f }, { "Game Awareness", 0.5f } }
+            };
+        }
+
+        /// <summary>
+        /// Get next specialization tier
+        /// </summary>
+        private PlayerSpecialization GetNextSpecializationTier(PlayerSpecialization current, Player player)
+        {
+            // Return null if no advancement available
+            if (!current.CanAdvance) return null;
+            
+            return new PlayerSpecialization
+            {
+                Name = $"Elite {player.PrimaryRole}",
+                Description = $"Elite-level {player.PrimaryRole} specialist",
+                AttributeWeights = current.AttributeWeights.ToDictionary(kv => kv.Key, kv => kv.Value * 1.2f),
+                CanAdvance = false // Elite tier is final
+            };
+        }
+
+        /// <summary>
+        /// Get age progression rate
+        /// </summary>
+        private float GetAgeProgressionRate(int age, DevelopmentStage stage)
+        {
+            return stage switch
+            {
+                DevelopmentStage.Rookie => 0.02f,     // Positive growth
+                DevelopmentStage.Developing => 0.01f,  // Positive growth
+                DevelopmentStage.Prime => 0f,          // Stable
+                DevelopmentStage.Veteran => -0.005f,   // Slight decline
+                DevelopmentStage.Declining => -0.01f,  // Decline
+                _ => 0f
+            };
+        }
+
+        /// <summary>
+        /// Get age attribute effects
+        /// </summary>
+        private Dictionary<string, float> GetAgeAttributeEffects(int age, DevelopmentStage stage)
+        {
+            var effects = new Dictionary<string, float>();
+            
+            switch (stage)
+            {
+                case DevelopmentStage.Rookie:
+                case DevelopmentStage.Developing:
+                    effects["Speed"] = 1.0f;
+                    effects["Strength"] = 1.0f;
+                    effects["Decision Making"] = 1.2f; // Mental attributes improve faster when young
+                    break;
+                    
+                case DevelopmentStage.Veteran:
+                case DevelopmentStage.Declining:
+                    effects["Speed"] = 1.5f; // Physical attributes decline faster
+                    effects["Strength"] = 1.2f;
+                    effects["Decision Making"] = 0.8f; // Mental attributes decline slower
+                    effects["Leadership"] = 0.5f; // Leadership actually improves with experience
+                    break;
+                    
+                default:
+                    effects["Decision Making"] = 1.0f;
+                    break;
+            }
+            
+            return effects;
         }
 
         #endregion

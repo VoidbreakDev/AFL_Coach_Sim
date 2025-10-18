@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Domain.Aggregates;
 using AFLCoachSim.Core.Engine.Match.Ratings;
 using AFLCoachSim.Core.Engine.Match.Fatigue;
 using AFLCoachSim.Core.Engine.Match.Weather;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Examples
 {
@@ -23,10 +25,10 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
         {
             // Initialize systems with different configurations for demonstration
             var ratingsConfig = DynamicRatingsConfiguration.CreateResponsive(); // More dynamic for example
-            var fatigueConfig = FatigueConfiguration.CreateDefault();
+            var fatigueConfig = new FatigueConfiguration();
             
             _ratingsSystem = new DynamicRatingsSystem(ratingsConfig);
-            _fatigueSystem = new AdvancedFatigueSystem(fatigueConfig);
+            _fatigueSystem = new AdvancedFatigueSystem(42); // Use deterministic seed
             _weatherSystem = new WeatherImpactSystem();
         }
 
@@ -42,7 +44,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             var awayTeam = CreateSampleTeam("Essendon Bombers", isHome: false);
             
             // Create match context
-            var matchContext = new MatchContext
+            var matchContext = new AFLCoachSim.Core.Engine.Match.Ratings.MatchContext
             {
                 MatchId = Guid.NewGuid(),
                 HomeTeam = homeTeam.Name,
@@ -51,6 +53,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
                 CrowdSize = 85000,
                 IsNightGame = false,
                 IsFinalSeries = false,
+                HomeGroundAdvantage = 0.05f,
                 MatchStart = DateTime.Now
             };
 
@@ -244,9 +247,9 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
                 // Simulate some matchup events
                 var events = new[]
                 {
-                    new MatchupEvent(true, "Mark") { MarginOfVictory = 0.7f },
-                    new MatchupEvent(false, "Contest") { MarginOfVictory = 0.3f },
-                    new MatchupEvent(true, "Sprint") { MarginOfVictory = 0.9f }
+                    new AFLCoachSim.Core.Engine.Match.Ratings.MatchupEvent(true, "Mark") { MarginOfVictory = 0.7f },
+                    new AFLCoachSim.Core.Engine.Match.Ratings.MatchupEvent(false, "Contest") { MarginOfVictory = 0.3f },
+                    new AFLCoachSim.Core.Engine.Match.Ratings.MatchupEvent(true, "Sprint") { MarginOfVictory = 0.9f }
                 };
 
                 Console.WriteLine("\nSimulating matchup events:");
@@ -369,20 +372,18 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
                 matchContext, _fatigueSystem, _weatherSystem);
 
             // Set challenging weather conditions
-            var weatherConditions = new WeatherConditions
+            var weatherConditions = new WeatherConditions(WeatherCondition.Hot)
             {
                 Temperature = 32f,
-                Humidity = 0.75f,
-                WindSpeed = 20f,
-                RainIntensity = 0.3f,
-                WeatherType = WeatherType.Hot
+                Humidity = 75f,
+                WindSpeed = 20f
             };
             
             _fatigueSystem.UpdateWeatherConditions(weatherConditions);
 
             var testPlayer = homeTeam.Players.First(p => p.Role == Role.Midfielder);
             Console.WriteLine($"Testing integrated effects on {testPlayer.Name} (Midfielder)");
-            Console.WriteLine($"Weather: {weatherConditions.WeatherType}, {weatherConditions.Temperature}°C, {weatherConditions.Humidity:P0} humidity");
+                Console.WriteLine($"Weather: {weatherConditions.WeatherType}, {weatherConditions.Temperature}°C, {weatherConditions.Humidity:F0}% humidity");
 
             // Simulate match progression
             var matchProgression = new[]
@@ -459,7 +460,7 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
                 int eventCount = random.Next(3, 8);
                 for (int i = 0; i < eventCount; i++)
                 {
-                    var eventType = (PerformanceEventType)random.Next(0, Enum.GetValues<PerformanceEventType>().Length);
+                    var eventType = (PerformanceEventType)random.Next(0, Enum.GetValues(typeof(PerformanceEventType)).Length);
                     var quality = 0.5f + (float)random.NextDouble() * 1.5f;
                     var evt = new PerformanceEvent(eventType) { Quality = quality };
                     _ratingsSystem.UpdatePlayerForm(player.Id, evt);
@@ -568,9 +569,9 @@ namespace AFLCoachSim.Core.Engine.Match.Examples
             return team;
         }
 
-        private MatchContext CreateSampleMatchContext(string homeTeam, string awayTeam)
+        private AFLCoachSim.Core.Engine.Match.Ratings.MatchContext CreateSampleMatchContext(string homeTeam, string awayTeam)
         {
-            return new MatchContext
+            return new AFLCoachSim.Core.Engine.Match.Ratings.MatchContext
             {
                 MatchId = Guid.NewGuid(),
                 HomeTeam = homeTeam,

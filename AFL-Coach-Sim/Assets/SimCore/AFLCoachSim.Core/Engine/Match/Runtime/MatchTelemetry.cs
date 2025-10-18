@@ -9,5 +9,8 @@ namespace AFLCoachSim.Core.Engine.Match.Runtime
         public int AwayInjuryEvents;
         public int HomeAvgConditionEnd;
         public int AwayAvgConditionEnd;
+        
+        // Additional telemetry for compatibility
+        public System.Collections.Generic.List<string> Events { get; set; } = new System.Collections.Generic.List<string>();
     }
 }

@@ -55,8 +55,8 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
                 if (newWeather != _currentConditions.WeatherType)
                 {
                     SetWeatherConditions(newWeather, 
-                        _random.NextSingle() * 1.5f + 0.5f, // 0.5-2.0 intensity
-                        _random.NextSingle() * 30f, // 0-30 km/h wind
+                        (float)_random.NextDouble() * 1.5f + 0.5f, // 0.5-2.0 intensity
+                        (float)_random.NextDouble() * 30f, // 0-30 km/h wind
                         GetRandomWindDirection());
 
                     CoreLogger.Log($"[Weather] Conditions changed to {newWeather} at {matchTimeSeconds:F0}s");
@@ -249,6 +249,21 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
         }
 
         #endregion
+        
+        /// <summary>
+        /// Calculate player-specific weather effects
+        /// </summary>
+        public PlayerWeatherEffect CalculatePlayerWeatherEffect(Guid playerId)
+        {
+            var baseEffects = _weatherEffects[_currentConditions.WeatherType];
+            
+            return new PlayerWeatherEffect
+            {
+                SpeedModifier = 1.0f + (baseEffects.FatigueRateModifier * -0.1f), // Fatigue affects speed
+                AccuracyModifier = 1.0f + baseEffects.KickingAccuracyModifier,
+                EnduranceModifier = 1.0f + baseEffects.FatigueRateModifier
+            };
+        }
 
         #region Private Helper Methods
 
@@ -385,7 +400,7 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
         {
             // Weather change probability increases over time, but is still rare
             float changeChance = (matchTimeSeconds / 6000f) * 0.02f; // Max 2% chance per update
-            return _random.NextSingle() < changeChance;
+            return (float)_random.NextDouble() < changeChance;
         }
 
         private Weather GenerateWeatherChange(Weather currentWeather)
@@ -408,11 +423,11 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
         private void UpdateWeatherIntensity()
         {
             // Small random variations in intensity
-            float variation = (_random.NextSingle() - 0.5f) * 0.1f;
+            float variation = ((float)_random.NextDouble() - 0.5f) * 0.1f;
             _currentConditions.Intensity = Math.Max(0.1f, Math.Min(2.0f, _currentConditions.Intensity + variation));
             
             // Small random variations in wind speed
-            float windVariation = (_random.NextSingle() - 0.5f) * 5f;
+            float windVariation = ((float)_random.NextDouble() - 0.5f) * 5f;
             _currentConditions.WindSpeed = Math.Max(0f, Math.Min(50f, _currentConditions.WindSpeed + windVariation));
         }
 

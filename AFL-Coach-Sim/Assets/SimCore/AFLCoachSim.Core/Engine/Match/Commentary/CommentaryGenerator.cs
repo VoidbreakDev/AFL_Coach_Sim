@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.Engine.Simulation;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Commentary
 {
@@ -42,7 +43,7 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
                 .Replace("{quarter}", GetQuarterName(matchEvent.Quarter));
             
             // Add weather context where relevant
-            if (matchEvent.Weather != Weather.Clear && ShouldMentionWeather(matchEvent.EventType))
+            if (matchEvent.Weather != WeatherCondition.Clear && ShouldMentionWeather(matchEvent.EventType))
             {
                 result += GetWeatherSuffix(matchEvent.Weather);
             }
@@ -183,15 +184,15 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
                    eventType == MatchEventType.Mark;
         }
         
-        private string GetWeatherSuffix(Weather weather)
+        private string GetWeatherSuffix(WeatherCondition weather)
         {
             switch (weather)
             {
-                case Weather.Windy:
+                case WeatherCondition.Windy:
                     return " despite the swirling wind";
-                case Weather.LightRain:
+                case WeatherCondition.LightRain:
                     return " in the slippery conditions";
-                case Weather.HeavyRain:
+                case WeatherCondition.HeavyRain:
                     return " through the driving rain";
                 default:
                     return "";

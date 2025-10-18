@@ -1,0 +1,701 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
+using AFLCoachSim.Core.Infrastructure.Logging;
+
+namespace AFLCoachSim.Core.Engine.Match.Integration
+{
+    /// <summary>
+    /// Adapter that converts compressed timing system data for use with the match engine
+    /// </summary>
+    public class CompressedTimingAdapter
+    {
+        private readonly CompressedTimingConfiguration _config;
+        private CompressedTimingUpdate _lastUpdate;
+        private readonly List<EngagementMoment> _pendingEngagementMoments;
+        private readonly List<AICoachDecision> _pendingAIDecisions;
+        
+        public CompressedTimingAdapter(CompressedTimingConfiguration config)
+        {
+            _config = config ?? CompressedTimingConfiguration.Default;
+            _pendingEngagementMoments = new List<EngagementMoment>();
+            _pendingAIDecisions = new List<AICoachDecision>();
+        }
+        
+        /// <summary>
+        /// Convert compressed timing update to match engine parameters
+        /// </summary>
+        public MatchEngineTimingParameters AdaptUpdate(CompressedTimingUpdate update, Phase currentPhase, MatchSnapshot currentSnapshot)
+        {
+            _lastUpdate = update;
+            
+            // Process engagement moments
+            if (update.EngagementMoment != null)
+            {
+                _pendingEngagementMoments.Add(update.EngagementMoment);
+            }
+            
+            // Process AI decisions
+            if (update.AICoachDecision != null)
+            {
+                _pendingAIDecisions.Add(update.AICoachDecision);
+            }
+            
+            // Calculate effective time multiplier
+            float timeMultiplier = CalculateTimeMultiplier(update, currentPhase, currentSnapshot);
+            
+            // Determine pause requirements
+            bool shouldPause = update.RequiresPlayerAttention;
+            
+            // Calculate match intensity based on engagement
+            float matchIntensity = CalculateMatchIntensity(update, currentSnapshot);
+            
+            return new MatchEngineTimingParameters
+            {
+                TimeMultiplier = timeMultiplier,
+                ShouldPause = shouldPause,
+                PauseReason = shouldPause ? "Player attention required" : null,
+                MatchIntensity = matchIntensity,
+                EngagementLevel = update.EngagementLevel,
+                CompressionRate = update.CompressionMultiplier,
+                
+                // Phase-specific modifiers
+                PhaseModifiers = CreatePhaseModifiers(update, currentPhase),
+                
+                // Decision context
+                HasPendingEngagementMoments = _pendingEngagementMoments.Count > 0,
+                HasPendingAIDecisions = _pendingAIDecisions.Count > 0,
+                
+                // Statistics
+                TimingStatistics = update.Statistics
+            };
+        }
+        
+        /// <summary>
+        /// Get pending engagement moments and clear the queue
+        /// </summary>
+        public List<EngagementMoment> GetAndClearPendingEngagementMoments()
+        {
+            var moments = new List<EngagementMoment>(_pendingEngagementMoments);
+            _pendingEngagementMoments.Clear();
+            return moments;
+        }
+        
+        /// <summary>
+        /// Get pending AI decisions and clear the queue
+        /// </summary>
+        public List<AICoachDecision> GetAndClearPendingAIDecisions()
+        {
+            var decisions = new List<AICoachDecision>(_pendingAIDecisions);
+            _pendingAIDecisions.Clear();
+            return decisions;
+        }
+        
+        /// <summary>
+        /// Generate tactical suggestions based on current match state
+        /// </summary>
+        public List<TacticalSuggestion> GenerateTacticalSuggestions(MatchSnapshot snapshot, Phase currentPhase)
+        {
+            var suggestions = new List<TacticalSuggestion>();
+            
+            // Generate suggestions based on match context
+            if (_config.EnableAICoachIntegration && _lastUpdate != null)
+            {
+                suggestions.AddRange(GeneratePhaseSpecificSuggestions(currentPhase, snapshot));
+                suggestions.AddRange(GenerateScoreBasedSuggestions(snapshot));
+                suggestions.AddRange(GenerateTimeBasedSuggestions(snapshot));
+            }
+            
+            return suggestions;
+        }
+        
+        private float CalculateTimeMultiplier(CompressedTimingUpdate update, Phase currentPhase, MatchSnapshot snapshot)
+        {
+            // Base compression multiplier from timing system
+            float baseMultiplier = update.CompressionMultiplier;
+            
+            // Phase-specific adjustments
+            float phaseAdjustment = currentPhase switch
+            {
+                Phase.ShotOnGoal => 0.3f,      // Slow down for shots
+                Phase.Inside50 => 0.6f,        // Moderate slowdown for scoring opportunities
+                Phase.CenterBounce => 1.2f,    // Speed up center bounces
+                Phase.Stoppage => 1.1f,        // Slightly speed up stoppages
+                Phase.OpenPlay => 1.0f,        // Normal speed for general play
+                Phase.KickIn => 1.3f,          // Speed up kick-ins
+                _ => 1.0f
+            };
+            
+            // Engagement-based adjustment
+            float engagementAdjustment = 1.0f - (update.EngagementLevel * 0.3f); // Lower engagement = more compression
+            
+            // Combine all factors
+            return baseMultiplier * phaseAdjustment * engagementAdjustment;
+        }
+        
+        private float CalculateMatchIntensity(CompressedTimingUpdate update, MatchSnapshot snapshot)
+        {
+            float baseIntensity = 0.5f;
+            
+            // Score-based intensity
+            var margin = Math.Abs(snapshot.HomePoints - snapshot.AwayPoints);
+            if (margin <= 6) baseIntensity += 0.3f;      // Very close match
+            else if (margin <= 18) baseIntensity += 0.2f; // Reasonably close
+            
+            // Time-based intensity (increase in final quarter)
+            if (snapshot.Quarter == 4)
+            {
+                if (snapshot.TimeRemaining <= 300) baseIntensity += 0.4f; // Final 5 minutes
+                else baseIntensity += 0.2f; // Fourth quarter
+            }
+            
+            // Engagement-based intensity
+            baseIntensity += update.EngagementLevel * 0.3f;
+            
+            return Math.Max(0f, Math.Min(1f, baseIntensity));
+        }
+        
+        private Dictionary<string, float> CreatePhaseModifiers(CompressedTimingUpdate update, Phase currentPhase)
+        {
+            var modifiers = new Dictionary<string, float>();
+            
+            // Fatigue progression modifiers
+            modifiers["FatigueRate"] = currentPhase == Phase.ShotOnGoal ? 0.5f : 1.0f;
+            
+            // Injury risk modifiers based on compression
+            modifiers["InjuryRisk"] = update.CompressionMultiplier > 3.0f ? 0.8f : 1.0f;
+            
+            // Rotation frequency modifiers
+            modifiers["RotationFrequency"] = update.CompressionMultiplier * 1.5f;
+            
+            // Decision frequency modifiers
+            modifiers["DecisionFrequency"] = update.RequiresPlayerAttention ? 2.0f : 0.5f;
+            
+            return modifiers;
+        }
+        
+        private List<TacticalSuggestion> GeneratePhaseSpecificSuggestions(Phase phase, MatchSnapshot snapshot)
+        {
+            var suggestions = new List<TacticalSuggestion>();
+            
+            switch (phase)
+            {
+                case Phase.Inside50:
+                    if (snapshot.Quarter >= 3) // Late in match
+                    {
+                        suggestions.Add(new TacticalSuggestion
+                        {
+                            Type = TacticalSuggestionType.Formation,
+                            Title = "Push Forward",
+                            Description = "Move more players into attacking positions",
+                            Confidence = 0.7f,
+                            Urgency = TacticalUrgency.Medium
+                        });
+                    }
+                    break;
+                    
+                case Phase.ShotOnGoal:
+                    suggestions.Add(new TacticalSuggestion
+                    {
+                        Type = TacticalSuggestionType.PlayerInstruction,
+                        Title = "Encourage Shot",
+                        Description = "Signal confidence to the kicker",
+                        Confidence = 0.8f,
+                        Urgency = TacticalUrgency.High
+                    });
+                    break;
+            }
+            
+            return suggestions;
+        }
+        
+        private List<TacticalSuggestion> GenerateScoreBasedSuggestions(MatchSnapshot snapshot)
+        {
+            var suggestions = new List<TacticalSuggestion>();
+            var margin = snapshot.HomePoints - snapshot.AwayPoints; // Assuming home team perspective
+            
+            if (margin < -12) // Behind by more than 2 goals
+            {
+                suggestions.Add(new TacticalSuggestion
+                {
+                    Type = TacticalSuggestionType.Formation,
+                    Title = "Aggressive Attack",
+                    Description = "Increase forward pressure to close the gap",
+                    Confidence = 0.6f,
+                    Urgency = TacticalUrgency.High
+                });
+            }
+            else if (margin > 12) // Ahead by more than 2 goals
+            {
+                suggestions.Add(new TacticalSuggestion
+                {
+                    Type = TacticalSuggestionType.Formation,
+                    Title = "Defensive Structure",
+                    Description = "Focus on maintaining the lead",
+                    Confidence = 0.7f,
+                    Urgency = TacticalUrgency.Medium
+                });
+            }
+            
+            return suggestions;
+        }
+        
+        private List<TacticalSuggestion> GenerateTimeBasedSuggestions(MatchSnapshot snapshot)
+        {
+            var suggestions = new List<TacticalSuggestion>();
+            
+            if (snapshot.Quarter == 4 && snapshot.TimeRemaining <= 300) // Final 5 minutes
+            {
+                var margin = snapshot.HomePoints - snapshot.AwayPoints;
+                
+                if (Math.Abs(margin) <= 6) // Very close match
+                {
+                    suggestions.Add(new TacticalSuggestion
+                    {
+                        Type = TacticalSuggestionType.Mental,
+                        Title = "Stay Calm",
+                        Description = "Keep composed in the final moments",
+                        Confidence = 0.9f,
+                        Urgency = TacticalUrgency.Critical
+                    });
+                }
+            }
+            
+            return suggestions;
+        }
+    }
+    
+    /// <summary>
+    /// Adapter that converts variable speed timing system data for use with the match engine
+    /// </summary>
+    public class VariableSpeedTimingAdapter
+    {
+        private readonly VariableSpeedConfiguration _config;
+        private VariableSpeedUpdate _lastUpdate;
+        private readonly List<TacticalDecisionPoint> _pendingDecisions;
+        private readonly Dictionary<Guid, DateTime> _decisionTimestamps;
+        
+        public VariableSpeedTimingAdapter(VariableSpeedConfiguration config)
+        {
+            _config = config ?? VariableSpeedConfiguration.Default;
+            _pendingDecisions = new List<TacticalDecisionPoint>();
+            _decisionTimestamps = new Dictionary<Guid, DateTime>();
+        }
+        
+        /// <summary>
+        /// Convert variable speed timing update to match engine parameters
+        /// </summary>
+        public MatchEngineTimingParameters AdaptUpdate(VariableSpeedUpdate update, Phase currentPhase, MatchSnapshot currentSnapshot)
+        {
+            _lastUpdate = update;
+            
+            // Process tactical decisions
+            foreach (var decision in update.ActiveTacticalDecisions)
+            {
+                if (!_decisionTimestamps.ContainsKey(decision.DecisionId))
+                {
+                    _pendingDecisions.Add(decision);
+                    _decisionTimestamps[decision.DecisionId] = DateTime.Now;
+                }
+            }
+            
+            // Clean up resolved decisions
+            CleanupResolvedDecisions(update.ActiveTacticalDecisions);
+            
+            // Calculate effective time multiplier
+            float timeMultiplier = CalculateVariableSpeedMultiplier(update, currentPhase, currentSnapshot);
+            
+            // Determine pause state
+            bool shouldPause = update.IsAutoPaused;
+            string pauseReason = GetPauseReason(update.AutoPauseReason);
+            
+            // Calculate match intensity based on speed and context
+            float matchIntensity = CalculateVariableSpeedIntensity(update, currentSnapshot);
+            
+            return new MatchEngineTimingParameters
+            {
+                TimeMultiplier = timeMultiplier,
+                ShouldPause = shouldPause,
+                PauseReason = pauseReason,
+                MatchIntensity = matchIntensity,
+                EngagementLevel = update.PlayerSpeedPreferences?.EngagementLevel ?? 0.75f,
+                CompressionRate = 1.0f, // Variable speed doesn't compress, just accelerates
+                
+                // Variable speed specific
+                SpeedMultiplier = update.CurrentSpeedMultiplier,
+                TargetSpeed = update.TargetSpeedMultiplier,
+                SpeedChangeAllowed = update.SpeedChangeAllowed,
+                
+                // Phase-specific modifiers
+                PhaseModifiers = CreateVariableSpeedPhaseModifiers(update, currentPhase),
+                
+                // Decision context
+                HasPendingTacticalDecisions = _pendingDecisions.Count > 0,
+                RecommendedSpeed = update.RecommendedSpeed,
+                
+                // Statistics
+                TimingStatistics = update.SpeedEfficiency
+            };
+        }
+        
+        /// <summary>
+        /// Get pending tactical decisions
+        /// </summary>
+        public List<TacticalDecisionPoint> GetPendingDecisions()
+        {
+            return new List<TacticalDecisionPoint>(_pendingDecisions);
+        }
+        
+        /// <summary>
+        /// Resolve a tactical decision
+        /// </summary>
+        public bool ResolveDecision(Guid decisionId, int selectedOptionId)
+        {
+            var decision = _pendingDecisions.FirstOrDefault(d => d.DecisionId == decisionId);
+            if (decision != null)
+            {
+                _pendingDecisions.Remove(decision);
+                _decisionTimestamps.Remove(decisionId);
+                
+                // Log decision resolution
+                var responseTime = (DateTime.Now - _decisionTimestamps.GetValueOrDefault(decisionId, DateTime.Now)).TotalSeconds;
+                CoreLogger.Log($"[VariableSpeedAdapter] Decision resolved: {decision.Title} → Option {selectedOptionId} (Response time: {responseTime:F1}s)");
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        /// <summary>
+        /// Generate speed recommendations based on current match state
+        /// </summary>
+        public List<SpeedRecommendation> GenerateSpeedRecommendations(MatchSnapshot snapshot, Phase currentPhase)
+        {
+            var recommendations = new List<SpeedRecommendation>();
+            
+            // Phase-based recommendations
+            recommendations.Add(GeneratePhaseSpeedRecommendation(currentPhase, snapshot));
+            
+            // Context-based recommendations
+            recommendations.AddRange(GenerateContextSpeedRecommendations(snapshot));
+            
+            // Player preference-based recommendations
+            if (_lastUpdate?.PlayerSpeedPreferences != null)
+            {
+                recommendations.Add(GeneratePersonalizedRecommendation(_lastUpdate.PlayerSpeedPreferences, snapshot));
+            }
+            
+            return recommendations.Where(r => r != null).ToList();
+        }
+        
+        private float CalculateVariableSpeedMultiplier(VariableSpeedUpdate update, Phase currentPhase, MatchSnapshot snapshot)
+        {
+            // Use the variable speed system's calculated multiplier
+            float baseMultiplier = update.IsAutoPaused ? 0f : update.CurrentSpeedMultiplier;
+            
+            // Apply phase-specific constraints
+            float phaseConstraint = currentPhase switch
+            {
+                Phase.ShotOnGoal => Math.Min(baseMultiplier, 2.0f), // Limit speed during shots
+                Phase.Inside50 => Math.Min(baseMultiplier, 3.0f),   // Moderate limit for scoring opportunities
+                _ => baseMultiplier // No constraints for other phases
+            };
+            
+            return phaseConstraint;
+        }
+        
+        private float CalculateVariableSpeedIntensity(VariableSpeedUpdate update, MatchSnapshot snapshot)
+        {
+            float baseIntensity = 0.5f;
+            
+            // Speed-based intensity (higher speeds = higher intensity)
+            baseIntensity += (update.CurrentSpeedMultiplier - 1.0f) * 0.1f;
+            
+            // Pause-based intensity (pauses reduce intensity temporarily)
+            if (update.IsAutoPaused)
+            {
+                baseIntensity *= 0.3f;
+            }
+            
+            // Decision-based intensity (decisions increase intensity)
+            if (update.HasPendingDecisions)
+            {
+                baseIntensity += 0.2f;
+            }
+            
+            // Match context intensity
+            var margin = Math.Abs(snapshot.HomePoints - snapshot.AwayPoints);
+            if (margin <= 6 && snapshot.Quarter >= 3) baseIntensity += 0.3f; // Close match, late in game
+            
+            return Math.Max(0f, Math.Min(1f, baseIntensity));
+        }
+        
+        private Dictionary<string, float> CreateVariableSpeedPhaseModifiers(VariableSpeedUpdate update, Phase currentPhase)
+        {
+            var modifiers = new Dictionary<string, float>();
+            
+            // Speed affects various game systems differently
+            float speedFactor = update.CurrentSpeedMultiplier;
+            
+            // Fatigue progression (faster speed = faster fatigue, but less detailed)
+            modifiers["FatigueRate"] = speedFactor * 0.9f; // Slightly less fatigue per real-time second
+            
+            // Injury risk (higher speeds might miss some injury checks)
+            modifiers["InjuryRisk"] = speedFactor > 3.0f ? 0.9f : 1.0f;
+            
+            // Rotation timing (faster speeds need more frequent rotation checks)
+            modifiers["RotationFrequency"] = Math.Min(2.0f, speedFactor * 1.2f);
+            
+            // Decision quality (very fast speeds might reduce decision accuracy)
+            modifiers["DecisionQuality"] = speedFactor > 4.0f ? 0.9f : 1.0f;
+            
+            // Telemetry sampling rate
+            modifiers["TelemetrySampling"] = Math.Max(0.5f, 2.0f / speedFactor);
+            
+            return modifiers;
+        }
+        
+        private string GetPauseReason(AutoPauseReason reason)
+        {
+            return reason switch
+            {
+                AutoPauseReason.GoalScored => "Goal scored - celebrating the moment",
+                AutoPauseReason.InjuryOccurred => "Player injury requires attention",
+                AutoPauseReason.TacticalDecision => "Tactical decision required",
+                AutoPauseReason.QuarterEnd => "Quarter ended - review period",
+                AutoPauseReason.CloseFinish => "Thrilling close finish",
+                AutoPauseReason.MomentumShift => "Major momentum shift",
+                AutoPauseReason.ManualPause => "Manually paused by player",
+                _ => "Match paused"
+            };
+        }
+        
+        private void CleanupResolvedDecisions(List<TacticalDecisionPoint> activeDecisions)
+        {
+            var activeIds = activeDecisions.Select(d => d.DecisionId).ToHashSet();
+            
+            _pendingDecisions.RemoveAll(d => !activeIds.Contains(d.DecisionId));
+            
+            var keysToRemove = _decisionTimestamps.Keys.Where(k => !activeIds.Contains(k)).ToList();
+            foreach (var key in keysToRemove)
+            {
+                _decisionTimestamps.Remove(key);
+            }
+        }
+        
+        private SpeedRecommendation GeneratePhaseSpeedRecommendation(Phase phase, MatchSnapshot snapshot)
+        {
+            return phase switch
+            {
+                Phase.ShotOnGoal => new SpeedRecommendation
+                {
+                    Speed = 1.0f,
+                    Reason = "Slow down for shot - savor the moment",
+                    Confidence = 0.9f,
+                    Priority = RecommendationPriority.High
+                },
+                
+                Phase.Inside50 => new SpeedRecommendation
+                {
+                    Speed = 1.5f,
+                    Reason = "Moderate speed for scoring opportunity",
+                    Confidence = 0.7f,
+                    Priority = RecommendationPriority.Medium
+                },
+                
+                Phase.OpenPlay => new SpeedRecommendation
+                {
+                    Speed = 3.0f,
+                    Reason = "Speed up general play",
+                    Confidence = 0.6f,
+                    Priority = RecommendationPriority.Low
+                },
+                
+                Phase.Stoppage => new SpeedRecommendation
+                {
+                    Speed = 2.5f,
+                    Reason = "Moderate speed through stoppages",
+                    Confidence = 0.5f,
+                    Priority = RecommendationPriority.Low
+                },
+                
+                _ => new SpeedRecommendation
+                {
+                    Speed = 2.0f,
+                    Reason = "Balanced speed for current phase",
+                    Confidence = 0.5f,
+                    Priority = RecommendationPriority.Low
+                }
+            };
+        }
+        
+        private List<SpeedRecommendation> GenerateContextSpeedRecommendations(MatchSnapshot snapshot)
+        {
+            var recommendations = new List<SpeedRecommendation>();
+            
+            var margin = Math.Abs(snapshot.HomePoints - snapshot.AwayPoints);
+            
+            // Close match recommendation
+            if (margin <= 6)
+            {
+                recommendations.Add(new SpeedRecommendation
+                {
+                    Speed = 1.0f,
+                    Reason = "Close match - watch every play carefully",
+                    Confidence = 0.8f,
+                    Priority = RecommendationPriority.High
+                });
+            }
+            
+            // Final quarter recommendation
+            if (snapshot.Quarter == 4)
+            {
+                if (snapshot.TimeRemaining <= 300) // Final 5 minutes
+                {
+                    recommendations.Add(new SpeedRecommendation
+                    {
+                        Speed = 1.0f,
+                        Reason = "Final minutes - don't miss anything",
+                        Confidence = 0.9f,
+                        Priority = RecommendationPriority.Critical
+                    });
+                }
+                else
+                {
+                    recommendations.Add(new SpeedRecommendation
+                    {
+                        Speed = 1.5f,
+                        Reason = "Final quarter - stay engaged",
+                        Confidence = 0.6f,
+                        Priority = RecommendationPriority.Medium
+                    });
+                }
+            }
+            
+            // Blowout recommendation
+            if (margin > 36) // More than 6 goals
+            {
+                recommendations.Add(new SpeedRecommendation
+                {
+                    Speed = 4.0f,
+                    Reason = "Large margin - speed through routine play",
+                    Confidence = 0.7f,
+                    Priority = RecommendationPriority.Medium
+                });
+            }
+            
+            return recommendations;
+        }
+        
+        private SpeedRecommendation GeneratePersonalizedRecommendation(SpeedPreferences preferences, MatchSnapshot snapshot)
+        {
+            var preferredSpeed = preferences.PreferredSpeed;
+            var engagementLevel = preferences.EngagementLevel;
+            
+            // Adjust based on current engagement
+            if (engagementLevel < 0.5f)
+            {
+                preferredSpeed = Math.Min(5.0f, preferredSpeed * 1.5f); // Speed up if disengaged
+            }
+            else if (engagementLevel > 0.8f)
+            {
+                preferredSpeed = Math.Max(1.0f, preferredSpeed * 0.8f); // Slow down if highly engaged
+            }
+            
+            return new SpeedRecommendation
+            {
+                Speed = preferredSpeed,
+                Reason = $"Based on your preferences (engagement: {engagementLevel:P0})",
+                Confidence = 0.6f,
+                Priority = RecommendationPriority.Medium
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Parameters that timing systems provide to the match engine
+    /// </summary>
+    public class MatchEngineTimingParameters
+    {
+        // Core timing control
+        public float TimeMultiplier { get; set; } = 1.0f;
+        public bool ShouldPause { get; set; } = false;
+        public string PauseReason { get; set; }
+        
+        // Match context
+        public float MatchIntensity { get; set; } = 0.5f;
+        public float EngagementLevel { get; set; } = 0.75f;
+        public float CompressionRate { get; set; } = 1.0f;
+        
+        // Variable speed specific
+        public float SpeedMultiplier { get; set; } = 1.0f;
+        public float TargetSpeed { get; set; } = 1.0f;
+        public bool SpeedChangeAllowed { get; set; } = true;
+        public float RecommendedSpeed { get; set; } = 1.0f;
+        
+        // System modifiers
+        public Dictionary<string, float> PhaseModifiers { get; set; } = new Dictionary<string, float>();
+        
+        // Decision context
+        public bool HasPendingEngagementMoments { get; set; } = false;
+        public bool HasPendingAIDecisions { get; set; } = false;
+        public bool HasPendingTacticalDecisions { get; set; } = false;
+        
+        // Statistics and metadata
+        public object TimingStatistics { get; set; }
+    }
+    
+    /// <summary>
+    /// Tactical suggestion generated by compressed timing AI
+    /// </summary>
+    public class TacticalSuggestion
+    {
+        public TacticalSuggestionType Type { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public float Confidence { get; set; }
+        public TacticalUrgency Urgency { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
+    
+    /// <summary>
+    /// Speed recommendation for variable speed timing
+    /// </summary>
+    public class SpeedRecommendation
+    {
+        public float Speed { get; set; }
+        public string Reason { get; set; }
+        public float Confidence { get; set; }
+        public RecommendationPriority Priority { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
+    
+    // Supporting enums
+    public enum TacticalSuggestionType
+    {
+        Formation,
+        PlayerInstruction,
+        Mental,
+        Substitution,
+        Strategy
+    }
+    
+    public enum TacticalUrgency
+    {
+        Low,
+        Medium,
+        High,
+        Critical
+    }
+    
+    public enum RecommendationPriority
+    {
+        Low,
+        Medium,
+        High,
+        Critical
+    }
+}

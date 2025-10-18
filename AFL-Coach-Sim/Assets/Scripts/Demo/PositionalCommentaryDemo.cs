@@ -8,6 +8,7 @@ using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Match.Commentary;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
+using Weather = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Demo
 {

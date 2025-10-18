@@ -6,6 +6,9 @@ using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
 using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Persistence;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Tests
 {
@@ -43,14 +46,15 @@ namespace AFLCoachSim.Core.Tests
 
             // run many short sims and proxy "injury count" by #players ending with Condition < 60
             int injProxyGood = 0, injProxyPoor = 0, trials = 60;
+            var injuryManager = new InjuryManager(new JsonInjuryRepository());
 
             for (int i = 0; i < trials; i++)
             {
-                var res1 = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, rostersGood,
-                    null, Weather.Clear, new Ground(), 8 * 60, new DeterministicRandom(10 + i));
+                var res1 = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, injuryManager, rostersGood,
+                    null, WeatherCondition.Clear, new Ground(), 8 * 60, new DeterministicRandom(10 + i));
 
-                var res2 = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, rostersPoor,
-                    null, Weather.Clear, new Ground(), 8 * 60, new DeterministicRandom(200 + i));
+                var res2 = MatchEngine.PlayMatch(1, new TeamId(1), new TeamId(2), teams, injuryManager, rostersPoor,
+                    null, WeatherCondition.Clear, new Ground(), 8 * 60, new DeterministicRandom(200 + i));
 
                 // crude proxy: worse durability should lead to lower average condition at end
                 injProxyGood += AverageCondition(good);

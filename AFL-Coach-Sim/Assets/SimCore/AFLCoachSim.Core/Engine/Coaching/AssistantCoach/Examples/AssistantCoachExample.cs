@@ -18,7 +18,7 @@ namespace AFLCoachSim.Core.Engine.Coaching.AssistantCoach.Examples
             
             // 1. Initialize the assistant coach system
             var assistantSystem = new AssistantCoachSystem(seed: 12345);
-            var teamId = new TeamId { Value = Guid.NewGuid() };
+            var teamId = new TeamId(1); // Use constructor with int value
             
             CoreLogger.Log($"Initialized assistant coach system for team {teamId}");
 

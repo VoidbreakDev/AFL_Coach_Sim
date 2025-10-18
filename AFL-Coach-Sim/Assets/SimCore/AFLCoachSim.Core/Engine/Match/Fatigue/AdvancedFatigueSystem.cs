@@ -5,6 +5,7 @@ using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match.Runtime;
 using AFLCoachSim.Core.Engine.Match.Weather;
+using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Fatigue
@@ -379,7 +380,7 @@ namespace AFLCoachSim.Core.Engine.Match.Fatigue
                 FatigueResistance = 1.0f
             };
 
-            foreach (var role in Enum.GetValues<Role>())
+            foreach (Role role in Enum.GetValues(typeof(Role)))
             {
                 if (!_positionProfiles.ContainsKey(role))
                 {
@@ -423,9 +424,9 @@ namespace AFLCoachSim.Core.Engine.Match.Fatigue
             {
                 weatherMultiplier = weatherConditions.WeatherType switch
                 {
-                    Weather.Hot => 1.3f + (weatherConditions.Intensity * 0.2f),
-                    Weather.Wet => 1.1f + (weatherConditions.Intensity * 0.1f),
-                    Weather.Cold => 0.95f,
+                    AFLCoachSim.Core.Engine.Match.Weather.Weather.Hot => 1.3f + (weatherConditions.Intensity * 0.2f),
+                    AFLCoachSim.Core.Engine.Match.Weather.Weather.Wet => 1.1f + (weatherConditions.Intensity * 0.1f),
+                    AFLCoachSim.Core.Engine.Match.Weather.Weather.Cold => 0.95f,
                     _ => 1.0f
                 };
             }
@@ -557,6 +558,111 @@ namespace AFLCoachSim.Core.Engine.Match.Fatigue
                         PlayerCount = g.Count()
                     });
         }
+
+        #endregion
+
+        #region Additional Methods for Compatibility
+
+        /// <summary>
+        /// Initialize fatigue system for a match with team rosters
+        /// </summary>
+        public void InitializeForMatch(List<Player> homeTeam, List<Player> awayTeam)
+        {
+            foreach (var player in homeTeam.Concat(awayTeam))
+            {
+                InitializePlayer(player);
+            }
+            CoreLogger.Log($"[Fatigue] Initialized fatigue system for match with {homeTeam.Count + awayTeam.Count} players");
+        }
+
+        /// <summary>
+        /// Update player fatigue with basic signature for backward compatibility
+        /// </summary>
+        public void UpdateFatigue(Guid playerId, FatigueActivity activity, float duration)
+        {
+            UpdatePlayerFatigue(playerId, activity, duration);
+        }
+
+        /// <summary>
+        /// Set player fatigue to a specific level
+        /// </summary>
+        public void SetPlayerFatigue(Guid playerId, float fatigueLevel)
+        {
+            if (_playerFatigueStates.TryGetValue(playerId, out var fatigueState))
+            {
+                fatigueState.CurrentFatigue = Math.Max(0f, Math.Min(100f, fatigueLevel));
+                UpdateFatigueZone(fatigueState);
+                CoreLogger.Log($"[Fatigue] Set {playerId} fatigue to {fatigueLevel:F1}%");
+            }
+            else
+            {
+                CoreLogger.LogWarning($"[Fatigue] Cannot set fatigue for uninitialized player {playerId}");
+            }
+        }
+
+        /// <summary>
+        /// Analyze team fatigue with list of player IDs
+        /// </summary>
+        public TeamFatigueAnalysis AnalyzeTeamFatigue(List<Guid> playerIds)
+        {
+            return CalculateTeamFatigue(playerIds);
+        }
+
+        /// <summary>
+        /// Update weather conditions affecting fatigue
+        /// </summary>
+        public void UpdateWeatherConditions(WeatherConditions weatherConditions)
+        {
+            // Store weather conditions for fatigue calculations
+            _currentWeatherConditions = weatherConditions;
+            CoreLogger.Log($"[Fatigue] Updated weather conditions: {weatherConditions.WeatherType}, {weatherConditions.Temperature}°C");
+        }
+
+        /// <summary>
+        /// Get position-specific fatigue profile
+        /// </summary>
+        public PositionFatigueProfile GetPositionProfile(Role position)
+        {
+            return _positionProfiles.GetValueOrDefault(position);
+        }
+
+        /// <summary>
+        /// Get match-wide fatigue statistics
+        /// </summary>
+        public MatchFatigueStatistics GetMatchStatistics()
+        {
+            var stats = new MatchFatigueStatistics();
+            
+            foreach (var kvp in _playerFatigueStates)
+            {
+                var playerId = kvp.Key;
+                var fatigueState = kvp.Value;
+                
+                var playerStats = new PlayerMatchFatigueStats
+                {
+                    PlayerId = playerId,
+                    PeakFatigue = fatigueState.ActivityHistory.Any() ? 
+                        fatigueState.ActivityHistory.Max(a => fatigueState.CurrentFatigue) : fatigueState.CurrentFatigue,
+                    AverageFatigue = fatigueState.ActivityHistory.Any() ? 
+                        fatigueState.ActivityHistory.Average(a => a.FatigueCost) : fatigueState.CurrentFatigue,
+                    TotalFatigueAccumulated = fatigueState.TotalFatigueAccumulated,
+                    TotalRecovery = fatigueState.TotalRecovery,
+                    ZoneTransitions = fatigueState.ZoneTransitions.Count
+                };
+                
+                stats.PlayerStats[playerId] = playerStats;
+                stats.TotalFatigueGenerated += fatigueState.TotalFatigueAccumulated;
+                stats.TotalRecoveryApplied += fatigueState.TotalRecovery;
+            }
+            
+            return stats;
+        }
+
+        #endregion
+
+        #region Private Fields for Additional Features
+
+        private WeatherConditions _currentWeatherConditions;
 
         #endregion
     }

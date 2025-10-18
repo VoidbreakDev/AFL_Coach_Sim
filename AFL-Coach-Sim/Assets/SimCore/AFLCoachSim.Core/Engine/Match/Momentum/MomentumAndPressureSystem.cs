@@ -59,16 +59,18 @@ namespace AFLCoachSim.Core.Engine.Match.Momentum
             InitializeCrowdState(matchContext);
             
             // Initialize team momentum states
-            var homeTeamId = homePlayers.First().TeamId ?? Guid.NewGuid();
-            var awayTeamId = awayPlayers.First().TeamId ?? Guid.NewGuid();
+            var homeTeamId = homePlayers.First().TeamId.Value != 0 ? homePlayers.First().TeamId.Value : 1; // Use team ID value or default
+            var awayTeamId = awayPlayers.First().TeamId.Value != 0 ? awayPlayers.First().TeamId.Value : 2; // Use team ID value or default
             
-            _teamMomentumStates[homeTeamId] = new TeamMomentumState(homeTeamId, true, homePlayers.Count);
-            _teamMomentumStates[awayTeamId] = new TeamMomentumState(awayTeamId, false, awayPlayers.Count);
+            var homeTeamGuid = new Guid(homeTeamId, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // Convert int to Guid
+            var awayTeamGuid = new Guid(awayTeamId, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // Convert int to Guid
+            _teamMomentumStates[homeTeamGuid] = new TeamMomentumState(homeTeamGuid, true, homePlayers.Count);
+            _teamMomentumStates[awayTeamGuid] = new TeamMomentumState(awayTeamGuid, false, awayPlayers.Count);
 
             // Initialize player pressure profiles
             foreach (var player in homePlayers.Concat(awayPlayers))
             {
-                _playerPressureProfiles[player.Id] = CreatePlayerPressureProfile(player, homeTeamId);
+                _playerPressureProfiles[(Guid)player.Id] = CreatePlayerPressureProfile(player, homeTeamId);
             }
 
             // Set initial momentum and pressure
@@ -90,9 +92,9 @@ namespace AFLCoachSim.Core.Engine.Match.Momentum
             };
         }
 
-        private PlayerPressureProfile CreatePlayerPressureProfile(Player player, Guid homeTeamId)
+        private PlayerPressureProfile CreatePlayerPressureProfile(Player player, int homeTeamId)
         {
-            bool isHomePlayer = player.TeamId == homeTeamId;
+            bool isHomePlayer = player.TeamId.Value == homeTeamId;
             
             return new PlayerPressureProfile(player.Id)
             {

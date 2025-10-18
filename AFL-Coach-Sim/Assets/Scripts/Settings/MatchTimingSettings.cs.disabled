@@ -1,0 +1,442 @@
+using System;
+using UnityEngine;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Gameplay.Match.Timing;
+
+namespace AFLCoachSim.Settings
+{
+    /// <summary>
+    /// Manages match timing preferences and settings.
+    /// Allows players to choose between compressed timing and variable speed timing systems.
+    /// </summary>
+    [System.Serializable]
+    public class MatchTimingSettings
+    {
+        [Header("Timing System Selection")]
+        [SerializeField] private TimingSystemType _preferredTimingSystem = TimingSystemType.VariableSpeed;
+        [SerializeField] private bool _allowTimingSystemSwitchDuringMatch = false;
+        
+        [Header("Compressed Timing Settings")]
+        [SerializeField] private CompressedTimingPreset _compressedPreset = CompressedTimingPreset.Standard;
+        [SerializeField] private float _targetMatchDuration = 18f; // minutes
+        [SerializeField] private bool _enableAICoach = true;
+        [SerializeField] private float _engagementThreshold = 0.6f; // 0-1 scale
+        
+        [Header("Variable Speed Settings")]
+        [SerializeField] private VariableSpeedPreset _variableSpeedPreset = VariableSpeedPreset.Balanced;
+        [SerializeField] private float _defaultSpeed = 2.0f;
+        [SerializeField] private bool _enableKeyboardShortcuts = true;
+        [SerializeField] private bool _autoResumeAfterGoals = true;
+        [SerializeField] private bool _autoResumeAfterQuarters = false;
+        
+        [Header("Auto-Pause Preferences")]
+        [SerializeField] private bool _autoPauseForGoals = true;
+        [SerializeField] private bool _autoPauseForInjuries = true;
+        [SerializeField] private bool _autoPauseForTacticalDecisions = true;
+        [SerializeField] private bool _autoPauseForQuarterEnd = true;
+        [SerializeField] private bool _autoPauseForCloseFinish = true;
+        
+        // Properties for external access
+        public TimingSystemType PreferredTimingSystem => _preferredTimingSystem;
+        public bool AllowTimingSystemSwitchDuringMatch => _allowTimingSystemSwitchDuringMatch;
+        public CompressedTimingPreset CompressedPreset => _compressedPreset;
+        public float TargetMatchDuration => _targetMatchDuration;
+        public bool EnableAICoach => _enableAICoach;
+        public VariableSpeedPreset VariableSpeedPreset => _variableSpeedPreset;
+        public float DefaultSpeed => _defaultSpeed;
+        public bool EnableKeyboardShortcuts => _enableKeyboardShortcuts;
+        
+        // Events
+        public static event Action<TimingSystemType> OnTimingSystemChanged;
+        public static event Action<MatchTimingSettings> OnSettingsChanged;
+        
+        /// <summary>
+        /// Set the preferred timing system
+        /// </summary>
+        public void SetPreferredTimingSystem(TimingSystemType system)
+        {
+            if (_preferredTimingSystem != system)
+            {
+                _preferredTimingSystem = system;
+                OnTimingSystemChanged?.Invoke(system);
+                OnSettingsChanged?.Invoke(this);
+                SaveSettings();
+            }
+        }
+        
+        /// <summary>
+        /// Create configuration for compressed timing based on current settings
+        /// </summary>
+        public CompressedTimingConfiguration CreateCompressedConfiguration()
+        {
+            var config = CompressedTimingConfiguration.FromPreset(_compressedPreset);
+            
+            // Apply custom settings
+            config.TargetMatchDurationMinutes = _targetMatchDuration;
+            config.EnableAICoachIntegration = _enableAICoach;
+            config.PlayerEngagementThreshold = _engagementThreshold;
+            
+            // Apply auto-pause preferences
+            config.AutoPauseForGoals = _autoPauseForGoals;
+            config.AutoPauseForInjuries = _autoPauseForInjuries;
+            config.AutoPauseForTacticalDecisions = _autoPauseForTacticalDecisions;
+            
+            return config;
+        }
+        
+        /// <summary>
+        /// Create configuration for variable speed timing based on current settings
+        /// </summary>
+        public VariableSpeedConfiguration CreateVariableSpeedConfiguration()
+        {
+            var config = _variableSpeedPreset switch
+            {
+                VariableSpeedPreset.Casual => VariableSpeedConfiguration.CasualOptimized,
+                VariableSpeedPreset.Tactical => VariableSpeedConfiguration.TacticalOptimized,
+                VariableSpeedPreset.Balanced => VariableSpeedConfiguration.Default,
+                _ => VariableSpeedConfiguration.Default
+            };
+            
+            // Apply custom settings
+            config.DefaultSpeedMultiplier = _defaultSpeed;
+            config.AutoPauseForGoals = _autoPauseForGoals;
+            config.AutoPauseForInjuries = _autoPauseForInjuries;
+            config.AutoPauseForDecisions = _autoPauseForTacticalDecisions;
+            config.AutoPauseForQuarterEnd = _autoPauseForQuarterEnd;
+            config.AutoPauseForCloseFinish = _autoPauseForCloseFinish;
+            config.AutoResumeAfterGoals = _autoResumeAfterGoals;
+            config.AutoResumeAfterQuarters = _autoResumeAfterQuarters;
+            
+            return config;
+        }
+        
+        /// <summary>
+        /// Update settings from UI
+        /// </summary>
+        public void UpdateFromUI(
+            TimingSystemType timingSystem,
+            CompressedTimingPreset compressedPreset,
+            float targetDuration,
+            bool enableAICoach,
+            VariableSpeedPreset variablePreset,
+            float defaultSpeed,
+            bool enableShortcuts)
+        {
+            _preferredTimingSystem = timingSystem;
+            _compressedPreset = compressedPreset;
+            _targetMatchDuration = Mathf.Clamp(targetDuration, 10f, 30f); // 10-30 minutes
+            _enableAICoach = enableAICoach;
+            _variableSpeedPreset = variablePreset;
+            _defaultSpeed = Mathf.Clamp(defaultSpeed, 1f, 5f); // 1x-5x speed
+            _enableKeyboardShortcuts = enableShortcuts;
+            
+            OnSettingsChanged?.Invoke(this);
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// Update auto-pause preferences
+        /// </summary>
+        public void UpdateAutoPauseSettings(
+            bool goals, bool injuries, bool decisions, bool quarterEnd, bool closeFinish)
+        {
+            _autoPauseForGoals = goals;
+            _autoPauseForInjuries = injuries;
+            _autoPauseForTacticalDecisions = decisions;
+            _autoPauseForQuarterEnd = quarterEnd;
+            _autoPauseForCloseFinish = closeFinish;
+            
+            OnSettingsChanged?.Invoke(this);
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// Save settings to PlayerPrefs
+        /// </summary>
+        public void SaveSettings()
+        {
+            PlayerPrefs.SetInt("TimingSystem_Preferred", (int)_preferredTimingSystem);
+            PlayerPrefs.SetInt("TimingSystem_AllowSwitchDuringMatch", _allowTimingSystemSwitchDuringMatch ? 1 : 0);
+            
+            // Compressed timing settings
+            PlayerPrefs.SetInt("CompressedTiming_Preset", (int)_compressedPreset);
+            PlayerPrefs.SetFloat("CompressedTiming_Duration", _targetMatchDuration);
+            PlayerPrefs.SetInt("CompressedTiming_AICoach", _enableAICoach ? 1 : 0);
+            PlayerPrefs.SetFloat("CompressedTiming_EngagementThreshold", _engagementThreshold);
+            
+            // Variable speed settings
+            PlayerPrefs.SetInt("VariableSpeed_Preset", (int)_variableSpeedPreset);
+            PlayerPrefs.SetFloat("VariableSpeed_DefaultSpeed", _defaultSpeed);
+            PlayerPrefs.SetInt("VariableSpeed_KeyboardShortcuts", _enableKeyboardShortcuts ? 1 : 0);
+            PlayerPrefs.SetInt("VariableSpeed_AutoResumeGoals", _autoResumeAfterGoals ? 1 : 0);
+            PlayerPrefs.SetInt("VariableSpeed_AutoResumeQuarters", _autoResumeAfterQuarters ? 1 : 0);
+            
+            // Auto-pause settings
+            PlayerPrefs.SetInt("AutoPause_Goals", _autoPauseForGoals ? 1 : 0);
+            PlayerPrefs.SetInt("AutoPause_Injuries", _autoPauseForInjuries ? 1 : 0);
+            PlayerPrefs.SetInt("AutoPause_Decisions", _autoPauseForTacticalDecisions ? 1 : 0);
+            PlayerPrefs.SetInt("AutoPause_QuarterEnd", _autoPauseForQuarterEnd ? 1 : 0);
+            PlayerPrefs.SetInt("AutoPause_CloseFinish", _autoPauseForCloseFinish ? 1 : 0);
+            
+            PlayerPrefs.Save();
+        }
+        
+        /// <summary>
+        /// Load settings from PlayerPrefs
+        /// </summary>
+        public void LoadSettings()
+        {
+            _preferredTimingSystem = (TimingSystemType)PlayerPrefs.GetInt("TimingSystem_Preferred", (int)TimingSystemType.VariableSpeed);
+            _allowTimingSystemSwitchDuringMatch = PlayerPrefs.GetInt("TimingSystem_AllowSwitchDuringMatch", 0) == 1;
+            
+            // Compressed timing settings
+            _compressedPreset = (CompressedTimingPreset)PlayerPrefs.GetInt("CompressedTiming_Preset", (int)CompressedTimingPreset.Standard);
+            _targetMatchDuration = PlayerPrefs.GetFloat("CompressedTiming_Duration", 18f);
+            _enableAICoach = PlayerPrefs.GetInt("CompressedTiming_AICoach", 1) == 1;
+            _engagementThreshold = PlayerPrefs.GetFloat("CompressedTiming_EngagementThreshold", 0.6f);
+            
+            // Variable speed settings
+            _variableSpeedPreset = (VariableSpeedPreset)PlayerPrefs.GetInt("VariableSpeed_Preset", (int)VariableSpeedPreset.Balanced);
+            _defaultSpeed = PlayerPrefs.GetFloat("VariableSpeed_DefaultSpeed", 2.0f);
+            _enableKeyboardShortcuts = PlayerPrefs.GetInt("VariableSpeed_KeyboardShortcuts", 1) == 1;
+            _autoResumeAfterGoals = PlayerPrefs.GetInt("VariableSpeed_AutoResumeGoals", 1) == 1;
+            _autoResumeAfterQuarters = PlayerPrefs.GetInt("VariableSpeed_AutoResumeQuarters", 0) == 1;
+            
+            // Auto-pause settings
+            _autoPauseForGoals = PlayerPrefs.GetInt("AutoPause_Goals", 1) == 1;
+            _autoPauseForInjuries = PlayerPrefs.GetInt("AutoPause_Injuries", 1) == 1;
+            _autoPauseForTacticalDecisions = PlayerPrefs.GetInt("AutoPause_Decisions", 1) == 1;
+            _autoPauseForQuarterEnd = PlayerPrefs.GetInt("AutoPause_QuarterEnd", 1) == 1;
+            _autoPauseForCloseFinish = PlayerPrefs.GetInt("AutoPause_CloseFinish", 1) == 1;
+        }
+        
+        /// <summary>
+        /// Reset to default settings
+        /// </summary>
+        public void ResetToDefaults()
+        {
+            _preferredTimingSystem = TimingSystemType.VariableSpeed;
+            _allowTimingSystemSwitchDuringMatch = false;
+            _compressedPreset = CompressedTimingPreset.Standard;
+            _targetMatchDuration = 18f;
+            _enableAICoach = true;
+            _engagementThreshold = 0.6f;
+            _variableSpeedPreset = VariableSpeedPreset.Balanced;
+            _defaultSpeed = 2.0f;
+            _enableKeyboardShortcuts = true;
+            _autoResumeAfterGoals = true;
+            _autoResumeAfterQuarters = false;
+            _autoPauseForGoals = true;
+            _autoPauseForInjuries = true;
+            _autoPauseForTacticalDecisions = true;
+            _autoPauseForQuarterEnd = true;
+            _autoPauseForCloseFinish = true;
+            
+            OnSettingsChanged?.Invoke(this);
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// Get display text for current timing system
+        /// </summary>
+        public string GetTimingSystemDisplayName()
+        {
+            return _preferredTimingSystem switch
+            {
+                TimingSystemType.Compressed => "Compressed Real-Time (Fast-Paced)",
+                TimingSystemType.VariableSpeed => "Variable Speed Control",
+                TimingSystemType.Standard => "Standard Timing",
+                _ => "Unknown"
+            };
+        }
+        
+        /// <summary>
+        /// Get description of current timing system
+        /// </summary>
+        public string GetTimingSystemDescription()
+        {
+            return _preferredTimingSystem switch
+            {
+                TimingSystemType.Compressed => 
+                    $"Fast-paced matches in {_targetMatchDuration:F0} minutes with AI coach guidance. " +
+                    "Perfect for quick games with automatic highlighting of key moments.",
+                
+                TimingSystemType.VariableSpeed => 
+                    $"Full control over simulation speed (1x-5x) with smart pausing. " +
+                    "Default speed: {_defaultSpeed:F1}x. Great for tactical analysis and engagement.",
+                
+                TimingSystemType.Standard => 
+                    "Traditional match timing with enhanced features. Full-length simulation experience.",
+                
+                _ => "No description available."
+            };
+        }
+        
+        /// <summary>
+        /// Validate current settings
+        /// </summary>
+        public bool ValidateSettings(out string errorMessage)
+        {
+            errorMessage = "";
+            
+            // Validate target match duration
+            if (_targetMatchDuration < 10f || _targetMatchDuration > 30f)
+            {
+                errorMessage = "Target match duration must be between 10 and 30 minutes.";
+                return false;
+            }
+            
+            // Validate default speed
+            if (_defaultSpeed < 1f || _defaultSpeed > 5f)
+            {
+                errorMessage = "Default speed must be between 1x and 5x.";
+                return false;
+            }
+            
+            // Validate engagement threshold
+            if (_engagementThreshold < 0f || _engagementThreshold > 1f)
+            {
+                errorMessage = "Engagement threshold must be between 0 and 1.";
+                return false;
+            }
+            
+            return true;
+        }
+    }
+    
+    /// <summary>
+    /// Available timing system types
+    /// </summary>
+    public enum TimingSystemType
+    {
+        Standard = 0,        // Original enhanced timing system
+        Compressed = 1,      // Fast-paced 15-20 minute matches
+        VariableSpeed = 2    // Player-controlled speed with smart pausing
+    }
+    
+    /// <summary>
+    /// MonoBehaviour wrapper for timing settings management
+    /// </summary>
+    public class MatchTimingSettingsManager : MonoBehaviour
+    {
+        [Header("Settings")]
+        [SerializeField] private MatchTimingSettings _settings = new MatchTimingSettings();
+        
+        [Header("Debug")]
+        [SerializeField] private bool _enableDebugLogging = false;
+        
+        // Singleton instance
+        public static MatchTimingSettingsManager Instance { get; private set; }
+        
+        // Public access to settings
+        public MatchTimingSettings Settings => _settings;
+        
+        void Awake()
+        {
+            // Singleton pattern
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+                
+                // Load settings
+                _settings.LoadSettings();
+                
+                if (_enableDebugLogging)
+                {
+                    Debug.Log($"[TimingSettings] Loaded settings - Preferred system: {_settings.PreferredTimingSystem}");
+                }
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+        
+        void OnApplicationPause(bool pauseStatus)
+        {
+            // Save settings when app is paused (mobile platforms)
+            if (pauseStatus)
+            {
+                _settings.SaveSettings();
+            }
+        }
+        
+        void OnApplicationFocus(bool hasFocus)
+        {
+            // Save settings when app loses focus
+            if (!hasFocus)
+            {
+                _settings.SaveSettings();
+            }
+        }
+        
+        void OnDestroy()
+        {
+            // Save settings when destroyed
+            _settings?.SaveSettings();
+            
+            // Clear singleton reference
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+        
+        /// <summary>
+        /// Get the appropriate timing configuration based on current settings
+        /// </summary>
+        public object GetCurrentTimingConfiguration()
+        {
+            return _settings.PreferredTimingSystem switch
+            {
+                TimingSystemType.Compressed => _settings.CreateCompressedConfiguration(),
+                TimingSystemType.VariableSpeed => _settings.CreateVariableSpeedConfiguration(),
+                TimingSystemType.Standard => EnhancedTimingConfiguration.Default,
+                _ => EnhancedTimingConfiguration.Default
+            };
+        }
+        
+        /// <summary>
+        /// Apply settings from UI (called by settings menu)
+        /// </summary>
+        public void ApplySettingsFromUI(
+            TimingSystemType timingSystem,
+            CompressedTimingPreset compressedPreset,
+            float targetDuration,
+            bool enableAICoach,
+            VariableSpeedPreset variablePreset,
+            float defaultSpeed,
+            bool enableShortcuts)
+        {
+            _settings.UpdateFromUI(timingSystem, compressedPreset, targetDuration, enableAICoach, 
+                                  variablePreset, defaultSpeed, enableShortcuts);
+            
+            if (_enableDebugLogging)
+            {
+                Debug.Log($"[TimingSettings] Settings updated via UI - System: {timingSystem}");
+            }
+        }
+        
+        /// <summary>
+        /// Quick method to switch timing system (for runtime switching)
+        /// </summary>
+        public bool SwitchTimingSystem(TimingSystemType newSystem)
+        {
+            if (!_settings.AllowTimingSystemSwitchDuringMatch)
+            {
+                Debug.LogWarning("[TimingSettings] Timing system switching during match is disabled");
+                return false;
+            }
+            
+            _settings.SetPreferredTimingSystem(newSystem);
+            
+            if (_enableDebugLogging)
+            {
+                Debug.Log($"[TimingSettings] Switched timing system to: {newSystem}");
+            }
+            
+            return true;
+        }
+    }
+}

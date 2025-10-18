@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Training;
 
 namespace AFLCoachSim.Core.Training
 {
@@ -25,6 +26,7 @@ namespace AFLCoachSim.Core.Training
         public int MinimumAge { get; set; }
         public int MaximumAge { get; set; }
         public List<Role> SuitableRoles { get; set; }
+        public List<Role> SuitablePositions { get; set; }
         public DevelopmentStage TargetStage { get; set; }
         
         // Program parameters
@@ -37,6 +39,7 @@ namespace AFLCoachSim.Core.Training
         public float BaseEffectiveness { get; set; }
         public Dictionary<DevelopmentStage, float> StageMultipliers { get; set; }
         public Dictionary<Role, float> RoleMultipliers { get; set; }
+        public Dictionary<Role, float> PositionMultipliers { get; set; }
 
         public TrainingProgram()
         {
@@ -44,8 +47,10 @@ namespace AFLCoachSim.Core.Training
             SecondaryFoci = new List<TrainingFocus>();
             AttributeTargets = new Dictionary<string, float>();
             SuitableRoles = new List<Role>();
+            SuitablePositions = new List<Role>();
             StageMultipliers = new Dictionary<DevelopmentStage, float>();
             RoleMultipliers = new Dictionary<Role, float>();
+            PositionMultipliers = new Dictionary<Role, float>();
             BaseEffectiveness = 1.0f;
             InjuryRiskModifier = 1.0f;
             FatigueRateModifier = 1.0f;

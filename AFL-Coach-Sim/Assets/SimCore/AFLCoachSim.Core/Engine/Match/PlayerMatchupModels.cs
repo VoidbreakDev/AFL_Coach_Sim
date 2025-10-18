@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AFLCoachSim.Core.Domain.Entities;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -278,9 +279,9 @@ namespace AFLCoachSim.Core.Engine.Match
             var player2Probability = 1f - player1Probability;
             
             // Determine winner
-            var random = UnityEngine.Random.Range(0f, 1f);
+            var random = (float)new System.Random().NextDouble();
             var winnerId = random < player1Probability ? player1.Id : player2.Id;
-            var loserId = winnerId == player1.Id ? player2.Id : player1.Id;
+            var loserId = winnerId.Equals(player1.Id) ? player2.Id : player1.Id;
             
             // Calculate confidence and margin
             var margin = Math.Abs(player1Probability - player2Probability);
@@ -427,7 +428,7 @@ namespace AFLCoachSim.Core.Engine.Match
                            (player1.JumpReach - player2.JumpReach)) * 0.005f;
                     
                 case ContestType.OneOnOne:
-                    if (player1.Position.Contains("Forward"))
+                    if (player1.Position.ToString().Contains("Forward"))
                     {
                         return ((player1.Leading - player2.OneOnOne) + 
                                (player1.GroundBall - player2.Spoiling)) * 0.005f;
@@ -552,8 +553,8 @@ namespace AFLCoachSim.Core.Engine.Match
         {
             // Apply temporary modifiers (don't permanently change base attributes)
             player.CurrentMatchRating += modifier.OverallRating;
-            player.Confidence = Math.Max(0f, Math.Min(1f, player.Confidence + modifier.Confidence));
-            player.Aggression = Math.Max(0f, Math.Min(1f, player.Aggression + modifier.Aggression));
+            player.Confidence = (int)Math.Max(0f, Math.Min(100f, player.Confidence + modifier.Confidence * 100));
+            player.Aggression = (int)Math.Max(0f, Math.Min(100f, player.Aggression + modifier.Aggression * 100));
             
             // Apply skill-specific modifiers to temporary match attributes
             ApplySkillModifier(player, "ContestedBall", modifier.ContestedBall);

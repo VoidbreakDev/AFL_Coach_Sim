@@ -69,7 +69,7 @@ namespace AFLCoachSim.Core.Injuries
             OnInjuryOccurred?.Invoke(injury);
             OnPlayerPerformanceImpactChanged?.Invoke(playerId, history.CurrentPerformanceMultiplier);
             
-            CoreLogger.Log($"[InjuryManager] Player {playerId} sustained {severity} {type} injury from {source}");
+            Console.WriteLine($"[InjuryManager] Player {playerId} sustained {severity} {type} injury from {source}");
             
             return injury;
         }
@@ -144,7 +144,7 @@ namespace AFLCoachSim.Core.Injuries
             
             if (recoveredPlayers.Any())
             {
-                CoreLogger.Log($"[InjuryManager] {recoveredPlayers.Count} players had injury status changes during daily processing");
+                Console.WriteLine($"[InjuryManager] {recoveredPlayers.Count} players had injury status changes during daily processing");
             }
         }
         
@@ -265,6 +265,23 @@ namespace AFLCoachSim.Core.Injuries
             return history.GetRiskMultiplierFor(injuryType);
         }
         
+        /// <summary>
+        /// Gets a human-readable description of an injury
+        /// </summary>
+        public string GetInjuryDescription(InjuryId injuryId)
+        {
+            // Find the injury across all player histories
+            foreach (var history in _playerHistories.Values)
+            {
+                var injury = history.AllInjuries.FirstOrDefault(i => i.Id == injuryId);
+                if (injury != null)
+                {
+                    return $"{injury.Severity} {injury.Type} injury from {injury.Source}";
+                }
+            }
+            return "Unknown injury";
+        }
+        
         #endregion
         
         #region Team-wide Operations
@@ -350,6 +367,29 @@ namespace AFLCoachSim.Core.Injuries
         
         #endregion
         
+        #region Context Provider Integration
+        
+        private IInjuryContextProvider _contextProvider;
+        
+        /// <summary>
+        /// Sets the injury context provider for enhanced injury calculations
+        /// </summary>
+        public void SetContextProvider(IInjuryContextProvider contextProvider)
+        {
+            _contextProvider = contextProvider ?? throw new ArgumentNullException(nameof(contextProvider));
+            CoreLogger.Log($"[InjuryManager] Context provider set: {contextProvider.GetType().Name}");
+        }
+        
+        /// <summary>
+        /// Gets the current context provider
+        /// </summary>
+        public IInjuryContextProvider GetContextProvider()
+        {
+            return _contextProvider;
+        }
+        
+        #endregion
+        
         #region Private Helper Methods
         
         private void LoadAllPlayerHistories()
@@ -427,7 +467,7 @@ namespace AFLCoachSim.Core.Injuries
         private T WeightedRandom<T>(T[] items, float[] weights)
         {
             float totalWeight = weights.Sum();
-            float randomValue = UnityEngine.Random.Range(0f, totalWeight);
+            float randomValue = (float)new System.Random().NextDouble() * totalWeight;
             
             float currentWeight = 0f;
             for (int i = 0; i < items.Length; i++)

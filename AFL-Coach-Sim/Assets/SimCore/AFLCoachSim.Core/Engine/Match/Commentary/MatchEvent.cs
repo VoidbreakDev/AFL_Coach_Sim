@@ -1,4 +1,5 @@
 using AFLCoachSim.Core.Domain.ValueObjects;
+using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 namespace AFLCoachSim.Core.Engine.Match.Commentary
 {
@@ -18,7 +19,7 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
         
         // Context
         public Phase Phase { get; set; }
-        public Weather Weather { get; set; }
+        public WeatherCondition Weather { get; set; }
         public bool IsHomeTeam { get; set; }
         
         // Event-specific data

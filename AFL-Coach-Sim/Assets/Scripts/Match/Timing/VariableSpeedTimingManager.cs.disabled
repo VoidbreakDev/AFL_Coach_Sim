@@ -1,0 +1,487 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
+
+namespace AFLCoachSim.Gameplay.Match.Timing
+{
+    /// <summary>
+    /// Unity MonoBehaviour that manages variable speed timing for match simulation.
+    /// Provides UI integration, event handling, and Unity-specific functionality.
+    /// </summary>
+    public class VariableSpeedTimingManager : MonoBehaviour
+    {
+        [Header("Configuration")]
+        [SerializeField] private VariableSpeedPreset _preset = VariableSpeedPreset.Balanced;
+        [SerializeField] private bool _enableDebugLogging = false;
+        [SerializeField] private bool _allowKeyboardShortcuts = true;
+        
+        [Header("Auto-Pause Settings")]
+        [SerializeField] private bool _autoPauseForGoals = true;
+        [SerializeField] private bool _autoPauseForInjuries = true;
+        [SerializeField] private bool _autoPauseForDecisions = true;
+        [SerializeField] private bool _autoPauseForQuarterEnd = true;
+        [SerializeField] private bool _autoPauseForCloseFinish = true;
+        
+        [Header("Speed Control")]
+        [SerializeField] private float _defaultSpeed = 2.0f;
+        [SerializeField] private bool _smoothTransitions = true;
+        
+        // Core timing system
+        private VariableSpeedMatchTiming _variableSpeedTiming;
+        private VariableSpeedConfiguration _configuration;
+        
+        // Unity integration
+        private bool _isInitialized = false;
+        private float _lastUpdateTime;
+        private Phase _currentPhase = Phase.OpenPlay;
+        private MatchContext _currentContext;
+        
+        // Event system
+        public static event Action<float, float> OnSpeedChanged; // (oldSpeed, newSpeed)
+        public static event Action<AutoPauseReason, string> OnAutoPausTriggered; // (reason, description)
+        public static event Action OnAutoResumed;
+        public static event Action<TacticalDecisionPoint> OnTacticalDecisionRequired;
+        public static event Action<VariableSpeedUpdate> OnTimingUpdated;
+        
+        // UI Integration
+        public VariableSpeedDisplay CurrentDisplay { get; private set; }
+        public List<SpeedOption> AvailableSpeedOptions { get; private set; } = new List<SpeedOption>();
+        public bool IsAutoPaused => _variableSpeedTiming?.IsAutoPaused ?? false;
+        public float CurrentSpeedMultiplier { get; private set; } = 1.0f;
+        public bool CanChangeSpeed { get; private set; } = true;
+        
+        // Statistics and analytics
+        public VariableSpeedStatistics CurrentStatistics { get; private set; }
+        
+        // Input handling
+        private readonly Dictionary<KeyCode, float> _speedShortcuts = new Dictionary<KeyCode, float>
+        {
+            { KeyCode.Alpha1, 1.0f },
+            { KeyCode.Alpha2, 2.0f },
+            { KeyCode.Alpha3, 3.0f },
+            { KeyCode.Alpha4, 4.0f },
+            { KeyCode.Alpha5, 5.0f }
+        };
+        
+        void Awake()
+        {
+            InitializeTimingSystem();
+        }
+        
+        void Update()
+        {
+            if (!_isInitialized) return;
+            
+            HandleKeyboardInput();
+            UpdateTimingSystem();
+        }
+        
+        /// <summary>
+        /// Initialize the variable speed timing system
+        /// </summary>
+        private void InitializeTimingSystem()
+        {
+            try
+            {
+                // Create configuration based on preset
+                _configuration = CreateConfigurationFromPreset(_preset);
+                ApplyInspectorSettings();
+                
+                // Create timing system
+                _variableSpeedTiming = new VariableSpeedMatchTiming(_configuration);
+                
+                // Initialize context
+                _currentContext = CreateInitialMatchContext();
+                
+                _isInitialized = true;
+                _lastUpdateTime = Time.time;
+                
+                if (_enableDebugLogging)
+                {
+                    Debug.Log($"[VariableSpeedTiming] Initialized with preset: {_preset}, default speed: {_defaultSpeed}x");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[VariableSpeedTiming] Failed to initialize: {ex.Message}");
+                enabled = false;
+            }
+        }
+        
+        /// <summary>
+        /// Update the timing system each frame
+        /// </summary>
+        private void UpdateTimingSystem()
+        {
+            try
+            {
+                float deltaTime = Time.time - _lastUpdateTime;
+                _lastUpdateTime = Time.time;
+                
+                // Update match context
+                UpdateMatchContext();
+                
+                // Update timing system
+                var update = _variableSpeedTiming.UpdateTiming(deltaTime, _currentPhase, _currentContext);
+                
+                // Process update results
+                ProcessTimingUpdate(update);
+                
+                // Update UI display
+                CurrentDisplay = _variableSpeedTiming.GetSpeedDisplay();
+                AvailableSpeedOptions = update.AvailableSpeedOptions;
+                CurrentSpeedMultiplier = update.CurrentSpeedMultiplier;
+                CanChangeSpeed = update.SpeedChangeAllowed;
+                
+                // Update statistics
+                CurrentStatistics = _variableSpeedTiming.GetSpeedStatistics();
+                
+                // Fire update event
+                OnTimingUpdated?.Invoke(update);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[VariableSpeedTiming] Update error: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Process the timing update results
+        /// </summary>
+        private void ProcessTimingUpdate(VariableSpeedUpdate update)
+        {
+            // Check for speed changes
+            if (Math.Abs(update.CurrentSpeedMultiplier - CurrentSpeedMultiplier) > 0.01f)
+            {
+                OnSpeedChanged?.Invoke(CurrentSpeedMultiplier, update.CurrentSpeedMultiplier);
+                
+                if (_enableDebugLogging)
+                {
+                    Debug.Log($"[VariableSpeedTiming] Speed changed: {CurrentSpeedMultiplier:F1}x → {update.CurrentSpeedMultiplier:F1}x");
+                }
+            }
+            
+            // Check for new auto-pause
+            if (update.IsAutoPaused && !IsAutoPaused)
+            {
+                OnAutoPausTriggered?.Invoke(update.AutoPauseReason, GetPauseDescription(update.AutoPauseReason));
+                
+                if (_enableDebugLogging)
+                {
+                    Debug.Log($"[VariableSpeedTiming] Auto-pause triggered: {update.AutoPauseReason}");
+                }
+            }
+            
+            // Check for auto-resume
+            if (!update.IsAutoPaused && IsAutoPaused)
+            {
+                OnAutoResumed?.Invoke();
+                
+                if (_enableDebugLogging)
+                {
+                    Debug.Log("[VariableSpeedTiming] Auto-resumed from pause");
+                }
+            }
+            
+            // Check for new tactical decisions
+            foreach (var decision in update.ActiveTacticalDecisions)
+            {
+                OnTacticalDecisionRequired?.Invoke(decision);
+            }
+        }
+        
+        /// <summary>
+        /// Handle keyboard input for speed control
+        /// </summary>
+        private void HandleKeyboardInput()
+        {
+            if (!_allowKeyboardShortcuts) return;
+            
+            // Speed shortcuts (1-5 keys)
+            foreach (var shortcut in _speedShortcuts)
+            {
+                if (Input.GetKeyDown(shortcut.Key))
+                {
+                    SetSpeed(shortcut.Value);
+                }
+            }
+            
+            // Pause/Resume (Spacebar)
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (IsAutoPaused)
+                    Resume();
+                else
+                    Pause();
+            }
+        }
+        
+        /// <summary>
+        /// Set the simulation speed
+        /// </summary>
+        public bool SetSpeed(float speedMultiplier)
+        {
+            if (!_isInitialized || !CanChangeSpeed)
+                return false;
+            
+            bool success = _variableSpeedTiming.SetSpeed(speedMultiplier);
+            
+            if (success && _enableDebugLogging)
+            {
+                Debug.Log($"[VariableSpeedTiming] Speed set to {speedMultiplier:F1}x");
+            }
+            
+            return success;
+        }
+        
+        /// <summary>
+        /// Manually pause the simulation
+        /// </summary>
+        public void Pause()
+        {
+            if (!_isInitialized) return;
+            
+            _variableSpeedTiming.Pause();
+            
+            if (_enableDebugLogging)
+            {
+                Debug.Log("[VariableSpeedTiming] Manual pause requested");
+            }
+        }
+        
+        /// <summary>
+        /// Resume from pause
+        /// </summary>
+        public void Resume()
+        {
+            if (!_isInitialized) return;
+            
+            _variableSpeedTiming.Resume();
+            
+            if (_enableDebugLogging)
+            {
+                Debug.Log("[VariableSpeedTiming] Resume requested");
+            }
+        }
+        
+        /// <summary>
+        /// Add a tactical decision that will trigger auto-pause
+        /// </summary>
+        public void AddTacticalDecision(string title, string description, List<DecisionOption> options, DecisionUrgency urgency = DecisionUrgency.Medium)
+        {
+            if (!_isInitialized) return;
+            
+            var decision = new TacticalDecisionPoint
+            {
+                Title = title,
+                Description = description,
+                Options = options,
+                Urgency = urgency,
+                ContextSnapshot = _currentContext
+            };
+            
+            _variableSpeedTiming.AddTacticalDecision(decision);
+            
+            if (_enableDebugLogging)
+            {
+                Debug.Log($"[VariableSpeedTiming] Tactical decision added: {title}");
+            }
+        }
+        
+        /// <summary>
+        /// Respond to a tactical decision
+        /// </summary>
+        public bool RespondToDecision(Guid decisionId, int selectedOptionId)
+        {
+            if (!_isInitialized) return false;
+            
+            bool success = _variableSpeedTiming.RespondToDecision(decisionId, selectedOptionId);
+            
+            if (success && _enableDebugLogging)
+            {
+                Debug.Log($"[VariableSpeedTiming] Decision responded: {decisionId} → Option {selectedOptionId}");
+            }
+            
+            return success;
+        }
+        
+        /// <summary>
+        /// Get the recommended speed for the current situation
+        /// </summary>
+        public float GetRecommendedSpeed()
+        {
+            if (!_isInitialized) return _defaultSpeed;
+            
+            var options = _variableSpeedTiming.GetAvailableSpeedOptions(_currentPhase, _currentContext);
+            return options.Find(o => o.IsRecommended)?.Multiplier ?? _defaultSpeed;
+        }
+        
+        /// <summary>
+        /// Update current match phase (called by match engine)
+        /// </summary>
+        public void SetCurrentPhase(Phase phase)
+        {
+            _currentPhase = phase;
+        }
+        
+        /// <summary>
+        /// Update match context information
+        /// </summary>
+        private void UpdateMatchContext()
+        {
+            if (_currentContext == null)
+            {
+                _currentContext = CreateInitialMatchContext();
+                return;
+            }
+            
+            // In a real implementation, this would get data from the match engine
+            // For now, we'll simulate some basic updates
+            _currentContext.PlayerFatigueLevel = Mathf.Clamp01(_currentContext.PlayerFatigueLevel + (Time.deltaTime * 0.001f));
+            
+            // This would be updated by the actual match simulation
+            // _currentContext.Quarter = matchEngine.CurrentQuarter;
+            // _currentContext.TimeRemaining = matchEngine.TimeRemaining;
+            // _currentContext.Score = matchEngine.GetCurrentScore();
+            // _currentContext.Telemetry = matchEngine.GetTelemetry();
+        }
+        
+        /// <summary>
+        /// Create initial match context
+        /// </summary>
+        private MatchContext CreateInitialMatchContext()
+        {
+            return new MatchContext
+            {
+                Quarter = 1,
+                TimeRemaining = 1200f, // 20 minutes
+                Score = new MatchScore(),
+                CurrentPhase = _currentPhase,
+                IsCloseMatch = false,
+                MomentumRating = 0f,
+                RecentGoalCount = 0,
+                RecentInjuryCount = 0,
+                IsPlayerEngaged = true,
+                PlayerFatigueLevel = 0f,
+                Telemetry = new MatchTelemetry() // Would be populated by match engine
+            };
+        }
+        
+        /// <summary>
+        /// Create configuration from preset
+        /// </summary>
+        private VariableSpeedConfiguration CreateConfigurationFromPreset(VariableSpeedPreset preset)
+        {
+            return preset switch
+            {
+                VariableSpeedPreset.Casual => VariableSpeedConfiguration.CasualOptimized,
+                VariableSpeedPreset.Tactical => VariableSpeedConfiguration.TacticalOptimized,
+                VariableSpeedPreset.Balanced => VariableSpeedConfiguration.Default,
+                VariableSpeedPreset.Custom => new VariableSpeedConfiguration(), // Will be overridden by inspector
+                _ => VariableSpeedConfiguration.Default
+            };
+        }
+        
+        /// <summary>
+        /// Apply settings from Unity inspector
+        /// </summary>
+        private void ApplyInspectorSettings()
+        {
+            _configuration.DefaultSpeedMultiplier = _defaultSpeed;
+            _configuration.UsesSmoothSpeedTransitions = _smoothTransitions;
+            _configuration.AutoPauseForGoals = _autoPauseForGoals;
+            _configuration.AutoPauseForInjuries = _autoPauseForInjuries;
+            _configuration.AutoPauseForDecisions = _autoPauseForDecisions;
+            _configuration.AutoPauseForQuarterEnd = _autoPauseForQuarterEnd;
+            _configuration.AutoPauseForCloseFinish = _autoPauseForCloseFinish;
+        }
+        
+        /// <summary>
+        /// Get description for pause reason
+        /// </summary>
+        private string GetPauseDescription(AutoPauseReason reason)
+        {
+            return reason switch
+            {
+                AutoPauseReason.GoalScored => "🏈 Goal scored! Taking a moment to celebrate the score.",
+                AutoPauseReason.InjuryOccurred => "🏥 Player injury has occurred. Assess the situation.",
+                AutoPauseReason.TacticalDecision => "🤔 Tactical decision required. Choose your strategy.",
+                AutoPauseReason.QuarterEnd => "⏰ Quarter has ended. Review the progress.",
+                AutoPauseReason.CloseFinish => "🔥 Thrilling finish! Every moment counts in this close match.",
+                AutoPauseReason.MomentumShift => "⚡ Major momentum shift detected in the match.",
+                AutoPauseReason.ManualPause => "⏸️ Simulation paused by player request.",
+                _ => "Simulation is paused."
+            };
+        }
+        
+        /// <summary>
+        /// Export current settings as a configuration
+        /// </summary>
+        public VariableSpeedConfiguration ExportConfiguration()
+        {
+            return _configuration ?? VariableSpeedConfiguration.Default;
+        }
+        
+        /// <summary>
+        /// Import configuration settings
+        /// </summary>
+        public void ImportConfiguration(VariableSpeedConfiguration config)
+        {
+            _configuration = config;
+            
+            if (_isInitialized)
+            {
+                // Reinitialize with new configuration
+                _variableSpeedTiming = new VariableSpeedMatchTiming(_configuration);
+            }
+        }
+        
+        /// <summary>
+        /// Get debug information for UI display
+        /// </summary>
+        public string GetDebugInfo()
+        {
+            if (!_isInitialized || CurrentStatistics == null)
+                return "Not initialized";
+            
+            var stats = CurrentStatistics;
+            return $"Speed: {CurrentSpeedMultiplier:F1}x | " +
+                   $"Avg: {stats.AverageSpeed:F1}x | " +
+                   $"Efficiency: {stats.SpeedEfficiency:P0} | " +
+                   $"Pauses: {stats.TotalAutoPauses} | " +
+                   $"Time Saved: {stats.TotalTimeSaved:F0}s";
+        }
+        
+        void OnDestroy()
+        {
+            // Clean up event subscriptions
+            OnSpeedChanged = null;
+            OnAutoPausTriggered = null;
+            OnAutoResumed = null;
+            OnTacticalDecisionRequired = null;
+            OnTimingUpdated = null;
+        }
+        
+        void OnApplicationPause(bool pauseStatus)
+        {
+            // Auto-pause when Unity application loses focus
+            if (pauseStatus && _isInitialized && !IsAutoPaused)
+            {
+                Pause();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Preset configurations for different play styles
+    /// </summary>
+    public enum VariableSpeedPreset
+    {
+        Casual,     // Fast-paced, fewer interruptions
+        Balanced,   // Default balanced experience
+        Tactical,   // More pauses, detailed control
+        Custom      // Use inspector settings
+    }
+}

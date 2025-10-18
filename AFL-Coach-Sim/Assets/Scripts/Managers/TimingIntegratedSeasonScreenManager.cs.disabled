@@ -1,0 +1,671 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
+using AFLManager.Models;
+using AFLManager.Managers;
+using AFLManager.UI;
+using AFLManager.Simulation;
+using AFLManager.Systems.Timing;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Infrastructure.Logging;
+
+namespace AFLManager.Managers
+{
+    /// <summary>
+    /// Enhanced season screen manager with integrated timing system controls.
+    /// Supports interactive match simulation with variable timing, pause/resume, and speed controls.
+    /// </summary>
+    public class TimingIntegratedSeasonScreenManager : MonoBehaviour
+    {
+        [Header("Season Settings")]
+        public int daysBetweenMatches = 7;
+        
+        [Header("Timing Integration")]
+        public SeasonTimingConfiguration seasonTimingConfig;
+        public PlayerExperienceLevel playerExperienceLevel = PlayerExperienceLevel.Intermediate;
+        public bool enableInteractiveMatches = true;
+        public bool showTimingControls = true;
+        
+        [Header("UI References")]
+        public GameObject matchEntryPrefab;
+        public Transform fixtureContainer;
+        [SerializeField] private LadderMiniWidget miniLadderWidget;
+        [SerializeField] private TimingControlPanel timingControlPanel;
+        [SerializeField] private MatchStatusPanel matchStatusPanel;
+        [SerializeField] private SpeedControlSlider speedControlSlider;
+        
+        // Season data
+        private SeasonSchedule schedule;
+        private List<Team> leagueTeams;
+        private Dictionary<string, string> teamNameLookup;
+        private string coachKey;
+        
+        // Timing integration
+        private TimingIntegratedSeasonBoot timingSeasonBoot;
+        private Dictionary<string, TimingIntegratedMatchEntry> matchEntries = new Dictionary<string, TimingIntegratedMatchEntry>();
+        private string currentlySimulatingMatch = null;
+        private bool isMatchInProgress = false;
+        
+        // Match simulation tracking
+        private Queue<Match> pendingMatches = new Queue<Match>();
+        private Match currentMatch = null;
+        private TimingSystemType preferredTimingSystem = TimingSystemType.VariableSpeed;
+        
+        // Events
+        public event Action<Match, string> OnMatchSimulationStarted; // Match, TimingSystem
+        public event Action<Match, string> OnMatchSimulationCompleted; // Match, Result
+        public event Action<TimingSystemType> OnTimingSystemChanged;
+        public event Action<float> OnMatchSpeedChanged;
+        public event Action<bool> OnMatchPausedChanged;
+        
+        private void Start()
+        {
+            InitializeSeasonScreen();
+        }
+        
+        private void InitializeSeasonScreen()
+        {
+            coachKey = PlayerPrefs.GetString("CoachName", "DefaultCoach");
+            Debug.Log($"[TimingSeasonScreen] Coach key: {coachKey}");
+            
+            // Load teams and build lookup
+            leagueTeams = LoadAllTeams();
+            BuildTeamNameLookup();
+            
+            // Load or generate schedule
+            LoadOrGenerateSchedule();
+            
+            if (schedule?.Fixtures == null)
+            {
+                Debug.LogError("[TimingSeasonScreen] Schedule is null or has no fixtures.");
+                return;
+            }
+            
+            // Initialize timing integration components
+            InitializeTimingComponents();
+            
+            // Render the schedule with timing integration
+            RenderTimingIntegratedSchedule();
+            
+            // Build initial ladder
+            RebuildMiniLadder();
+            
+            Debug.Log($"[TimingSeasonScreen] Initialized with {schedule.Fixtures.Count} fixtures and timing integration");
+        }
+        
+        private void InitializeTimingComponents()
+        {
+            // Initialize timing control panel
+            if (timingControlPanel != null && showTimingControls)
+            {
+                timingControlPanel.Initialize(this);
+                timingControlPanel.OnTimingSystemSelected += HandleTimingSystemSelected;
+                timingControlPanel.OnPauseToggled += HandlePauseToggled;
+                timingControlPanel.OnSimulationSpeedChanged += HandleSimulationSpeedChanged;
+            }
+            
+            // Initialize speed control slider
+            if (speedControlSlider != null)
+            {
+                speedControlSlider.Initialize(1.0f, 5.0f, preferredTimingSystem == TimingSystemType.VariableSpeed);
+                speedControlSlider.OnSpeedChanged += HandleSpeedSliderChanged;
+            }
+            
+            // Initialize match status panel
+            if (matchStatusPanel != null)
+            {
+                matchStatusPanel.Initialize();
+            }
+            
+            // Subscribe to timing events
+            SubscribeToTimingEvents();
+        }
+        
+        private void LoadOrGenerateSchedule()
+        {
+            schedule = SaveLoadManager.LoadSchedule("testSeason");
+            
+            if (schedule == null)
+            {
+                Debug.Log("[TimingSeasonScreen] No saved schedule—generating new one");
+                schedule = SeasonScheduler.GenerateSeason(leagueTeams, DateTime.Today, daysBetweenMatches);
+                
+                if (schedule != null && schedule.Fixtures?.Count > 0)
+                {
+                    SaveLoadManager.SaveSchedule("testSeason", schedule);
+                    Debug.Log($"[TimingSeasonScreen] Saved new schedule with {schedule.Fixtures.Count} fixtures");
+                }
+            }
+            
+            Debug.Log($"[TimingSeasonScreen] Using schedule with {schedule?.Fixtures?.Count ?? 0} fixtures");
+        }
+        
+        private void RenderTimingIntegratedSchedule()
+        {
+            // Clear existing entries
+            foreach (Transform c in fixtureContainer) 
+            {
+                Destroy(c.gameObject);
+            }
+            matchEntries.Clear();
+            
+            // Create timing-integrated match entries
+            foreach (var match in schedule.Fixtures)
+            {
+                var go = Instantiate(matchEntryPrefab, fixtureContainer, false);
+                var timingEntry = go.GetComponent<TimingIntegratedMatchEntry>();
+                
+                if (timingEntry == null)
+                {
+                    // Fallback to regular match entry if timing entry not available
+                    var regularEntry = go.GetComponent<MatchEntryUI>();
+                    if (regularEntry != null)
+                    {
+                        regularEntry.Initialize(match, SimulateMatchWithTiming, teamNameLookup);
+                    }
+                    continue;
+                }
+                
+                // Initialize timing-integrated entry
+                timingEntry.Initialize(match, teamNameLookup, this);
+                
+                string matchId = GetMatchId(match);
+                matchEntries[matchId] = timingEntry;
+            }
+        }
+        
+        /// <summary>
+        /// Simulate a match with timing system integration
+        /// </summary>
+        public void SimulateMatchWithTiming(Match match)
+        {
+            if (isMatchInProgress)
+            {
+                Debug.LogWarning("[TimingSeasonScreen] Match simulation already in progress");
+                return;
+            }
+            
+            StartMatchSimulation(match);
+        }
+        
+        /// <summary>
+        /// Queue multiple matches for simulation
+        /// </summary>
+        public void QueueMatchesForSimulation(IEnumerable<Match> matches)
+        {
+            foreach (var match in matches)
+            {
+                pendingMatches.Enqueue(match);
+            }
+            
+            if (!isMatchInProgress)
+            {
+                ProcessNextMatch();
+            }
+        }
+        
+        /// <summary>
+        /// Start simulation of a specific match with timing integration
+        /// </summary>
+        private void StartMatchSimulation(Match match)
+        {
+            currentMatch = match;
+            isMatchInProgress = true;
+            currentlySimulatingMatch = GetMatchId(match);
+            
+            // Create timing request for match context
+            var timingRequest = CreateMatchTimingRequest(match);
+            
+            // Get recommended timing system
+            var recommendedSystem = seasonTimingConfig?.GetRecommendedTimingSystem(timingRequest) 
+                                  ?? preferredTimingSystem;
+            
+            // Update UI to show match is starting
+            UpdateMatchEntryStatus(match, MatchSimulationStatus.Starting, recommendedSystem);
+            UpdateMatchStatusPanel(match, "Initializing match simulation...", recommendedSystem);
+            
+            // Fire event
+            OnMatchSimulationStarted?.Invoke(match, recommendedSystem.ToString());
+            
+            // Start the actual simulation (this could be immediate or real-time depending on timing system)
+            StartCoroutine(SimulateMatchCoroutine(match, timingRequest));
+        }
+        
+        private System.Collections.IEnumerator SimulateMatchCoroutine(Match match, MatchTimingRequest timingRequest)
+        {
+            string matchId = GetMatchId(match);
+            
+            try
+            {
+                // Update status to running
+                UpdateMatchEntryStatus(match, MatchSimulationStatus.Running, null);
+                UpdateMatchStatusPanel(match, "Match in progress...", null);
+                
+                // Simulate the match using timing-integrated simulation
+                var result = PerformTimingIntegratedSimulation(match, timingRequest);
+                
+                // Apply result
+                match.Result = $"{result.HomeScore}–{result.AwayScore}";
+                SaveLoadManager.SaveMatchResult(result);
+                
+                // Wait a moment for visual feedback
+                yield return new WaitForSeconds(0.5f);
+                
+                // Update status to completed
+                UpdateMatchEntryStatus(match, MatchSimulationStatus.Completed, null);
+                UpdateMatchStatusPanel(match, $"Match completed: {match.Result}", null);
+                
+                // Update ladder
+                RebuildMiniLadder();
+                
+                // Fire completion event
+                OnMatchSimulationCompleted?.Invoke(match, match.Result);
+                
+                CoreLogger.Log($"[TimingSeasonScreen] Match simulation completed: {GetTeamName(result.Home)} vs {GetTeamName(result.Away)} - {result.HomeScore}–{result.AwayScore}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[TimingSeasonScreen] Match simulation error: {ex.Message}");
+                UpdateMatchEntryStatus(match, MatchSimulationStatus.Error, null);
+                UpdateMatchStatusPanel(match, "Simulation error occurred", null);
+            }
+            finally
+            {
+                // Clean up
+                isMatchInProgress = false;
+                currentMatch = null;
+                currentlySimulatingMatch = null;
+                
+                // Process next match if any pending
+                if (pendingMatches.Count > 0)
+                {
+                    yield return new WaitForSeconds(1.0f); // Brief pause between matches
+                    ProcessNextMatch();
+                }
+            }
+        }
+        
+        private AFLCoachSim.Core.DTO.MatchResultDTO PerformTimingIntegratedSimulation(Match match, MatchTimingRequest timingRequest)
+        {
+            // This is where we would integrate with TimingIntegratedMatchEngine
+            // For now, we'll use the existing MatchSimulator but with timing context
+            
+            var result = MatchSimulator.SimulateMatch(
+                GetMatchId(match), 
+                "R?", 
+                match.HomeTeamId, 
+                match.AwayTeamId,
+                new MatchSimulator.DefaultRatingProvider(
+                    id => GetTeamAverage(id),
+                    id => new[] { $"{id}_P1", $"{id}_P2", $"{id}_P3", $"{id}_P4", $"{id}_P5", $"{id}_P6" }),
+                seed: GetMatchId(match).GetHashCode()
+            );
+            
+            return new AFLCoachSim.Core.DTO.MatchResultDTO
+            {
+                Round = 1, // TODO: Extract round from match if available
+                Home = new TeamId(match.HomeTeamId),
+                Away = new TeamId(match.AwayTeamId),
+                HomeScore = result.HomeScore,
+                AwayScore = result.AwayScore
+            };
+        }
+        
+        private void ProcessNextMatch()
+        {
+            if (pendingMatches.Count > 0 && !isMatchInProgress)
+            {
+                var nextMatch = pendingMatches.Dequeue();
+                StartMatchSimulation(nextMatch);
+            }
+        }
+        
+        private MatchTimingRequest CreateMatchTimingRequest(Match match)
+        {
+            // Determine if this is a player team match
+            bool isPlayerTeamMatch = IsPlayerTeamMatch(match);
+            
+            return new MatchTimingRequest
+            {
+                MatchType = MatchType.Regular, // TODO: Detect special matches
+                SeasonPhase = SeasonPhase.MidSeason, // TODO: Calculate based on date/progress
+                CurrentRound = 1, // TODO: Extract from match context
+                TotalRounds = 23,
+                IsPlayerTeamMatch = isPlayerTeamMatch,
+                IsCloseMatch = false, // Can't predict before simulation
+                IsRivalryMatch = false, // TODO: Check rivalry status
+                ExpectedMargin = 0,
+                PlayerExperienceLevel = playerExperienceLevel,
+                PlayerPreferredTiming = preferredTimingSystem,
+                HomeTeamId = new TeamId(match.HomeTeamId),
+                AwayTeamId = new TeamId(match.AwayTeamId),
+                MatchDate = match.FixtureDate
+            };
+        }
+        
+        private bool IsPlayerTeamMatch(Match match)
+        {
+            // TODO: Implement player team detection
+            // For now, assume no specific player team
+            return false;
+        }
+        
+        private void UpdateMatchEntryStatus(Match match, MatchSimulationStatus status, TimingSystemType? timingSystem)
+        {
+            string matchId = GetMatchId(match);
+            if (matchEntries.TryGetValue(matchId, out var entry))
+            {
+                entry.UpdateStatus(status, timingSystem);
+            }
+        }
+        
+        private void UpdateMatchStatusPanel(Match match, string statusText, TimingSystemType? timingSystem)
+        {
+            if (matchStatusPanel != null)
+            {
+                matchStatusPanel.UpdateStatus(match, statusText, timingSystem);
+            }
+        }
+        
+        // Timing control event handlers
+        private void HandleTimingSystemSelected(TimingSystemType timingSystem)
+        {
+            preferredTimingSystem = timingSystem;
+            OnTimingSystemChanged?.Invoke(timingSystem);
+            
+            // Update speed control availability
+            if (speedControlSlider != null)
+            {
+                speedControlSlider.SetEnabled(timingSystem == TimingSystemType.VariableSpeed);
+            }
+            
+            Debug.Log($"[TimingSeasonScreen] Timing system changed to: {timingSystem}");
+        }
+        
+        private void HandlePauseToggled(bool isPaused)
+        {
+            if (currentMatch != null)
+            {
+                OnMatchPausedChanged?.Invoke(isPaused);
+                UpdateMatchStatusPanel(currentMatch, isPaused ? "Match paused" : "Match resumed", null);
+                Debug.Log($"[TimingSeasonScreen] Match {(isPaused ? "paused" : "resumed")}");
+            }
+        }
+        
+        private void HandleSimulationSpeedChanged(float speed)
+        {
+            OnMatchSpeedChanged?.Invoke(speed);
+            Debug.Log($"[TimingSeasonScreen] Simulation speed changed to: {speed:F1}x");
+        }
+        
+        private void HandleSpeedSliderChanged(float speed)
+        {
+            HandleSimulationSpeedChanged(speed);
+            
+            if (timingControlPanel != null)
+            {
+                timingControlPanel.UpdateSpeedDisplay(speed);
+            }
+        }
+        
+        private void SubscribeToTimingEvents()
+        {
+            // Subscribe to timing events if timing season boot is available
+            if (timingSeasonBoot != null)
+            {
+                timingSeasonBoot.OnMatchCompleted += HandleTimingSeasonMatchCompleted;
+                timingSeasonBoot.OnSeasonTimingUpdate += HandleSeasonTimingUpdate;
+            }
+        }
+        
+        private void HandleTimingSeasonMatchCompleted(MatchFixture fixture, AFLCoachSim.Core.DTO.MatchResultDTO result)
+        {
+            // Handle match completion from timing season boot
+            Debug.Log($"[TimingSeasonScreen] Timing season match completed: {fixture.HomeTeamName} vs {fixture.AwayTeamName}");
+            RebuildMiniLadder();
+        }
+        
+        private void HandleSeasonTimingUpdate(SeasonTimingStatistics stats)
+        {
+            // Update UI with timing statistics
+            Debug.Log($"[TimingSeasonScreen] Season timing stats: {stats.TotalMatches} matches simulated");
+        }
+        
+        // Existing methods adapted for timing integration
+        private List<Team> LoadAllTeams()
+        {
+            var teams = new List<Team>();
+            var teamFiles = Directory.GetFiles(Application.persistentDataPath, "team_*.json");
+            Debug.Log($"[TimingSeasonScreen] Found {teamFiles.Length} team files");
+            
+            foreach (var file in teamFiles)
+            {
+                var key = Path.GetFileNameWithoutExtension(file).Replace("team_", "");
+                var team = SaveLoadManager.LoadTeam(key);
+                if (team != null)
+                {
+                    team.Roster ??= new List<Player>();
+                    teams.Add(team);
+                }
+                else
+                {
+                    Debug.LogWarning($"[TimingSeasonScreen] Failed to load team with key: '{key}'");
+                }
+            }
+            
+            Debug.Log($"[TimingSeasonScreen] Loaded {teams.Count} teams from JSON");
+            return teams;
+        }
+        
+        private void BuildTeamNameLookup()
+        {
+            teamNameLookup = new Dictionary<string, string>();
+            foreach (var t in leagueTeams)
+            {
+                if (!string.IsNullOrEmpty(t.Id) && !string.IsNullOrEmpty(t.Name))
+                {
+                    teamNameLookup[t.Id] = t.Name;
+                }
+            }
+            Debug.Log($"[TimingSeasonScreen] Built team name lookup with {teamNameLookup.Count} entries");
+        }
+        
+        private string GetMatchId(Match m)
+        {
+            int index = schedule.Fixtures.IndexOf(m);
+            return $"{index}_{m.HomeTeamId}_{m.AwayTeamId}";
+        }
+        
+        private string GetTeamName(TeamId teamId)
+        {
+            return teamNameLookup.GetValueOrDefault(teamId.ToString(), teamId.ToString());
+        }
+        
+        private float GetTeamAverage(string teamId)
+        {
+            var team = leagueTeams.Find(t => t.Id == teamId);
+            if (team == null || team.Roster == null || team.Roster.Count == 0) return 0f;
+            
+            float sum = 0f;
+            foreach (var p in team.Roster) 
+            {
+                sum += p?.Stats?.GetAverage() ?? 0f;
+            }
+            return sum / team.Roster.Count;
+        }
+        
+        private void RebuildMiniLadder()
+        {
+            if (!miniLadderWidget) 
+            {
+                Debug.LogWarning("[TimingSeasonScreen] miniLadderWidget not assigned.");
+                return;
+            }
+            
+            var results = SaveLoadManager.LoadAllResults();
+            Debug.Log($"[TimingSeasonScreen] RebuildMiniLadder: loaded {results.Count} results.");
+            
+            var teamIds = (leagueTeams ?? new List<Team>())
+                .Where(t => !string.IsNullOrEmpty(t.Id))
+                .Select(t => t.Id)
+                .Distinct()
+                .ToList();
+            
+            if (teamIds.Count == 0)
+            {
+                teamIds = results
+                    .SelectMany(r => new[] { r.HomeTeamId, r.AwayTeamId })
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .Distinct()
+                    .ToList();
+                Debug.LogWarning($"[TimingSeasonScreen] No leagueTeams found; derived {teamIds.Count} team IDs from results.");
+            }
+            
+            var teamNames = new Dictionary<string, string>();
+            if (leagueTeams != null)
+            {
+                foreach (var t in leagueTeams)
+                {
+                    if (!string.IsNullOrEmpty(t.Id))
+                    {
+                        teamNames[t.Id] = string.IsNullOrEmpty(t.Name) ? t.Id : t.Name;
+                    }
+                }
+            }
+            
+            var ladder = LadderCalculator.BuildShortLadder(teamIds, teamNames, results);
+            Debug.Log($"[TimingSeasonScreen] Ladder entries: {ladder.Count}");
+            miniLadderWidget.Render(ladder);
+        }
+        
+        private void OnDestroy()
+        {
+            // Cleanup timing control subscriptions
+            if (timingControlPanel != null)
+            {
+                timingControlPanel.OnTimingSystemSelected -= HandleTimingSystemSelected;
+                timingControlPanel.OnPauseToggled -= HandlePauseToggled;
+                timingControlPanel.OnSimulationSpeedChanged -= HandleSimulationSpeedChanged;
+            }
+            
+            if (speedControlSlider != null)
+            {
+                speedControlSlider.OnSpeedChanged -= HandleSpeedSliderChanged;
+            }
+            
+            // Cleanup timing season boot subscriptions
+            if (timingSeasonBoot != null)
+            {
+                timingSeasonBoot.OnMatchCompleted -= HandleTimingSeasonMatchCompleted;
+                timingSeasonBoot.OnSeasonTimingUpdate -= HandleSeasonTimingUpdate;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Match simulation status for UI feedback
+    /// </summary>
+    public enum MatchSimulationStatus
+    {
+        Pending,
+        Starting,
+        Running,
+        Paused,
+        Completed,
+        Error
+    }
+}
+
+// Additional UI component interfaces/classes that would be implemented separately
+
+/// <summary>
+/// Timing-integrated match entry UI component
+/// </summary>
+public class TimingIntegratedMatchEntry : MonoBehaviour
+{
+    // This would be implemented as a UI component that extends the basic MatchEntryUI
+    // with timing system indicators, status displays, and controls
+    
+    private Match match;
+    private Dictionary<string, string> teamNameLookup;
+    private TimingIntegratedSeasonScreenManager manager;
+    
+    public void Initialize(Match match, Dictionary<string, string> teamNameLookup, TimingIntegratedSeasonScreenManager manager)
+    {
+        this.match = match;
+        this.teamNameLookup = teamNameLookup;
+        this.manager = manager;
+        
+        // Initialize UI components
+        UpdateDisplay();
+    }
+    
+    public void UpdateStatus(MatchSimulationStatus status, TimingSystemType? timingSystem)
+    {
+        // Update visual indicators based on status and timing system
+        UpdateDisplay();
+    }
+    
+    private void UpdateDisplay()
+    {
+        // Update UI elements to show match info, timing system, status, etc.
+    }
+}
+
+/// <summary>
+/// Control panel for timing system selection and match controls
+/// </summary>
+public class TimingControlPanel : MonoBehaviour
+{
+    public event Action<TimingSystemType> OnTimingSystemSelected;
+    public event Action<bool> OnPauseToggled;
+    public event Action<float> OnSimulationSpeedChanged;
+    
+    public void Initialize(TimingIntegratedSeasonScreenManager manager)
+    {
+        // Initialize control panel UI
+    }
+    
+    public void UpdateSpeedDisplay(float speed)
+    {
+        // Update speed display
+    }
+}
+
+/// <summary>
+/// Panel showing current match simulation status
+/// </summary>
+public class MatchStatusPanel : MonoBehaviour
+{
+    public void Initialize()
+    {
+        // Initialize status panel
+    }
+    
+    public void UpdateStatus(Match match, string statusText, TimingSystemType? timingSystem)
+    {
+        // Update status display
+    }
+}
+
+/// <summary>
+/// Speed control slider for variable speed timing
+/// </summary>
+public class SpeedControlSlider : MonoBehaviour
+{
+    public event Action<float> OnSpeedChanged;
+    
+    public void Initialize(float minSpeed, float maxSpeed, bool enabled)
+    {
+        // Initialize slider
+    }
+    
+    public void SetEnabled(bool enabled)
+    {
+        // Enable/disable slider based on timing system
+    }
+}

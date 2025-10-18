@@ -1,0 +1,335 @@
+using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
+using System;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLManager.Models;
+using AFLManager.Systems.Timing;
+
+namespace AFLManager.Managers
+{
+    /// <summary>
+    /// Extension component for SeasonBoot that adds timing system integration.
+    /// Can be attached to the same GameObject as SeasonBoot to enhance it with timing features.
+    /// </summary>
+    [RequireComponent(typeof(SeasonBoot))]
+    public class SeasonBootTimingExtension : MonoBehaviour
+    {
+        [Header("Timing Integration")]
+        public SeasonTimingConfiguration seasonTimingConfig;
+        public PlayerExperienceLevel playerExperienceLevel = PlayerExperienceLevel.Intermediate;
+        public bool enableTimingIntegration = true;
+        
+        [Header("Player Context")]
+        public string playerTeamId = "";
+        public List<string> rivalryTeamIds = new List<string>();
+        
+        [Header("UI Integration")]
+        public TimingControlPanel timingControlPanel;
+        public bool showTimingControls = false;
+        
+        // References
+        private SeasonBoot _seasonBoot;
+        private TimingIntegratedMatchEngine _timingEngine;
+        private Dictionary<string, TimingEnabledMatch> _timingFixtures = new Dictionary<string, TimingEnabledMatch>();
+        
+        // Timing statistics
+        public SeasonTimingStats TimingStatistics { get; private set; }
+        
+        // Events
+        public event Action<Match, TimingSystemType> OnMatchTimingDetermined;
+        public event Action<Match, MatchResultDTO> OnTimingMatchCompleted;
+        public event Action<SeasonTimingStats> OnTimingStatsUpdated;
+        
+        void Awake()
+        {
+            _seasonBoot = GetComponent<SeasonBoot>();
+            TimingStatistics = new SeasonTimingStats();
+        }
+        
+        void Start()
+        {
+            if (enableTimingIntegration && seasonTimingConfig != null)
+            {
+                // Wait for SeasonBoot to initialize, then enhance with timing
+                StartCoroutine(InitializeTimingAfterSeason());
+            }
+        }
+        
+        private System.Collections.IEnumerator InitializeTimingAfterSeason()
+        {
+            // Wait for SeasonBoot to complete initialization
+            yield return new WaitForSeconds(0.1f);
+            
+            if (_seasonBoot.Fixtures != null && _seasonBoot.Fixtures.Count > 0)
+            {
+                InitializeTimingIntegration();
+                SetupTimingUI();
+            }
+        }
+        
+        private void InitializeTimingIntegration()
+        {
+            // Create timing-enabled versions of fixtures
+            CreateTimingFixtures();
+            
+            // Initialize timing engine
+            InitializeTimingEngine();
+            
+            Debug.Log($"[SeasonBootTimingExtension] Timing integration initialized for {_timingFixtures.Count} fixtures");
+        }
+        
+        private void CreateTimingFixtures()
+        {
+            _timingFixtures.Clear();
+            int roundNum = 1;
+            
+            foreach (var fixture in _seasonBoot.Fixtures)
+            {
+                var timingFixture = ConvertToTimingEnabledMatch(fixture, roundNum);
+                
+                // Determine timing system for this match
+                var timingRequest = CreateTimingRequest(timingFixture);
+                var recommendedSystem = seasonTimingConfig?.GetRecommendedTimingSystem(timingRequest) 
+                                      ?? TimingSystemType.VariableSpeed;
+                
+                timingFixture.PreferredTimingSystem = recommendedSystem;
+                timingFixture.TimingConfiguration = seasonTimingConfig?.GetConfigurationForMatch(timingRequest);
+                
+                var matchId = GetMatchId(timingFixture);
+                _timingFixtures[matchId] = timingFixture;
+                
+                // Fire event for UI updates
+                OnMatchTimingDetermined?.Invoke(timingFixture.ToStandardMatch(), recommendedSystem);
+                
+                // Update statistics
+                TimingStatistics.TotalMatches++;
+                if (timingFixture.IsPlayerTeamMatch) TimingStatistics.PlayerTeamMatches++;
+                if (!TimingStatistics.TimingSystemDistribution.ContainsKey(recommendedSystem))
+                    TimingStatistics.TimingSystemDistribution[recommendedSystem] = 0;
+                TimingStatistics.TimingSystemDistribution[recommendedSystem]++;
+                
+                roundNum++;
+            }
+            
+            OnTimingStatsUpdated?.Invoke(TimingStatistics);
+        }
+        
+        private TimingEnabledMatch ConvertToTimingEnabledMatch((int round, TeamId home, TeamId away) fixture, int roundNum)
+        {
+            var homeTeamName = _seasonBoot.Directory?.GetName(fixture.home) ?? fixture.home.ToString();
+            var awayTeamName = _seasonBoot.Directory?.GetName(fixture.away) ?? fixture.away.ToString();
+            
+            var timingMatch = new TimingEnabledMatch
+            {
+                Round = fixture.round,
+                HomeTeamId = fixture.home.ToString(),
+                AwayTeamId = fixture.away.ToString(),
+                HomeTeamName = homeTeamName,
+                AwayTeamName = awayTeamName,
+                FixtureDate = DateTime.Today.AddDays(roundNum * 7), // Weekly schedule
+                Result = "",
+                
+                // Timing metadata
+                MatchType = DetermineMatchType(fixture.round, 23),
+                SeasonPhase = DetermineSeasonPhase(fixture.round, 23),
+                IsPlayerTeamMatch = IsPlayerTeamMatch(fixture.home.ToString(), fixture.away.ToString()),
+                IsRivalryMatch = IsRivalryMatch(fixture.home.ToString(), fixture.away.ToString()),
+                Weather = Weather.Clear,
+                Venue = $"{homeTeamName} Stadium",
+                ImportanceRating = CalculateImportanceRating(fixture.round, 23),
+                ExpectedAttendance = 35000
+            };
+            
+            // Calculate expected margin (simplified)
+            timingMatch.ExpectedMargin = CalculateExpectedMargin(fixture.home.ToString(), fixture.away.ToString());
+            timingMatch.IsCloseMatch = Math.Abs(timingMatch.ExpectedMargin) <= 12;
+            
+            return timingMatch;
+        }
+        
+        private void InitializeTimingEngine()
+        {
+            var defaultConfig = TimingIntegrationConfiguration.Default;
+            
+            // Create a basic injury manager for timing integration
+            var injuryManager = new BasicSeasonInjuryManager();
+            
+            _timingEngine = new TimingIntegratedMatchEngine(defaultConfig, injuryManager);
+            
+            // Subscribe to timing events
+            _timingEngine.OnTimingSystemChanged += HandleTimingSystemChanged;
+            _timingEngine.OnTimingEvent += HandleTimingEvent;
+        }
+        
+        private void SetupTimingUI()
+        {
+            if (timingControlPanel != null && showTimingControls)
+            {
+                timingControlPanel.gameObject.SetActive(true);
+                // Initialize timing controls if needed
+            }
+        }
+        
+        /// <summary>
+        /// Get timing information for a specific match
+        /// </summary>
+        public TimingEnabledMatch GetTimingInfoForMatch(Match match)
+        {
+            var matchId = $"{_seasonBoot.Fixtures.ToList().IndexOf((1, new TeamId(match.HomeTeamId), new TeamId(match.AwayTeamId)))}_{match.HomeTeamId}_{match.AwayTeamId}";
+            return _timingFixtures.GetValueOrDefault(matchId);
+        }
+        
+        /// <summary>
+        /// Get recommended timing system for a match
+        /// </summary>
+        public TimingSystemType GetRecommendedTimingSystem(Match match)
+        {
+            var timingInfo = GetTimingInfoForMatch(match);
+            return timingInfo?.PreferredTimingSystem ?? TimingSystemType.VariableSpeed;
+        }
+        
+        /// <summary>
+        /// Simulate a match with timing integration
+        /// </summary>
+        public MatchResultDTO SimulateMatchWithTiming(Match match)
+        {
+            var timingInfo = GetTimingInfoForMatch(match);
+            if (timingInfo == null)
+            {
+                Debug.LogWarning($"[SeasonBootTimingExtension] No timing info found for match {match.HomeTeamId} vs {match.AwayTeamId}");
+                return null;
+            }
+            
+            Debug.Log($"[SeasonBootTimingExtension] Simulating match with {timingInfo.PreferredTimingSystem} timing: {timingInfo.HomeTeamName} vs {timingInfo.AwayTeamName}");
+            
+            // For now, use the existing simulation but with timing context
+            // In a full implementation, this would use the TimingIntegratedMatchEngine
+            var result = SimulateMatchWithContext(match, timingInfo);
+            
+            // Fire completion event
+            OnTimingMatchCompleted?.Invoke(match, result);
+            
+            return result;
+        }
+        
+        private MatchResultDTO SimulateMatchWithContext(Match match, TimingEnabledMatch timingInfo)
+        {
+            // This is a simplified implementation that adds timing context to the existing simulation
+            // For a full implementation, you would integrate with your existing MatchSimulator
+            
+            return new MatchResultDTO
+            {
+                Round = timingInfo.Round,
+                Home = new TeamId(match.HomeTeamId),
+                Away = new TeamId(match.AwayTeamId),
+                HomeScore = UnityEngine.Random.Range(60, 120),
+                AwayScore = UnityEngine.Random.Range(60, 120)
+            };
+        }
+        
+        // Helper methods for match classification
+        private MatchTimingRequest CreateTimingRequest(TimingEnabledMatch match)
+        {
+            return new MatchTimingRequest
+            {
+                MatchType = match.MatchType,
+                SeasonPhase = match.SeasonPhase,
+                CurrentRound = match.Round,
+                TotalRounds = 23,
+                IsPlayerTeamMatch = match.IsPlayerTeamMatch,
+                IsCloseMatch = match.IsCloseMatch,
+                IsRivalryMatch = match.IsRivalryMatch,
+                ExpectedMargin = match.ExpectedMargin,
+                PlayerExperienceLevel = playerExperienceLevel,
+                HomeTeamId = new TeamId(match.HomeTeamId),
+                AwayTeamId = new TeamId(match.AwayTeamId),
+                MatchDate = match.FixtureDate
+            };
+        }
+        
+        private MatchType DetermineMatchType(int round, int totalRounds)
+        {
+            if (round > totalRounds) return MatchType.Final;
+            return MatchType.Regular;
+        }
+        
+        private SeasonPhase DetermineSeasonPhase(int round, int totalRounds)
+        {
+            if (round <= totalRounds * 0.25) return SeasonPhase.EarlySeason;
+            if (round <= totalRounds * 0.75) return SeasonPhase.MidSeason;
+            if (round <= totalRounds) return SeasonPhase.LateSeason;
+            return SeasonPhase.Finals;
+        }
+        
+        private bool IsPlayerTeamMatch(string homeTeamId, string awayTeamId)
+        {
+            return !string.IsNullOrEmpty(playerTeamId) && (homeTeamId == playerTeamId || awayTeamId == playerTeamId);
+        }
+        
+        private bool IsRivalryMatch(string homeTeamId, string awayTeamId)
+        {
+            return rivalryTeamIds.Contains(homeTeamId) && rivalryTeamIds.Contains(awayTeamId);
+        }
+        
+        private float CalculateImportanceRating(int round, int totalRounds)
+        {
+            return 0.5f + ((float)round / totalRounds) * 0.3f;
+        }
+        
+        private int CalculateExpectedMargin(string homeTeamId, string awayTeamId)
+        {
+            // Simplified calculation - could be enhanced with team ratings
+            return UnityEngine.Random.Range(-24, 25);
+        }
+        
+        private string GetMatchId(TimingEnabledMatch match)
+        {
+            return $"{match.Round}_{match.HomeTeamId}_{match.AwayTeamId}";
+        }
+        
+        // Event handlers
+        private void HandleTimingSystemChanged(TimingSystemType newSystem)
+        {
+            Debug.Log($"[SeasonBootTimingExtension] Timing system changed to: {newSystem}");
+        }
+        
+        private void HandleTimingEvent(string eventType, object eventData)
+        {
+            Debug.Log($"[SeasonBootTimingExtension] Timing event: {eventType}");
+        }
+        
+        private void OnDestroy()
+        {
+            if (_timingEngine != null)
+            {
+                _timingEngine.OnTimingSystemChanged -= HandleTimingSystemChanged;
+                _timingEngine.OnTimingEvent -= HandleTimingEvent;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Basic injury manager for timing integration
+    /// </summary>
+    public class BasicSeasonInjuryManager : AFLCoachSim.Core.Injuries.InjuryManager
+    {
+        // Minimal implementation for timing integration
+        public void SetContextProvider(AFLCoachSim.Core.Injuries.IInjuryContextProvider contextProvider)
+        {
+            // Basic implementation
+        }
+    }
+    
+    /// <summary>
+    /// UI panel for timing controls (placeholder)
+    /// </summary>
+    public class TimingControlPanel : MonoBehaviour
+    {
+        public void Initialize()
+        {
+            // Initialize timing control UI
+        }
+    }
+}

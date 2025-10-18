@@ -1,0 +1,637 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Engine.Match.Integration;
+using AFLCoachSim.Core.Domain.Aggregates;
+using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Data;
+using AFLCoachSim.Core.DTO;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Engine.Simulation;
+using AFLCoachSim.Settings;
+
+namespace AFLCoachSim.Examples
+{
+    /// <summary>
+    /// Example demonstrating how to use the timing-integrated match engine in Unity.
+    /// Shows both compressed timing and variable speed timing in action.
+    /// </summary>
+    public class TimingIntegratedMatchExample : MonoBehaviour
+    {
+        [Header("Match Setup")]
+        [SerializeField] private string _homeTeamName = "Richmond";
+        [SerializeField] private string _awayTeamName = "Collingwood";
+        [SerializeField] private int _round = 1;
+        [SerializeField] private bool _enableDebugOutput = true;
+        
+        [Header("Timing Configuration")]
+        [SerializeField] private TimingSystemType _timingSystem = TimingSystemType.VariableSpeed;
+        [SerializeField] private bool _allowRuntimeSwitch = true;
+        
+        [Header("Compressed Timing Settings")]
+        [SerializeField] private float _targetMatchDuration = 18f; // minutes
+        [SerializeField] private bool _enableAICoach = true;
+        
+        [Header("Variable Speed Settings")]
+        [SerializeField] private float _defaultSpeed = 2.5f;
+        [SerializeField] private bool _enableKeyboardControls = true;
+        
+        [Header("UI References")]
+        [SerializeField] private UnityEngine.UI.Text _statusText;
+        [SerializeField] private UnityEngine.UI.Text _timingInfoText;
+        [SerializeField] private UnityEngine.UI.Button _startMatchButton;
+        [SerializeField] private UnityEngine.UI.Button _pauseResumeButton;
+        [SerializeField] private UnityEngine.UI.Button[] _speedButtons; // 1x, 2x, 3x, 4x, 5x
+        [SerializeField] private UnityEngine.UI.Dropdown _timingSystemDropdown;
+        
+        // Core components
+        private TimingIntegratedMatchEngine _matchEngine;
+        private InjuryManager _injuryManager;
+        private Dictionary<TeamId, Team> _teams;
+        private Dictionary<TeamId, List<Domain.Entities.Player>> _rosters;
+        
+        // Match state
+        private bool _isMatchRunning = false;
+        private MatchResultDTO _currentMatchResult;
+        private DateTime _matchStartTime;
+        
+        // Events for demonstration
+        public static event Action<string> OnMatchEvent;
+        public static event Action<MatchResultDTO> OnMatchComplete;
+        
+        void Start()
+        {
+            InitializeComponents();
+            SetupUI();
+            CreateExampleTeams();
+            
+            if (_enableDebugOutput)
+            {
+                Debug.Log("[TimingIntegratedExample] Initialized with example teams and timing systems");
+            }
+        }
+        
+        void Update()
+        {
+            if (_enableKeyboardControls && _isMatchRunning)
+            {
+                HandleKeyboardInput();
+            }
+            
+            UpdateUI();
+        }
+        
+        /// <summary>
+        /// Initialize core components
+        /// </summary>
+        private void InitializeComponents()
+        {
+            // Create injury manager
+            _injuryManager = new InjuryManager();
+            
+            // Create timing integration configuration
+            var config = CreateTimingIntegrationConfig();
+            
+            // Create the timing-integrated match engine
+            _matchEngine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Subscribe to timing events
+            _matchEngine.OnTimingSystemChanged += OnTimingSystemChanged;
+            _matchEngine.OnTimingEvent += OnTimingEvent;
+            _matchEngine.OnTimingContextUpdated += OnTimingContextUpdated;
+        }
+        
+        /// <summary>
+        /// Setup UI event handlers
+        /// </summary>
+        private void SetupUI()
+        {
+            // Start match button
+            if (_startMatchButton != null)
+            {
+                _startMatchButton.onClick.AddListener(StartMatch);
+            }
+            
+            // Pause/Resume button
+            if (_pauseResumeButton != null)
+            {
+                _pauseResumeButton.onClick.AddListener(TogglePauseResume);
+            }
+            
+            // Speed buttons
+            if (_speedButtons != null)
+            {
+                for (int i = 0; i < _speedButtons.Length; i++)
+                {
+                    var speed = (i + 1) * 1.0f;
+                    var button = _speedButtons[i];
+                    
+                    if (button != null)
+                    {
+                        button.onClick.AddListener(() => SetMatchSpeed(speed));
+                        
+                        // Update button text
+                        var text = button.GetComponentInChildren<UnityEngine.UI.Text>();
+                        if (text != null)
+                        {
+                            text.text = $"{speed:F0}x";
+                        }
+                    }
+                }
+            }
+            
+            // Timing system dropdown
+            if (_timingSystemDropdown != null)
+            {
+                _timingSystemDropdown.ClearOptions();
+                _timingSystemDropdown.AddOptions(new List<string>
+                {
+                    "Standard Timing",
+                    "Compressed (Fast-Paced)",
+                    "Variable Speed Control"
+                });
+                
+                _timingSystemDropdown.value = (int)_timingSystem;
+                _timingSystemDropdown.onValueChanged.AddListener(OnTimingSystemDropdownChanged);
+            }
+        }
+        
+        /// <summary>
+        /// Create example teams for demonstration
+        /// </summary>
+        private void CreateExampleTeams()
+        {
+            _teams = new Dictionary<TeamId, Team>();
+            _rosters = new Dictionary<TeamId, List<Domain.Entities.Player>>();
+            
+            // Create home team
+            var homeId = new TeamId(_homeTeamName);
+            var homeTeam = new Team(homeId, _homeTeamName, 85.0, 82.0); // Strong team
+            _teams[homeId] = homeTeam;
+            _rosters[homeId] = CreateExampleRoster(homeId, _homeTeamName);
+            
+            // Create away team
+            var awayId = new TeamId(_awayTeamName);
+            var awayTeam = new Team(awayId, _awayTeamName, 83.0, 84.0); // Balanced team
+            _teams[awayId] = awayTeam;
+            _rosters[awayId] = CreateExampleRoster(awayId, _awayTeamName);
+            
+            if (_enableDebugOutput)
+            {
+                Debug.Log($"[TimingIntegratedExample] Created teams: {_homeTeamName} vs {_awayTeamName}");
+            }
+        }
+        
+        /// <summary>
+        /// Create example roster for a team
+        /// </summary>
+        private List<Domain.Entities.Player> CreateExampleRoster(TeamId teamId, string teamName)
+        {
+            var roster = new List<Domain.Entities.Player>();
+            
+            // Create 25 example players
+            for (int i = 1; i <= 25; i++)
+            {
+                var player = new Domain.Entities.Player
+                {
+                    PlayerId = $"{teamName}_{i:D2}",
+                    Name = $"{teamName} Player {i}",
+                    Age = UnityEngine.Random.Range(18, 35),
+                    // Add basic attributes
+                    Kicking = UnityEngine.Random.Range(70, 95),
+                    Handballing = UnityEngine.Random.Range(70, 95),
+                    Marking = UnityEngine.Random.Range(70, 95),
+                    Tackling = UnityEngine.Random.Range(70, 95),
+                    Speed = UnityEngine.Random.Range(70, 95),
+                    Endurance = UnityEngine.Random.Range(70, 95),
+                    Condition = 100
+                };
+                
+                roster.Add(player);
+            }
+            
+            return roster;
+        }
+        
+        /// <summary>
+        /// Create timing integration configuration
+        /// </summary>
+        private TimingIntegrationConfiguration CreateTimingIntegrationConfig()
+        {
+            var config = new TimingIntegrationConfiguration
+            {
+                DefaultTimingSystem = _timingSystem,
+                AllowRuntimeTimingSwitch = _allowRuntimeSwitch,
+                EnableTimingTelemetry = true
+            };
+            
+            // Compressed timing configuration
+            config.CompressedTimingConfig = new CompressedTimingConfiguration
+            {
+                TargetMatchDurationMinutes = _targetMatchDuration,
+                EnableAICoachIntegration = _enableAICoach,
+                AutoPauseForGoals = true,
+                AutoPauseForInjuries = true,
+                PlayerEngagementThreshold = 0.6f
+            };
+            
+            // Variable speed configuration
+            config.VariableSpeedConfig = new VariableSpeedConfiguration
+            {
+                DefaultSpeedMultiplier = _defaultSpeed,
+                AutoPauseForGoals = true,
+                AutoPauseForInjuries = true,
+                AutoPauseForDecisions = true,
+                AutoPauseForCloseFinish = true
+            };
+            
+            return config;
+        }
+        
+        /// <summary>
+        /// Start a match with the current timing configuration
+        /// </summary>
+        public void StartMatch()
+        {
+            if (_isMatchRunning)
+            {
+                Debug.LogWarning("[TimingIntegratedExample] Match is already running");
+                return;
+            }
+            
+            try
+            {
+                _isMatchRunning = true;
+                _matchStartTime = DateTime.Now;
+                
+                UpdateStatus("Starting match with " + _matchEngine.ActiveTimingSystem + " timing...");
+                
+                var homeId = new TeamId(_homeTeamName);
+                var awayId = new TeamId(_awayTeamName);
+                
+                // Start match simulation in background
+                StartCoroutine(RunMatchSimulation(homeId, awayId));
+                
+                OnMatchEvent?.Invoke($"Match started: {_homeTeamName} vs {_awayTeamName}");
+                
+                if (_enableDebugOutput)
+                {
+                    Debug.Log($"[TimingIntegratedExample] Started match: {_homeTeamName} vs {_awayTeamName} with {_matchEngine.ActiveTimingSystem} timing");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[TimingIntegratedExample] Failed to start match: {ex.Message}");
+                UpdateStatus("Failed to start match: " + ex.Message);
+                _isMatchRunning = false;
+            }
+        }
+        
+        /// <summary>
+        /// Run match simulation (coroutine for Unity integration)
+        /// </summary>
+        private System.Collections.IEnumerator RunMatchSimulation(TeamId homeId, TeamId awayId)
+        {
+            // In a real implementation, you'd run this on a background thread
+            // For this example, we'll simulate it with delays
+            
+            yield return new UnityEngine.WaitForSeconds(0.1f); // Small delay to show loading
+            
+            try
+            {
+                // Create random seed for reproducible results
+                var rng = new DeterministicRandom(DateTime.Now.Millisecond);
+                
+                // Run the match
+                _currentMatchResult = _matchEngine.PlayMatch(
+                    _round, homeId, awayId, _teams, _rosters,
+                    tactics: null, // Use default tactics
+                    weather: Weather.Clear,
+                    ground: null, // Use default ground
+                    quarterSeconds: 20 * 60, // 20 minutes per quarter
+                    rng: rng,
+                    tuning: null, // Use default tuning
+                    sink: null // No telemetry sink for this example
+                );
+                
+                // Match completed
+                OnMatchCompleted();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[TimingIntegratedExample] Match simulation error: {ex.Message}");
+                UpdateStatus("Match simulation failed: " + ex.Message);
+                _isMatchRunning = false;
+            }
+        }
+        
+        /// <summary>
+        /// Handle match completion
+        /// </summary>
+        private void OnMatchCompleted()
+        {
+            _isMatchRunning = false;
+            var duration = DateTime.Now - _matchStartTime;
+            
+            var winnerName = _currentMatchResult.HomeScore > _currentMatchResult.AwayScore 
+                ? _homeTeamName 
+                : _awayTeamName;
+                
+            var finalScore = $"{_currentMatchResult.HomeScore} - {_currentMatchResult.AwayScore}";
+            var message = $"Match Complete! {winnerName} wins {finalScore} (Duration: {duration.TotalMinutes:F1} minutes)";
+            
+            UpdateStatus(message);
+            OnMatchEvent?.Invoke(message);
+            OnMatchComplete?.Invoke(_currentMatchResult);
+            
+            if (_enableDebugOutput)
+            {
+                Debug.Log($"[TimingIntegratedExample] {message}");
+                
+                // Show timing statistics
+                var stats = _matchEngine.GetCurrentTimingStatistics();
+                if (stats != null)
+                {
+                    Debug.Log($"[TimingIntegratedExample] Timing Statistics: {stats}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Toggle pause/resume
+        /// </summary>
+        public void TogglePauseResume()
+        {
+            if (!_isMatchRunning) return;
+            
+            if (_matchEngine.IsMatchPaused)
+            {
+                bool resumed = _matchEngine.ResumeMatch();
+                UpdateStatus(resumed ? "Match resumed" : "Cannot resume match");
+            }
+            else
+            {
+                bool paused = _matchEngine.PauseMatch();
+                UpdateStatus(paused ? "Match paused" : "Cannot pause match (timing system doesn't support pause)");
+            }
+        }
+        
+        /// <summary>
+        /// Set match speed (for variable speed timing)
+        /// </summary>
+        public void SetMatchSpeed(float speed)
+        {
+            if (!_isMatchRunning) return;
+            
+            bool success = _matchEngine.SetMatchSpeed(speed);
+            if (success)
+            {
+                UpdateStatus($"Speed set to {speed:F1}x");
+            }
+            else
+            {
+                UpdateStatus("Cannot change speed (not supported by current timing system)");
+            }
+        }
+        
+        /// <summary>
+        /// Handle keyboard input
+        /// </summary>
+        private void HandleKeyboardInput()
+        {
+            // Speed shortcuts (1-5 keys)
+            if (Input.GetKeyDown(KeyCode.Alpha1)) SetMatchSpeed(1.0f);
+            if (Input.GetKeyDown(KeyCode.Alpha2)) SetMatchSpeed(2.0f);
+            if (Input.GetKeyDown(KeyCode.Alpha3)) SetMatchSpeed(3.0f);
+            if (Input.GetKeyDown(KeyCode.Alpha4)) SetMatchSpeed(4.0f);
+            if (Input.GetKeyDown(KeyCode.Alpha5)) SetMatchSpeed(5.0f);
+            
+            // Pause/Resume (Spacebar)
+            if (Input.GetKeyDown(KeyCode.Space)) TogglePauseResume();
+        }
+        
+        /// <summary>
+        /// Handle timing system dropdown change
+        /// </summary>
+        private void OnTimingSystemDropdownChanged(int value)
+        {
+            var newSystem = (TimingSystemType)value;
+            
+            if (_isMatchRunning && _allowRuntimeSwitch)
+            {
+                bool switched = _matchEngine.SwitchTimingSystem(newSystem);
+                UpdateStatus(switched 
+                    ? $"Switched to {newSystem} timing" 
+                    : "Cannot switch timing system during match");
+            }
+            else
+            {
+                _timingSystem = newSystem;
+                UpdateStatus($"Timing system will be {newSystem} for next match");
+            }
+        }
+        
+        /// <summary>
+        /// Update UI elements
+        /// </summary>
+        private void UpdateUI()
+        {
+            // Update pause/resume button
+            if (_pauseResumeButton != null)
+            {
+                var buttonText = _pauseResumeButton.GetComponentInChildren<UnityEngine.UI.Text>();
+                if (buttonText != null)
+                {
+                    if (!_isMatchRunning)
+                    {
+                        buttonText.text = "Pause/Resume";
+                        _pauseResumeButton.interactable = false;
+                    }
+                    else
+                    {
+                        buttonText.text = _matchEngine.IsMatchPaused ? "Resume" : "Pause";
+                        _pauseResumeButton.interactable = true;
+                    }
+                }
+            }
+            
+            // Update speed buttons
+            if (_speedButtons != null && _isMatchRunning && _matchEngine.ActiveTimingSystem == TimingSystemType.VariableSpeed)
+            {
+                var stats = _matchEngine.GetCurrentTimingStatistics() as VariableSpeedStatistics;
+                var currentSpeed = stats?.CurrentSpeed ?? 1.0f;
+                
+                for (int i = 0; i < _speedButtons.Length; i++)
+                {
+                    var button = _speedButtons[i];
+                    if (button != null)
+                    {
+                        var targetSpeed = (i + 1) * 1.0f;
+                        var isActive = Math.Abs(currentSpeed - targetSpeed) < 0.1f;
+                        
+                        // Highlight active speed button
+                        var colors = button.colors;
+                        colors.normalColor = isActive ? Color.green : Color.white;
+                        button.colors = colors;
+                        
+                        button.interactable = true;
+                    }
+                }
+            }
+            else if (_speedButtons != null)
+            {
+                // Disable speed buttons when not applicable
+                foreach (var button in _speedButtons)
+                {
+                    if (button != null)
+                    {
+                        button.interactable = false;
+                        var colors = button.colors;
+                        colors.normalColor = Color.white;
+                        button.colors = colors;
+                    }
+                }
+            }
+            
+            // Update timing info text
+            if (_timingInfoText != null)
+            {
+                UpdateTimingInfoText();
+            }
+        }
+        
+        /// <summary>
+        /// Update timing information display
+        /// </summary>
+        private void UpdateTimingInfoText()
+        {
+            if (_timingInfoText == null) return;
+            
+            string info = $"Timing System: {_matchEngine.ActiveTimingSystem}\\n";
+            
+            if (_isMatchRunning)
+            {
+                info += $"Match Running: {(DateTime.Now - _matchStartTime).TotalMinutes:F1} min\\n";
+                info += $"Paused: {(_matchEngine.IsMatchPaused ? "Yes" : "No")}\\n";
+                
+                var stats = _matchEngine.GetCurrentTimingStatistics();
+                if (stats is VariableSpeedStatistics variableStats)
+                {
+                    info += $"Current Speed: {variableStats.CurrentSpeed:F1}x\\n";
+                    info += $"Efficiency: {variableStats.SpeedEfficiency:P0}\\n";
+                    info += $"Auto Pauses: {variableStats.TotalAutoPauses}\\n";
+                }
+                else if (stats is CompressedTimingStatistics compressedStats)
+                {
+                    info += $"Target Duration: {_targetMatchDuration:F0} min\\n";
+                    info += $"AI Coach: {(_enableAICoach ? "Enabled" : "Disabled")}\\n";
+                }
+            }
+            else
+            {
+                info += "No match running\\n";
+                
+                if (_currentMatchResult != null)
+                {
+                    info += $"Last Result: {_currentMatchResult.HomeScore}-{_currentMatchResult.AwayScore}";
+                }
+            }
+            
+            _timingInfoText.text = info;
+        }
+        
+        /// <summary>
+        /// Update status text
+        /// </summary>
+        private void UpdateStatus(string message)
+        {
+            if (_statusText != null)
+            {
+                _statusText.text = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            }
+            
+            if (_enableDebugOutput)
+            {
+                Debug.Log($"[TimingIntegratedExample] {message}");
+            }
+        }
+        
+        // Event handlers
+        private void OnTimingSystemChanged(TimingSystemType newSystem)
+        {
+            UpdateStatus($"Timing system changed to: {newSystem}");
+        }
+        
+        private void OnTimingEvent(string eventType, object eventData)
+        {
+            UpdateStatus($"Timing event: {eventType}");
+            
+            // Handle specific timing events
+            switch (eventType)
+            {
+                case "EngagementMoment":
+                    if (eventData is EngagementMoment moment)
+                    {
+                        UpdateStatus($"⚡ {moment.Type}: {moment.Description}");
+                    }
+                    break;
+                    
+                case "AICoachDecision":
+                    if (eventData is AICoachDecision decision)
+                    {
+                        UpdateStatus($"🤖 AI Coach: {decision.DecisionType} - {decision.Reasoning}");
+                    }
+                    break;
+                    
+                case "TacticalDecision":
+                    if (eventData is TacticalDecisionPoint tactical)
+                    {
+                        UpdateStatus($"🎯 Decision Required: {tactical.Title}");
+                        // In a real game, you'd show a decision UI here
+                    }
+                    break;
+                    
+                case "SpeedChanged":
+                    if (eventData is { } speedData)
+                    {
+                        UpdateStatus($"⚡ Speed changed");
+                    }
+                    break;
+            }
+        }
+        
+        private void OnTimingContextUpdated(MatchTimingContext context)
+        {
+            // Context updated - could update additional UI elements here
+        }
+        
+        void OnDestroy()
+        {
+            // Clean up event subscriptions
+            if (_matchEngine != null)
+            {
+                _matchEngine.OnTimingSystemChanged -= OnTimingSystemChanged;
+                _matchEngine.OnTimingEvent -= OnTimingEvent;
+                _matchEngine.OnTimingContextUpdated -= OnTimingContextUpdated;
+            }
+            
+            // Clean up UI event handlers
+            if (_startMatchButton != null)
+                _startMatchButton.onClick.RemoveAllListeners();
+            if (_pauseResumeButton != null)
+                _pauseResumeButton.onClick.RemoveAllListeners();
+            if (_timingSystemDropdown != null)
+                _timingSystemDropdown.onValueChanged.RemoveAllListeners();
+            
+            if (_speedButtons != null)
+            {
+                foreach (var button in _speedButtons)
+                {
+                    button?.onClick.RemoveAllListeners();
+                }
+            }
+        }
+    }
+}

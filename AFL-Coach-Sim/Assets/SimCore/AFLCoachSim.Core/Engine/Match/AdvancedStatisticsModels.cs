@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -415,8 +416,9 @@ namespace AFLCoachSim.Core.Engine.Match
             // Performance trend adjustment
             if (performanceHistory.Count >= 3)
             {
-                var recentPerformance = performanceHistory.TakeLast(3).Average(p => p.PerformanceIndex);
-                baseRating += (recentPerformance - 0.5f) * 10f;
+                var recentPerformance = CalculateAveragePerformance(
+                    performanceHistory.Skip(Math.Max(0, performanceHistory.Count - 3)));
+                baseRating += (float)(recentPerformance - 0.5) * 10f;
             }
             
             return Math.Min(100f, Math.Max(0f, baseRating));
@@ -453,8 +455,8 @@ namespace AFLCoachSim.Core.Engine.Match
             }
             
             // Factor in pressure acts per minute
-            var minutesPlayed = Math.Max(1, stats.TimeOnGround.TotalMinutes);
-            float pressureActsPerMinute = (float)stats.PressureActs / minutesPlayed;
+            var minutesPlayed = (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
+            float pressureActsPerMinute = (float)stats.PressureActs / (float)minutesPlayed;
             pressureRating += Math.Min(25f, pressureActsPerMinute * 10f);
             
             return Math.Min(100f, Math.Max(0f, pressureRating));
@@ -464,9 +466,10 @@ namespace AFLCoachSim.Core.Engine.Match
         {
             if (performances.Length < 2) return 50f;
             
-            var mean = performances.Average();
-            var variance = performances.Select(p => Math.Pow(p - mean, 2)).Average();
-            var standardDeviation = Math.Sqrt(variance);
+            var mean = CalculateArrayAverage(performances);
+            var variance = CalculateArrayAverage(
+                performances.Select(p => (float)Math.Pow(p - mean, 2)).ToArray());
+            var standardDeviation = (float)Math.Sqrt(variance);
             
             // Lower standard deviation = higher consistency
             return (float)(100f - (standardDeviation * 100f));
@@ -477,10 +480,11 @@ namespace AFLCoachSim.Core.Engine.Match
             if (history.Count < 3) return 50f;
             
             // Analyze performance decline over time
-            var early = history.Take(history.Count / 3).Average(p => p.PerformanceIndex);
-            var late = history.TakeLast(history.Count / 3).Average(p => p.PerformanceIndex);
+            var early = CalculateAveragePerformance(history.Take(history.Count / 3));
+            var late = CalculateAveragePerformance(
+                history.Skip(Math.Max(0, history.Count - history.Count / 3)));
             
-            float resistance = 50f + ((late - early) * 50f);
+            float resistance = 50f + (((float)late - (float)early) * 50f);
             return Math.Min(100f, Math.Max(0f, resistance));
         }
         
@@ -491,28 +495,28 @@ namespace AFLCoachSim.Core.Engine.Match
             {
                 case "forward":
                     metrics.PositionSpecificMetrics["GoalsPerMinute"] = 
-                        (float)stats.Goals / Math.Max(1, stats.TimeOnGround.TotalMinutes);
+                        (float)stats.Goals / (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
                     metrics.PositionSpecificMetrics["ShotConversion"] = 
                         stats.Shots > 0 ? (float)stats.Goals / stats.Shots : 0f;
                     break;
                     
                 case "defender":
                     metrics.PositionSpecificMetrics["InterceptsPerMinute"] = 
-                        (float)stats.Intercepts / Math.Max(1, stats.TimeOnGround.TotalMinutes);
+                        (float)stats.Intercepts / (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
                     metrics.PositionSpecificMetrics["SpoilsPerMinute"] = 
-                        (float)stats.Spoils / Math.Max(1, stats.TimeOnGround.TotalMinutes);
+                        (float)stats.Spoils / (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
                     break;
                     
                 case "midfielder":
                     metrics.PositionSpecificMetrics["DisposalsPerMinute"] = 
-                        (float)stats.TotalDisposals / Math.Max(1, stats.TimeOnGround.TotalMinutes);
+                        (float)stats.TotalDisposals / (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
                     metrics.PositionSpecificMetrics["ContestedRate"] = 
                         stats.TotalDisposals > 0 ? (float)stats.ContestedDisposals / stats.TotalDisposals : 0f;
                     break;
                     
                 case "ruck":
                     metrics.PositionSpecificMetrics["HitOutRate"] = 
-                        (float)stats.HitOuts / Math.Max(1, stats.TimeOnGround.TotalMinutes);
+                        (float)stats.HitOuts / (float)Math.Max(1, stats.TimeOnGround.TotalMinutes);
                     break;
             }
         }
@@ -520,8 +524,8 @@ namespace AFLCoachSim.Core.Engine.Match
         private float CalculateTeamChemistry(List<PlayerStatistics> playerStats)
         {
             // Complex algorithm factoring in assists, support play, etc.
-            var totalAssists = playerStats.Sum(p => p.GoalAssists);
-            var totalGoals = playerStats.Sum(p => p.Goals);
+            var totalAssists = CalculateIntSum(playerStats, p => p.GoalAssists);
+            var totalGoals = CalculateIntSum(playerStats, p => p.Goals);
             
             if (totalGoals == 0) return 50f;
             
@@ -531,19 +535,19 @@ namespace AFLCoachSim.Core.Engine.Match
         
         private float CalculateSupportPlayRating(List<PlayerStatistics> playerStats)
         {
-            var totalMinutes = playerStats.Sum(p => p.TimeOnGround.TotalMinutes);
+            var totalMinutes = CalculateDoubleSum(playerStats, p => p.TimeOnGround.TotalMinutes);
             if (totalMinutes == 0) return 50f;
             
-            var supportActions = playerStats.Sum(p => p.GoalAssists + p.EffectiveDisposals);
+            var supportActions = CalculateIntSum(playerStats, p => p.GoalAssists + p.EffectiveDisposals);
             return Math.Min(100f, (float)(supportActions / totalMinutes * 10f));
         }
         
         private float CalculateTacticalDiscipline(List<PlayerStatistics> playerStats)
         {
-            var totalDisposals = playerStats.Sum(p => p.TotalDisposals);
+            var totalDisposals = CalculateIntSum(playerStats, p => p.TotalDisposals);
             if (totalDisposals == 0) return 50f;
             
-            var turnovers = playerStats.Sum(p => p.Turnovers);
+            var turnovers = CalculateIntSum(playerStats, p => p.Turnovers);
             float turnoverRate = (float)turnovers / totalDisposals;
             
             return Math.Min(100f, 100f - (turnoverRate * 100f));
@@ -563,12 +567,70 @@ namespace AFLCoachSim.Core.Engine.Match
             foreach (var positionGroup in positions)
             {
                 var players = positionGroup.ToList();
-                var avgRating = players.Average(p => p.TimeOnGround.TotalMinutes > 0 
+                var avgRating = CalculateDoubleAverage(players, p => p.TimeOnGround.TotalMinutes > 0 
                     ? (p.EffectiveDisposals + p.Goals * 3) / p.TimeOnGround.TotalMinutes 
                     : 0);
                 
                 metrics.PositionalBalance[positionGroup.Key] = (float)avgRating;
             }
+        }
+        
+        // Helper methods to replace LINQ extensions that may not be available
+        private float CalculateArrayAverage(float[] values)
+        {
+            if (values == null || values.Length == 0) return 0f;
+            float sum = 0f;
+            foreach (var value in values)
+            {
+                sum += value;
+            }
+            return sum / values.Length;
+        }
+        
+        private double CalculateAveragePerformance(IEnumerable<PerformanceSnapshot> snapshots)
+        {
+            var list = snapshots.ToList();
+            if (list.Count == 0) return 0.5;
+            
+            double sum = 0;
+            foreach (var snapshot in list)
+            {
+                sum += snapshot.PerformanceIndex;
+            }
+            return sum / list.Count;
+        }
+        
+        private int CalculateIntSum<T>(IEnumerable<T> items, Func<T, int> selector)
+        {
+            int sum = 0;
+            foreach (var item in items)
+            {
+                sum += selector(item);
+            }
+            return sum;
+        }
+        
+        private double CalculateDoubleSum<T>(IEnumerable<T> items, Func<T, double> selector)
+        {
+            double sum = 0;
+            foreach (var item in items)
+            {
+                sum += selector(item);
+            }
+            return sum;
+        }
+        
+        private double CalculateDoubleAverage<T>(IEnumerable<T> items, Func<T, double> selector)
+        {
+            var list = items.ToList();
+            if (list.Count == 0) return 0;
+            
+            double sum = 0;
+            foreach (var item in list)
+            {
+                sum += selector(item);
+            }
+            return sum / list.Count;
         }
     }
     

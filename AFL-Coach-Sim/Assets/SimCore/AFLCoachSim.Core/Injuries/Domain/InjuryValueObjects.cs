@@ -45,6 +45,7 @@ namespace AFLCoachSim.Core.Injuries.Domain
         Tendon,      // Tendon injuries, tendinitis
         Concussion,  // Head injuries, concussion protocol
         Laceration,  // Cuts, abrasions
+        Skin,        // Skin-related injuries
         Other        // General injuries, fatigue-related
     }
     
@@ -65,10 +66,12 @@ namespace AFLCoachSim.Core.Injuries.Domain
     /// </summary>
     public enum InjuryStatus
     {
+        Healthy,     // No current injury (added for compatibility)
         Active,      // Currently injured and affecting performance
         Recovering,  // In rehabilitation phase
         Recovered,   // Fully healed
-        Chronic      // Long-term ongoing issue
+        Chronic,     // Long-term ongoing issue
+        Minor        // Minor injury, can still play (added for compatibility)
     }
     
     /// <summary>
@@ -83,7 +86,7 @@ namespace AFLCoachSim.Core.Injuries.Domain
             _value = value;
         }
         
-        public static InjuryId New() => new InjuryId(UnityEngine.Random.Range(100000, 999999));
+        public static InjuryId New() => new InjuryId(new System.Random().Next(100000, 999999));
         public static InjuryId From(int value) => new InjuryId(value);
         
         public override string ToString() => _value.ToString();

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8a6b5b0c65a128f499984a3fc327b3a0
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 299071
+  packageName: UI Wizard
+  packageVersion: 1.0
+  assetPath: Assets/CodeSculptLabs/UIFramework/Scripts/UIReference.cs
+  uploadId: 699721

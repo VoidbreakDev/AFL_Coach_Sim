@@ -403,5 +403,63 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         }
 
         #endregion
+
+        #region Coaching Decision System Integration
+
+        /// <summary>
+        /// Apply formation change (for CoachingDecisionSystem compatibility)
+        /// </summary>
+        public void ApplyFormationChange(TeamId teamId, Formation newFormation, MatchContext context)
+        {
+            var gamePlan = GetGamePlan(teamId);
+            gamePlan.Formation = newFormation;
+            SetGamePlan(teamId, gamePlan);
+        }
+
+        /// <summary>
+        /// Apply formation change (overload for int teamId compatibility)
+        /// </summary>
+        public void ApplyFormationChange(int teamId, Formation newFormation, MatchContext context)
+        {
+            ApplyFormationChange(new TeamId(teamId), newFormation, context);
+        }
+
+        /// <summary>
+        /// Apply offensive strategy change (for CoachingDecisionSystem compatibility)
+        /// </summary>
+        public void ApplyOffensiveStrategyChange(TeamId teamId, OffensiveStyle newStrategy, MatchContext context)
+        {
+            var gamePlan = GetGamePlan(teamId);
+            gamePlan.OffensiveStrategy.Style = newStrategy;
+            SetGamePlan(teamId, gamePlan);
+        }
+
+        /// <summary>
+        /// Apply offensive strategy change (overload for int teamId compatibility)
+        /// </summary>
+        public void ApplyOffensiveStrategyChange(int teamId, OffensiveStyle newStrategy, MatchContext context)
+        {
+            ApplyOffensiveStrategyChange(new TeamId(teamId), newStrategy, context);
+        }
+
+        /// <summary>
+        /// Apply defensive strategy change (for CoachingDecisionSystem compatibility)
+        /// </summary>
+        public void ApplyDefensiveStrategyChange(TeamId teamId, DefensiveStyle newStrategy, MatchContext context)
+        {
+            var gamePlan = GetGamePlan(teamId);
+            gamePlan.DefensiveStrategy.Style = newStrategy;
+            SetGamePlan(teamId, gamePlan);
+        }
+
+        /// <summary>
+        /// Apply defensive strategy change (overload for int teamId compatibility)
+        /// </summary>
+        public void ApplyDefensiveStrategyChange(int teamId, DefensiveStyle newStrategy, MatchContext context)
+        {
+            ApplyDefensiveStrategyChange(new TeamId(teamId), newStrategy, context);
+        }
+
+        #endregion
     }
 }

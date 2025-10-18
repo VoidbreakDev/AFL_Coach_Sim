@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AFLCoachSim.Core.Engine.Match.Tactics;
+using AFLCoachSim.Core.Domain.Entities;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -64,8 +67,8 @@ namespace AFLCoachSim.Core.Engine.Match
     {
         public int TeamId { get; set; }
         public Formation CurrentFormation { get; set; }
-        public OffensiveStrategy CurrentStrategy { get; set; }
-        public DefensiveStrategy CurrentDefensiveApproach { get; set; }
+        public OffensiveStyle CurrentStrategy { get; set; }
+        public DefensiveStyle CurrentDefensiveApproach { get; set; }
         public MatchPlan MatchPlan { get; set; }
         
         // Dynamic adjustments
@@ -92,8 +95,8 @@ namespace AFLCoachSim.Core.Engine.Match
     public class MatchPlan
     {
         public Formation PrimaryFormation { get; set; }
-        public OffensiveStrategy PrimaryOffensiveStrategy { get; set; }
-        public DefensiveStrategy PrimaryDefensiveStrategy { get; set; }
+        public OffensiveStyle PrimaryOffensiveStrategy { get; set; }
+        public DefensiveStyle PrimaryDefensiveStrategy { get; set; }
         public PossessionStyle TargetPossessionStyle { get; set; }
         
         // Contingency planning
@@ -280,7 +283,7 @@ namespace AFLCoachSim.Core.Engine.Match
         {
             if (context.ScoreDifferential < -15) // Behind significantly
             {
-                if (teamState.CurrentDefensiveApproach != DefensiveStrategy.Attacking)
+                if (teamState.CurrentDefensiveApproach != DefensiveStyle.Pressing)
                 {
                     return new CoachingDecision
                     {
@@ -289,7 +292,7 @@ namespace AFLCoachSim.Core.Engine.Match
                         Timestamp = DateTime.Now,
                         Details = new Dictionary<string, object>
                         {
-                            ["NewStrategy"] = DefensiveStrategy.Attacking,
+                            ["NewStrategy"] = DefensiveStyle.Pressing,
                             ["CurrentStrategy"] = teamState.CurrentDefensiveApproach
                         },
                         ExpectedImpact = 0.4f,
@@ -315,7 +318,7 @@ namespace AFLCoachSim.Core.Engine.Match
                     Timestamp = DateTime.Now,
                     Details = new Dictionary<string, object>
                     {
-                        ["TacticType"] = TacticalOption.OffensivePress,
+                        ["TacticType"] = TacticalOptionType.OffensivePress,
                         ["Intensity"] = 0.8f,
                         ["Duration"] = TimeSpan.FromMinutes(10)
                     },
@@ -347,9 +350,10 @@ namespace AFLCoachSim.Core.Engine.Match
         
         private Formation FindOptimalFormation(CoachProfile coach, TeamMatchContext context)
         {
-            var formations = Enum.GetValues(typeof(Formation)).Cast<Formation>();
+            var formationNames = FormationLibrary.GetFormationNames();
             
-            return formations
+            return formationNames
+                .Select(name => FormationLibrary.GetFormation(name))
                 .OrderByDescending(f => EvaluateFormationSuitability(f, context, coach))
                 .First();
         }
@@ -360,17 +364,17 @@ namespace AFLCoachSim.Core.Engine.Match
             float suitability = 0.5f;
             
             // Evaluate based on match situation
-            switch (formation)
+            switch (formation.Name)
             {
-                case Formation.Attacking:
+                case "Attacking":
                     suitability += context.ScoreDifferential < 0 ? 0.3f : -0.1f;
                     suitability += coach.RiskTolerance * 0.2f;
                     break;
-                case Formation.Defensive:
+                case "Defensive":
                     suitability += context.ScoreDifferential > 10 ? 0.3f : -0.1f;
                     suitability += (1f - coach.RiskTolerance) * 0.2f;
                     break;
-                case Formation.Standard:
+                case "Standard":
                     suitability += 0.1f; // Always reasonable
                     break;
             }
@@ -381,14 +385,14 @@ namespace AFLCoachSim.Core.Engine.Match
         private float CalculateFormationImpact(Formation formation, TeamMatchContext context)
         {
             // Estimate the expected improvement from formation change
-            return UnityEngine.Random.Range(0.2f, 0.6f);
+            return (float)(new System.Random().NextDouble() * (0.6f - 0.2f) + 0.2f);
         }
         
-        private OffensiveStrategy DetermineOptimalOffensiveStrategy(TeamMatchContext context)
+        private OffensiveStyle DetermineOptimalOffensiveStrategy(TeamMatchContext context)
         {
-            if (context.ScoreDifferential < -15) return OffensiveStrategy.Attacking;
-            if (context.ScoreDifferential > 15) return OffensiveStrategy.Controlled;
-            return OffensiveStrategy.Balanced;
+            if (context.ScoreDifferential < -15) return OffensiveStyle.FastBreak;
+            if (context.ScoreDifferential > 15) return OffensiveStyle.Possession;
+            return OffensiveStyle.Balanced;
         }
     }
     
@@ -429,15 +433,15 @@ namespace AFLCoachSim.Core.Engine.Match
             var teamPlayers = context.GetTeamPlayers(teamId);
             
             // Apply formation-specific positioning and role adjustments
-            switch (newFormation)
+            switch (newFormation.Name)
             {
-                case Formation.Attacking:
+                case "Attacking":
                     ApplyAttackingFormation(teamPlayers);
                     break;
-                case Formation.Defensive:
+                case "Defensive":
                     ApplyDefensiveFormation(teamPlayers);
                     break;
-                case Formation.Standard:
+                case "Standard":
                     ApplyStandardFormation(teamPlayers);
                     break;
             }
@@ -445,7 +449,7 @@ namespace AFLCoachSim.Core.Engine.Match
             context.LogEvent($"Team {teamId} changed formation to {newFormation}");
         }
         
-        public void ApplyOffensiveStrategyChange(int teamId, OffensiveStrategy newStrategy, 
+        public void ApplyOffensiveStrategyChange(int teamId, OffensiveStyle newStrategy, 
             MatchContext context)
         {
             var teamPlayers = context.GetTeamPlayers(teamId);
@@ -458,7 +462,7 @@ namespace AFLCoachSim.Core.Engine.Match
             context.LogEvent($"Team {teamId} changed offensive strategy to {newStrategy}");
         }
         
-        public void ApplyDefensiveStrategyChange(int teamId, DefensiveStrategy newStrategy,
+        public void ApplyDefensiveStrategyChange(int teamId, DefensiveStyle newStrategy,
             MatchContext context)
         {
             var teamPlayers = context.GetTeamPlayers(teamId);
@@ -486,30 +490,29 @@ namespace AFLCoachSim.Core.Engine.Match
             // Implementation would reset players to standard positions
         }
         
-        private void ApplyOffensiveStrategyToPlayer(Player player, OffensiveStrategy strategy)
+        private void ApplyOffensiveStrategyToPlayer(Player player, OffensiveStyle strategy)
         {
             switch (strategy)
             {
-                case OffensiveStrategy.Attacking:
-                    player.Aggression += 0.1f;
-                    player.RiskTaking += 0.1f;
+                case OffensiveStyle.FastBreak:
+                    player.Aggression += (int)(0.1f * 100); // Convert to 0-100 scale
+                    // RiskTaking and similar attributes don't exist on Player, skip
                     break;
-                case OffensiveStrategy.Controlled:
-                    player.Patience += 0.1f;
-                    player.DecisionMaking += 0.1f;
+                case OffensiveStyle.Possession:
+                    // Patience and DecisionMaking attributes don't exist on Player, skip
                     break;
             }
         }
         
-        private void ApplyDefensiveStrategyToPlayer(Player player, DefensiveStrategy strategy)
+        private void ApplyDefensiveStrategyToPlayer(Player player, DefensiveStyle strategy)
         {
             switch (strategy)
             {
-                case DefensiveStrategy.Attacking:
-                    player.Aggression += 0.1f;
-                    player.Pressure += 0.15f;
+                case DefensiveStyle.Pressing:
+                    player.Aggression += (int)(0.1f * 100); // Convert to 0-100 scale
+                    // Pressure attribute doesn't exist on Player, skip
                     break;
-                case DefensiveStrategy.Standard:
+                case DefensiveStyle.Zoning:
                     // Reset to baseline values
                     break;
             }
@@ -528,7 +531,8 @@ namespace AFLCoachSim.Core.Engine.Match
         TeamTalk,
         PlayerEncouragement,
         SpecializedTactic,
-        TimeOut
+        TimeOut,
+        TacticalAdjustment
     }
     
     public enum DecisionPriority
@@ -623,7 +627,32 @@ namespace AFLCoachSim.Core.Engine.Match
         MomentumSwing
     }
     
-    public enum TacticalOption
+    // TacticalOption is now defined as a class above, not an enum
+    
+    public enum PossessionStyle
+    {
+        FastBreak,
+        Controlled,
+        Direct,
+        Patient
+    }
+    
+    /// <summary>
+    /// Represents a tactical option that can be applied
+    /// </summary>
+    public class TacticalOption
+    {
+        public string Name { get; set; }
+        public TacticalOptionType Type { get; set; }
+        public float EffectivenessRating { get; set; }
+        public Dictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
+    }
+    
+    
+    /// <summary>
+    /// Types of tactical options (renamed from conflicting enum)
+    /// </summary>
+    public enum TacticalOptionType
     {
         DefensiveFlood,
         OffensivePress,
@@ -633,11 +662,16 @@ namespace AFLCoachSim.Core.Engine.Match
         NarrowFormation
     }
     
-    public enum PossessionStyle
+    
+    /// <summary>
+    /// Player tactical roles
+    /// </summary>
+    public enum PlayerRole
     {
-        FastBreak,
-        Controlled,
-        Direct,
-        Patient
+        Defender,
+        Midfielder,
+        Forward,
+        Ruckman,
+        Utility
     }
 }

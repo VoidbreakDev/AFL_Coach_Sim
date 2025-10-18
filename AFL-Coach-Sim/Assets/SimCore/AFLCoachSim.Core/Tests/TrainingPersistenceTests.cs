@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AFLCoachSim.Core.Infrastructure.Logging;
+using Unity.Plastic.Newtonsoft.Json;
 using AFLCoachSim.Core.Training;
 using AFLCoachSim.Core.DTO;
 using AFLCoachSim.Core.Persistence;
+using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Tests
 {
@@ -23,7 +24,7 @@ namespace AFLCoachSim.Core.Tests
         public void SetUp()
         {
             // Create a test-specific repository with a unique file path
-            _testDataPath = Path.Combine(Application.temporaryCachePath, $"training_test_{Guid.NewGuid()}.json");
+            _testDataPath = Path.Combine(Path.GetTempPath(), $"training_test_{Guid.NewGuid()}.json");
             _repository = new TestJsonTrainingRepository(_testDataPath);
         }
 
@@ -145,8 +146,8 @@ namespace AFLCoachSim.Core.Tests
             });
 
             // Act
-            string json = JsonUtility.ToJson(original, true);
-            var deserialized = JsonUtility.FromJson<TrainingDataDTO>(json);
+            string json = JsonConvert.SerializeObject(original, Formatting.Indented);
+            var deserialized = JsonConvert.DeserializeObject<TrainingDataDTO>(json);
 
             // Assert
             Assert.IsNotNull(deserialized);

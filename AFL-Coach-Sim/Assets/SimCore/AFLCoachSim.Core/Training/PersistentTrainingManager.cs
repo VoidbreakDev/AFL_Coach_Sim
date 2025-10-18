@@ -50,11 +50,11 @@ namespace AFLCoachSim.Core.Training
                 _repository.SaveAllTrainingData(trainingData);
                 _lastSave = DateTime.Now;
                 
-                UnityEngine.Debug.Log($"[PersistentTrainingManager] Saved all training data at {_lastSave}");
+                System.Console.WriteLine($"[PersistentTrainingManager] Saved all training data at {_lastSave}");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to save training data: {e.Message}");
+                System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to save training data: {e.Message}");
             }
         }
 
@@ -126,7 +126,7 @@ namespace AFLCoachSim.Core.Training
         {
             if (trainingData == null)
             {
-                UnityEngine.Debug.LogWarning("[PersistentTrainingManager] Cannot import null training data");
+                System.Console.WriteLine("[PersistentTrainingManager] WARNING: Cannot import null training data");
                 return;
             }
             
@@ -189,11 +189,11 @@ namespace AFLCoachSim.Core.Training
                 }
                 SetAllPlayerEfficiencies(efficiencies);
                 
-                UnityEngine.Debug.Log($"[PersistentTrainingManager] Imported training data: {potentials.Count} potentials, {enrollments.Sum(kvp => kvp.Value.Count)} enrollments");
+                System.Console.WriteLine($"[PersistentTrainingManager] Imported training data: {potentials.Count} potentials, {enrollments.Sum(kvp => kvp.Value.Count)} enrollments");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to import training data: {e.Message}");
+                System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to import training data: {e.Message}");
             }
         }
 
@@ -204,7 +204,7 @@ namespace AFLCoachSim.Core.Training
         {
             ClearAllMemoryData();
             _repository.ClearAllTrainingData();
-            UnityEngine.Debug.Log("[PersistentTrainingManager] Cleared all training data");
+            System.Console.WriteLine("[PersistentTrainingManager] Cleared all training data");
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace AFLCoachSim.Core.Training
         {
             ClearPlayerMemoryData(playerId);
             _repository.ClearPlayerTrainingData(playerId);
-            UnityEngine.Debug.Log($"[PersistentTrainingManager] Cleared training data for player {playerId}");
+            System.Console.WriteLine($"[PersistentTrainingManager] Cleared training data for player {playerId}");
         }
 
         #endregion
@@ -264,11 +264,11 @@ namespace AFLCoachSim.Core.Training
                         _repository.SavePlayerEnrollments(playerId, enrollments);
                     }
                     
-                    UnityEngine.Debug.Log($"[PersistentTrainingManager] Auto-saved session completion: {session.Id}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] Auto-saved session completion: {session.Id}");
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to auto-save session: {e.Message}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to auto-save session: {e.Message}");
                 }
             }
         }
@@ -280,11 +280,11 @@ namespace AFLCoachSim.Core.Training
                 try
                 {
                     _repository.SavePlayerEnrollment(enrollment);
-                    UnityEngine.Debug.Log($"[PersistentTrainingManager] Auto-saved enrollment: Player {playerId} in {enrollment.ProgramId}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] Auto-saved enrollment: Player {playerId} in {enrollment.ProgramId}");
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to auto-save enrollment: {e.Message}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to auto-save enrollment: {e.Message}");
                 }
             }
         }
@@ -297,11 +297,11 @@ namespace AFLCoachSim.Core.Training
                 {
                     var enrollments = GetPlayerEnrollments(playerId);
                     _repository.SavePlayerEnrollments(playerId, enrollments);
-                    UnityEngine.Debug.Log($"[PersistentTrainingManager] Auto-saved program completion: Player {playerId} completed {programId}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] Auto-saved program completion: Player {playerId} completed {programId}");
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to auto-save program completion: {e.Message}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to auto-save program completion: {e.Message}");
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace AFLCoachSim.Core.Training
             {
                 if (!_repository.HasTrainingData())
                 {
-                    UnityEngine.Debug.Log("[PersistentTrainingManager] No existing training data found, starting fresh");
+                    System.Console.WriteLine("[PersistentTrainingManager] No existing training data found, starting fresh");
                     return;
                 }
                 
@@ -324,11 +324,11 @@ namespace AFLCoachSim.Core.Training
                 ImportTrainingData(trainingData);
                 
                 _lastSave = DateTime.Now;
-                UnityEngine.Debug.Log("[PersistentTrainingManager] Loaded all training data from persistence");
+                System.Console.WriteLine("[PersistentTrainingManager] Loaded all training data from persistence");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to load training data from persistence: {e.Message}");
+                System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to load training data from persistence: {e.Message}");
             }
         }
 
@@ -403,11 +403,11 @@ namespace AFLCoachSim.Core.Training
             {
                 string backupSuffix = suffix ?? DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 _repository.BackupTrainingData(backupSuffix);
-                UnityEngine.Debug.Log($"[PersistentTrainingManager] Created backup with suffix: {backupSuffix}");
+                System.Console.WriteLine($"[PersistentTrainingManager] Created backup with suffix: {backupSuffix}");
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to create backup: {e.Message}");
+                System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to create backup: {e.Message}");
             }
         }
 
@@ -422,13 +422,13 @@ namespace AFLCoachSim.Core.Training
                 if (success)
                 {
                     LoadAllData(); // Reload the restored data
-                    UnityEngine.Debug.Log($"[PersistentTrainingManager] Restored from backup: {suffix}");
+                    System.Console.WriteLine($"[PersistentTrainingManager] Restored from backup: {suffix}");
                 }
                 return success;
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError($"[PersistentTrainingManager] Failed to restore from backup: {e.Message}");
+                System.Console.WriteLine($"[PersistentTrainingManager] ERROR: Failed to restore from backup: {e.Message}");
                 return false;
             }
         }

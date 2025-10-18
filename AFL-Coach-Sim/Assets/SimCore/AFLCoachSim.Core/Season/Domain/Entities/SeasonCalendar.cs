@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Season.Domain.ValueObjects;
+using AFLCoachSim.Core.Engine.Match.Weather;
 using AFLCoachSim.Core.Engine.Match;
 
 namespace AFLCoachSim.Core.Season.Domain.Entities
@@ -117,7 +118,7 @@ namespace AFLCoachSim.Core.Season.Domain.Entities
                 teamCounts[match.AwayTeam] = teamCounts.GetValueOrDefault(match.AwayTeam) + 1;
             }
             
-            foreach (var team in Enum.GetValues<TeamId>().Where(t => t != TeamId.None))
+            foreach (var team in TeamId.GetAllTeams())
             {
                 var expectedMatches = TotalRounds - 1; // Account for bye rounds
                 if (teamCounts.GetValueOrDefault(team) != expectedMatches)
@@ -267,13 +268,13 @@ namespace AFLCoachSim.Core.Season.Domain.Entities
         public ValidationResult Validate()
         {
             var result = new ValidationResult();
-            var totalTeams = Enum.GetValues<TeamId>().Count(t => t != TeamId.None);
+            var totalTeams = TeamId.GetAllTeams().Length;
             
             // Check all teams have exactly one bye
             var allByeTeams = ByeRoundAssignments.Values.SelectMany(teams => teams).ToList();
             var teamByeCounts = allByeTeams.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
             
-            foreach (var team in Enum.GetValues<TeamId>().Where(t => t != TeamId.None))
+            foreach (var team in TeamId.GetAllTeams())
             {
                 var byeCount = teamByeCounts.GetValueOrDefault(team, 0);
                 if (byeCount != 1)

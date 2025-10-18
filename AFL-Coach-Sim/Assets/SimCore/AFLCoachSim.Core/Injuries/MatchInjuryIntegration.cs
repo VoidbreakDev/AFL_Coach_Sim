@@ -4,7 +4,6 @@ using AFLCoachSim.Core.Injuries.Domain;
 using AFLCoachSim.Core.Engine.Match.Injury;
 using AFLCoachSim.Core.Engine.Match.Runtime;
 using AFLCoachSim.Core.Engine.Match;
-using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Injuries
 {
@@ -43,7 +42,7 @@ namespace AFLCoachSim.Core.Injuries
         /// </summary>
         public void ApplyInjuryStatusToRuntime(PlayerRuntime playerRuntime)
         {
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             
             // Get current injury impact from injury manager
             float performanceMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerId);
@@ -70,7 +69,7 @@ namespace AFLCoachSim.Core.Injuries
         /// </summary>
         public void UpdatePlayerConditionFromMatch(PlayerRuntime playerRuntime, int minutesPlayed, float fatigueAccumulated)
         {
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             
             // Calculate if match participation affected injury recovery
             if (_injuryManager.IsPlayerInjured(playerId))
@@ -82,7 +81,7 @@ namespace AFLCoachSim.Core.Injuries
                     // Playing with injuries may slow recovery
                     if (minutesPlayed > 0 && injury.Severity >= InjurySeverity.Moderate)
                     {
-                        CoreLogger.Log($"[MatchInjuryIntegration] Player {playerId} played {minutesPlayed} minutes with {injury.Severity} injury - may affect recovery");
+                        Console.WriteLine($"[MatchInjuryIntegration] Player {playerId} played {minutesPlayed} minutes with {injury.Severity} injury - may affect recovery");
                     }
                 }
             }
@@ -127,7 +126,7 @@ namespace AFLCoachSim.Core.Injuries
         
         private Injury ConvertMatchInjuryToDomain(PlayerRuntime playerRuntime, Phase currentPhase)
         {
-            var playerId = playerRuntime.Player.ID;
+            var playerId = playerRuntime.Player.Id;
             var matchSeverity = ConvertRuntimeToSeverity(playerRuntime);
             var gameContext = GetGameContextMultiplier(currentPhase);
             
@@ -177,7 +176,7 @@ namespace AFLCoachSim.Core.Injuries
             // The injury is already recorded by the injury manager in ConvertMatchInjuryToDomain
             // This method can be used for additional processing if needed
             
-            CoreLogger.Log($"[MatchInjuryIntegration] Match injury recorded: Player {injury.PlayerId} - {injury.Description}");
+            Console.WriteLine($"[MatchInjuryIntegration] Match injury recorded: Player {injury.PlayerId} - {injury.Description}");
             
             // Update the runtime to reflect the recorded injury
             SyncRuntimeWithInjury(playerRuntime, injury);
@@ -186,7 +185,7 @@ namespace AFLCoachSim.Core.Injuries
         private void SyncRuntimeWithInjury(PlayerRuntime playerRuntime, Injury injury)
         {
             // Ensure the runtime matches the injury system state
-            var currentMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerRuntime.Player.ID);
+            var currentMultiplier = _injuryManager.GetPlayerPerformanceMultiplier(playerRuntime.Player.Id);
             playerRuntime.InjuryMult = currentMultiplier;
             
             if (injury.Severity >= InjurySeverity.Moderate)
@@ -262,7 +261,7 @@ namespace AFLCoachSim.Core.Injuries
         {
             foreach (var player in allPlayers)
             {
-                var minutes = minutesPlayed.GetValueOrDefault(player.Player.ID, 0);
+                var minutes = minutesPlayed.GetValueOrDefault(player.Player.Id.Value, 0);
                 var fatigue = (1.0f - player.FatigueMult) * 100f; // Convert to 0-100 scale
                 
                 UpdatePlayerConditionFromMatch(player, minutes, fatigue);

@@ -1,5 +1,7 @@
 using System;
-
+using System.Collections.Generic;
+using System.Linq;
+using AFLCoachSim.Core.Domain.ValueObjects;
 namespace AFLCoachSim.Core.Season.Domain.ValueObjects
 {
     /// <summary>

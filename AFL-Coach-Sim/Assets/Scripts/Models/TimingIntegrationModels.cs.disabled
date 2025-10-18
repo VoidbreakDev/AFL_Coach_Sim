@@ -1,0 +1,311 @@
+// File: Assets/Scripts/Models/TimingIntegrationModels.cs
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLManager.Systems.Training; // For existing enums
+
+namespace AFLManager.Models
+{
+    /// <summary>
+    /// Enhanced season schedule with timing integration capabilities
+    /// Compatible with existing SeasonSchedule while adding timing features
+    /// </summary>
+    [Serializable]
+    public class TimingEnabledSeasonSchedule : SeasonSchedule
+    {
+        [Header("Timing Integration")]
+        public TimingIntegrationConfiguration TimingConfiguration;
+        public TimingSeasonGenerationOptions GenerationOptions;
+        
+        [Header("Season Metadata")]
+        public DateTime GeneratedDate;
+        public DateTime SeasonStartDate;
+        public int TotalRounds;
+        
+        // Enhanced fixtures with timing data
+        public List<TimingEnabledMatch> TimingFixtures = new List<TimingEnabledMatch>();
+        
+        /// <summary>
+        /// Get matches for a specific round
+        /// </summary>
+        public List<TimingEnabledMatch> GetRoundFixtures(int round)
+        {
+            return TimingFixtures?.FindAll(f => f.Round == round) ?? new List<TimingEnabledMatch>();
+        }
+        
+        /// <summary>
+        /// Get all matches involving a specific team
+        /// </summary>
+        public List<TimingEnabledMatch> GetTeamFixtures(string teamId)
+        {
+            return TimingFixtures?.FindAll(f => f.HomeTeamId == teamId || f.AwayTeamId == teamId) ?? new List<TimingEnabledMatch>();
+        }
+        
+        /// <summary>
+        /// Convert to standard fixtures for backward compatibility
+        /// </summary>
+        public List<Match> GetStandardFixtures()
+        {
+            var standardFixtures = new List<Match>();
+            foreach (var timingMatch in TimingFixtures)
+            {
+                standardFixtures.Add(new Match
+                {
+                    HomeTeamId = timingMatch.HomeTeamId,
+                    AwayTeamId = timingMatch.AwayTeamId,
+                    FixtureDate = timingMatch.FixtureDate,
+                    Result = timingMatch.Result
+                });
+            }
+            return standardFixtures;
+        }
+        
+        /// <summary>
+        /// Get timing statistics for the season
+        /// </summary>
+        public SeasonTimingStats GetTimingStatistics()
+        {
+            var stats = new SeasonTimingStats();
+            
+            if (TimingFixtures != null)
+            {
+                stats.TotalMatches = TimingFixtures.Count;
+                stats.PlayerTeamMatches = TimingFixtures.Count(f => f.IsPlayerTeamMatch);
+                stats.RivalryMatches = TimingFixtures.Count(f => f.IsRivalryMatch);
+                stats.CloseMatches = TimingFixtures.Count(f => f.IsCloseMatch);
+                
+                foreach (var fixture in TimingFixtures)
+                {
+                    if (fixture.PreferredTimingSystem.HasValue)
+                    {
+                        var system = fixture.PreferredTimingSystem.Value;
+                        if (!stats.TimingSystemDistribution.ContainsKey(system))
+                            stats.TimingSystemDistribution[system] = 0;
+                        stats.TimingSystemDistribution[system]++;
+                    }
+                }
+            }
+            
+            return stats;
+        }
+    }
+    
+    /// <summary>
+    /// Enhanced match with timing system integration
+    /// Compatible with existing Match while adding timing metadata
+    /// </summary>
+    [Serializable]
+    public class TimingEnabledMatch : Match
+    {
+        [Header("Timing Integration")]
+        public MatchType MatchType = MatchType.Regular;
+        public AFLManager.Systems.Training.SeasonPhase SeasonPhase = AFLManager.Systems.Training.SeasonPhase.MidSeason;
+        public bool IsPlayerTeamMatch;
+        public bool IsRivalryMatch;
+        public bool IsCloseMatch;
+        public int ExpectedMargin;
+        public AFLCoachSim.Core.Engine.Match.Weather Weather = AFLCoachSim.Core.Engine.Match.Weather.Clear;
+        public string Venue;
+        
+        [Header("Timing System Preferences")]
+        public TimingSystemType? PreferredTimingSystem;
+        public TimingIntegrationConfiguration TimingConfiguration;
+        
+        [Header("Match Metadata")]
+        public string HomeTeamName;
+        public string AwayTeamName;
+        public float ImportanceRating = 0.5f;
+        public int ExpectedAttendance = 35000;
+        public List<string> ScheduleNotes = new List<string>();
+        
+        public int Round;
+        
+        /// <summary>
+        /// Create a timing request for this match
+        /// </summary>
+        public MatchTimingRequest CreateTimingRequest(PlayerExperienceLevel playerExperience = PlayerExperienceLevel.Intermediate)
+        {
+            return new MatchTimingRequest
+            {
+                MatchType = MatchType,
+                SeasonPhase = SeasonPhase,
+                CurrentRound = Round,
+                TotalRounds = 23, // Default, should be set from season context
+                IsPlayerTeamMatch = IsPlayerTeamMatch,
+                IsCloseMatch = IsCloseMatch,
+                IsRivalryMatch = IsRivalryMatch,
+                ExpectedMargin = ExpectedMargin,
+                PlayerExperienceLevel = playerExperience,
+                HomeTeamId = new AFLCoachSim.Core.Domain.ValueObjects.TeamId(HomeTeamId),
+                AwayTeamId = new AFLCoachSim.Core.Domain.ValueObjects.TeamId(AwayTeamId),
+                MatchDate = FixtureDate
+            };
+        }
+        
+        /// <summary>
+        /// Convert to standard Match for backward compatibility
+        /// </summary>
+        public Match ToStandardMatch()
+        {
+            return new Match
+            {
+                HomeTeamId = this.HomeTeamId,
+                AwayTeamId = this.AwayTeamId,
+                FixtureDate = this.FixtureDate,
+                Result = this.Result
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Options for timing-integrated season generation
+    /// </summary>
+    [Serializable]
+    public class TimingSeasonGenerationOptions
+    {
+        [Header("Basic Schedule")]
+        public int DaysBetweenMatches = 7;
+        public bool DoubleRoundRobin = true;
+        public int TotalRounds = 23;
+        public int FinalsWeeks = 4;
+        
+        [Header("Team Context")]
+        public string PlayerTeamId;
+        public PlayerExperienceLevel PlayerExperienceLevel = PlayerExperienceLevel.Intermediate;
+        public Dictionary<string, List<string>> RivalryPairs = new Dictionary<string, List<string>>();
+        
+        [Header("Match Enhancement")]
+        public bool EnableSpecialMatches = true;
+        public bool EnableRivalryDetection = true;
+        public bool EnableWeatherVariation = true;
+        public bool EnableVenueAssignment = false;
+        
+        [Header("Timing System Integration")]
+        public bool EnableTimingSystemRecommendations = true;
+        public TimingSystemType DefaultTimingSystem = TimingSystemType.VariableSpeed;
+        
+        public static TimingSeasonGenerationOptions Default => new TimingSeasonGenerationOptions
+        {
+            DaysBetweenMatches = 7,
+            DoubleRoundRobin = true,
+            TotalRounds = 23,
+            FinalsWeeks = 4,
+            EnableSpecialMatches = true,
+            EnableRivalryDetection = true,
+            EnableWeatherVariation = true,
+            EnableTimingSystemRecommendations = true,
+            DefaultTimingSystem = TimingSystemType.VariableSpeed
+        };
+    }
+    
+    /// <summary>
+    /// Statistics about timing systems in a season
+    /// </summary>
+    [Serializable]
+    public class SeasonTimingStats
+    {
+        public int TotalMatches;
+        public int PlayerTeamMatches;
+        public int RivalryMatches;
+        public int CloseMatches;
+        public Dictionary<TimingSystemType, int> TimingSystemDistribution = new Dictionary<TimingSystemType, int>();
+        
+        public float GetTimingSystemPercentage(TimingSystemType system)
+        {
+            if (TotalMatches == 0) return 0f;
+            return (TimingSystemDistribution.GetValueOrDefault(system, 0) / (float)TotalMatches) * 100f;
+        }
+    }
+    
+    /// <summary>
+    /// Types of matches for timing configuration purposes
+    /// Note: Using custom MatchType enum as existing codebase doesn't have this specific enum
+    /// </summary>
+    public enum MatchType
+    {
+        Regular = 0,
+        Final = 1,
+        PreliminaryFinal = 2,
+        GrandFinal = 3,
+        Practice = 4,
+        Simulation = 5,
+        Special = 6  // For ANZAC Day, Christmas, etc.
+    }
+    
+    /// <summary>
+    /// Player experience levels for timing adjustments
+    /// Note: Using custom PlayerExperienceLevel enum as existing codebase doesn't have this specific enum
+    /// </summary>
+    public enum PlayerExperienceLevel
+    {
+        Beginner = 0,
+        Intermediate = 1,
+        Advanced = 2,
+        Expert = 3
+    }
+    
+    // Note: Using existing enums from codebase:
+    // - SeasonPhase from AFLManager.Systems.Training (SeasonTrainingCalendarData.cs)
+    // - Weather from AFLCoachSim.Core.Engine.Match.Weather
+    // - MatchContextType from AFLManager.Systems.Training (SeasonTrainingCalendarData.cs)
+}
+
+// Extension methods to make working with timing models easier
+public static class TimingModelExtensions
+{
+    /// <summary>
+    /// Convert standard SeasonSchedule to TimingEnabledSeasonSchedule
+    /// </summary>
+    public static TimingEnabledSeasonSchedule ToTimingEnabled(this SeasonSchedule schedule)
+    {
+        var timingSchedule = new TimingEnabledSeasonSchedule
+        {
+            Level = schedule.Level,
+            Fixtures = schedule.Fixtures,
+            GeneratedDate = DateTime.Now,
+            SeasonStartDate = DateTime.Today,
+            TotalRounds = 23
+        };
+        
+        // Convert standard fixtures to timing fixtures
+        if (schedule.Fixtures != null)
+        {
+            foreach (var fixture in schedule.Fixtures)
+            {
+                var timingFixture = new TimingEnabledMatch
+                {
+                    HomeTeamId = fixture.HomeTeamId,
+                    AwayTeamId = fixture.AwayTeamId,
+                    FixtureDate = fixture.FixtureDate,
+                    Result = fixture.Result,
+                    HomeTeamName = fixture.HomeTeamId, // Could be enhanced with team name lookup
+                    AwayTeamName = fixture.AwayTeamId,
+                    MatchType = MatchType.Regular,
+                    SeasonPhase = AFLManager.Systems.Training.SeasonPhase.MidSeason,
+                    Weather = AFLCoachSim.Core.Engine.Match.Weather.Clear
+                };
+                timingSchedule.TimingFixtures.Add(timingFixture);
+            }
+        }
+        
+        return timingSchedule;
+    }
+    
+    /// <summary>
+    /// Check if a match involves a specific team
+    /// </summary>
+    public static bool Involves(this TimingEnabledMatch match, string teamId)
+    {
+        return match.HomeTeamId == teamId || match.AwayTeamId == teamId;
+    }
+    
+    /// <summary>
+    /// Get a stable ID for a timing-enabled match
+    /// </summary>
+    public static string GetStableId(this TimingEnabledMatch match)
+    {
+        return $"{match.Round}_{match.HomeTeamId}_{match.AwayTeamId}";
+    }
+}

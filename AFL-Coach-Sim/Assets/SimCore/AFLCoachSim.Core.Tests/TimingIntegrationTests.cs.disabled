@@ -1,0 +1,414 @@
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using AFLCoachSim.Core.Engine.Match;
+using AFLCoachSim.Core.Engine.Match.Timing;
+using AFLCoachSim.Core.Engine.Match.Integration;
+using AFLCoachSim.Core.Domain.Aggregates;
+using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Data;
+using AFLCoachSim.Core.DTO;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Engine.Simulation;
+
+namespace AFLCoachSim.Core.Tests
+{
+    /// <summary>
+    /// Integration tests for timing systems with the match engine.
+    /// Tests that compressed and variable speed timing systems work correctly and produce expected results.
+    /// </summary>
+    [TestFixture]
+    public class TimingIntegrationTests
+    {
+        private InjuryManager _injuryManager;
+        private Dictionary<TeamId, Team> _teams;
+        private Dictionary<TeamId, List<Domain.Entities.Player>> _rosters;
+        private TeamId _homeTeamId;
+        private TeamId _awayTeamId;
+        
+        [SetUp]
+        public void Setup()
+        {
+            // Create test injury manager
+            _injuryManager = new InjuryManager();
+            
+            // Create test teams
+            _homeTeamId = new TeamId("TestHome");
+            _awayTeamId = new TeamId("TestAway");
+            
+            _teams = new Dictionary<TeamId, Team>
+            {
+                { _homeTeamId, new Team(_homeTeamId, "Test Home", 80.0, 78.0) },
+                { _awayTeamId, new Team(_awayTeamId, "Test Away", 82.0, 80.0) }
+            };
+            
+            // Create test rosters
+            _rosters = new Dictionary<TeamId, List<Domain.Entities.Player>>
+            {
+                { _homeTeamId, CreateTestRoster("Home") },
+                { _awayTeamId, CreateTestRoster("Away") }
+            };
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_WithStandardTiming_CompletesMatch()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Standard);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            var rng = new DeterministicRandom(12345);
+            
+            // Act
+            var result = engine.PlayMatch(
+                1, _homeTeamId, _awayTeamId, _teams, _rosters,
+                rng: rng, quarterSeconds: 5 * 60 // Shortened for test
+            );
+            
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Round);
+            Assert.AreEqual(_homeTeamId, result.Home);
+            Assert.AreEqual(_awayTeamId, result.Away);
+            Assert.That(result.HomeScore, Is.GreaterThanOrEqualTo(0));
+            Assert.That(result.AwayScore, Is.GreaterThanOrEqualTo(0));
+            Assert.AreEqual(TimingSystemType.Standard, engine.ActiveTimingSystem);
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_WithCompressedTiming_CompletesMatch()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Compressed);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            var rng = new DeterministicRandom(12345);
+            
+            // Act
+            var startTime = DateTime.Now;
+            var result = engine.PlayMatch(
+                1, _homeTeamId, _awayTeamId, _teams, _rosters,
+                rng: rng, quarterSeconds: 5 * 60
+            );
+            var endTime = DateTime.Now;
+            
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(_homeTeamId, result.Home);
+            Assert.AreEqual(_awayTeamId, result.Away);
+            Assert.AreEqual(TimingSystemType.Compressed, engine.ActiveTimingSystem);
+            
+            // Compressed timing should complete faster (this is a rough check)
+            var duration = (endTime - startTime).TotalSeconds;
+            Assert.That(duration, Is.LessThan(60), "Compressed timing should complete quickly in test");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_WithVariableSpeedTiming_CompletesMatch()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.VariableSpeed);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            var rng = new DeterministicRandom(12345);
+            
+            // Act
+            var result = engine.PlayMatch(
+                1, _homeTeamId, _awayTeamId, _teams, _rosters,
+                rng: rng, quarterSeconds: 5 * 60
+            );
+            
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(_homeTeamId, result.Home);
+            Assert.AreEqual(_awayTeamId, result.Away);
+            Assert.AreEqual(TimingSystemType.VariableSpeed, engine.ActiveTimingSystem);
+            
+            // Should be able to get speed statistics
+            var stats = engine.GetCurrentTimingStatistics();
+            Assert.IsNotNull(stats);
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_CanSwitchTimingSystemsWhenAllowed()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Standard);
+            config.AllowRuntimeTimingSwitch = true;
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act & Assert
+            Assert.AreEqual(TimingSystemType.Standard, engine.ActiveTimingSystem);
+            
+            bool switched1 = engine.SwitchTimingSystem(TimingSystemType.Compressed);
+            Assert.IsTrue(switched1);
+            Assert.AreEqual(TimingSystemType.Compressed, engine.ActiveTimingSystem);
+            
+            bool switched2 = engine.SwitchTimingSystem(TimingSystemType.VariableSpeed);
+            Assert.IsTrue(switched2);
+            Assert.AreEqual(TimingSystemType.VariableSpeed, engine.ActiveTimingSystem);
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_CannotSwitchWhenNotAllowed()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Standard);
+            config.AllowRuntimeTimingSwitch = false;
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act
+            bool switched = engine.SwitchTimingSystem(TimingSystemType.Compressed);
+            
+            // Assert
+            Assert.IsFalse(switched);
+            Assert.AreEqual(TimingSystemType.Standard, engine.ActiveTimingSystem);
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_VariableSpeed_CanControlSpeed()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.VariableSpeed);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act & Assert
+            bool speedSet1 = engine.SetMatchSpeed(2.5f);
+            Assert.IsTrue(speedSet1, "Should be able to set speed for variable speed timing");
+            
+            bool speedSet2 = engine.SetMatchSpeed(5.0f);
+            Assert.IsTrue(speedSet2, "Should be able to set maximum speed");
+            
+            bool speedSet3 = engine.SetMatchSpeed(1.0f);
+            Assert.IsTrue(speedSet3, "Should be able to set minimum speed");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_StandardTiming_CannotControlSpeed()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Standard);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act
+            bool speedSet = engine.SetMatchSpeed(3.0f);
+            
+            // Assert
+            Assert.IsFalse(speedSet, "Standard timing should not allow speed control");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_VariableSpeed_CanPauseAndResume()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.VariableSpeed);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act & Assert
+            Assert.IsFalse(engine.IsMatchPaused, "Should not be paused initially");
+            
+            bool paused = engine.PauseMatch();
+            Assert.IsTrue(paused, "Should be able to pause variable speed timing");
+            Assert.IsTrue(engine.IsMatchPaused, "Should be paused after pause call");
+            
+            bool resumed = engine.ResumeMatch();
+            Assert.IsTrue(resumed, "Should be able to resume from pause");
+            Assert.IsFalse(engine.IsMatchPaused, "Should not be paused after resume");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_CompressedTiming_CannotPause()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Compressed);
+            var engine = new TimingIntegratedMatchEngine(config, _injuryManager);
+            
+            // Act
+            bool paused = engine.PauseMatch();
+            
+            // Assert
+            Assert.IsFalse(paused, "Compressed timing should not allow manual pause");
+            Assert.IsFalse(engine.IsMatchPaused, "Should not be paused");
+        }
+        
+        [Test]
+        public void CompressedTimingAdapter_GeneratesTacticalSuggestions()
+        {
+            // Arrange
+            var config = CompressedTimingConfiguration.Default;
+            config.EnableAICoachIntegration = true;
+            var adapter = new CompressedTimingAdapter(config);
+            
+            var snapshot = new MatchSnapshot
+            {
+                Quarter = 4,
+                TimeRemaining = 300, // 5 minutes left
+                HomePoints = 85,
+                AwayPoints = 87, // Away ahead by 2 points
+                Phase = Phase.Inside50
+            };
+            
+            // Act
+            var suggestions = adapter.GenerateTacticalSuggestions(snapshot, Phase.Inside50);
+            
+            // Assert
+            Assert.IsNotNull(suggestions);
+            Assert.That(suggestions.Count, Is.GreaterThan(0), "Should generate tactical suggestions");
+            
+            // Should have suggestions for late match situation
+            var hasRelevantSuggestion = suggestions.Exists(s => 
+                s.Type == TacticalSuggestionType.Formation || 
+                s.Type == TacticalSuggestionType.Mental);
+            Assert.IsTrue(hasRelevantSuggestion, "Should have relevant tactical suggestions for match context");
+        }
+        
+        [Test]
+        public void VariableSpeedTimingAdapter_GeneratesSpeedRecommendations()
+        {
+            // Arrange
+            var config = VariableSpeedConfiguration.Default;
+            var adapter = new VariableSpeedTimingAdapter(config);
+            
+            var snapshot = new MatchSnapshot
+            {
+                Quarter = 4,
+                TimeRemaining = 120, // 2 minutes left
+                HomePoints = 78,
+                AwayPoints = 80, // Close match
+                Phase = Phase.ShotOnGoal
+            };
+            
+            // Act
+            var recommendations = adapter.GenerateSpeedRecommendations(snapshot, Phase.ShotOnGoal);
+            
+            // Assert
+            Assert.IsNotNull(recommendations);
+            Assert.That(recommendations.Count, Is.GreaterThan(0), "Should generate speed recommendations");
+            
+            // Should recommend slow speed for shots and final minutes
+            var hasSlowRecommendation = recommendations.Exists(r => r.Speed <= 1.5f);
+            Assert.IsTrue(hasSlowRecommendation, "Should recommend slower speed for shots in close finish");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_ProducesConsistentResults()
+        {
+            // Arrange
+            var config = CreateTestConfig(TimingSystemType.Standard);
+            var engine1 = new TimingIntegratedMatchEngine(config, _injuryManager);
+            var engine2 = new TimingIntegratedMatchEngine(config, _injuryManager);
+            var seed = 12345;
+            var rng1 = new DeterministicRandom(seed);
+            var rng2 = new DeterministicRandom(seed);
+            
+            // Act
+            var result1 = engine1.PlayMatch(1, _homeTeamId, _awayTeamId, _teams, _rosters, rng: rng1, quarterSeconds: 5 * 60);
+            var result2 = engine2.PlayMatch(1, _homeTeamId, _awayTeamId, _teams, _rosters, rng: rng2, quarterSeconds: 5 * 60);
+            
+            // Assert
+            Assert.AreEqual(result1.HomeScore, result2.HomeScore, "Home scores should be identical with same seed");
+            Assert.AreEqual(result1.AwayScore, result2.AwayScore, "Away scores should be identical with same seed");
+        }
+        
+        [Test]
+        public void TimingIntegratedMatchEngine_DifferentTimingSystems_ProduceDifferentExperiences()
+        {
+            // Arrange
+            var standardConfig = CreateTestConfig(TimingSystemType.Standard);
+            var compressedConfig = CreateTestConfig(TimingSystemType.Compressed);
+            var variableConfig = CreateTestConfig(TimingSystemType.VariableSpeed);
+            
+            var standardEngine = new TimingIntegratedMatchEngine(standardConfig, _injuryManager);
+            var compressedEngine = new TimingIntegratedMatchEngine(compressedConfig, _injuryManager);
+            var variableEngine = new TimingIntegratedMatchEngine(variableConfig, _injuryManager);
+            
+            var seed = 12345;
+            
+            // Act
+            var standardStart = DateTime.Now;
+            var standardResult = standardEngine.PlayMatch(1, _homeTeamId, _awayTeamId, _teams, _rosters, 
+                rng: new DeterministicRandom(seed), quarterSeconds: 5 * 60);
+            var standardDuration = (DateTime.Now - standardStart).TotalMilliseconds;
+            
+            var compressedStart = DateTime.Now;
+            var compressedResult = compressedEngine.PlayMatch(1, _homeTeamId, _awayTeamId, _teams, _rosters, 
+                rng: new DeterministicRandom(seed), quarterSeconds: 5 * 60);
+            var compressedDuration = (DateTime.Now - compressedStart).TotalMilliseconds;
+            
+            var variableStart = DateTime.Now;
+            var variableResult = variableEngine.PlayMatch(1, _homeTeamId, _awayTeamId, _teams, _rosters, 
+                rng: new DeterministicRandom(seed), quarterSeconds: 5 * 60);
+            var variableDuration = (DateTime.Now - variableStart).TotalMilliseconds;
+            
+            // Assert
+            Assert.IsNotNull(standardResult);
+            Assert.IsNotNull(compressedResult);
+            Assert.IsNotNull(variableResult);
+            
+            // All should complete successfully
+            Assert.That(standardResult.HomeScore, Is.GreaterThanOrEqualTo(0));
+            Assert.That(compressedResult.HomeScore, Is.GreaterThanOrEqualTo(0));
+            Assert.That(variableResult.HomeScore, Is.GreaterThanOrEqualTo(0));
+            
+            // Timing systems should be set correctly
+            Assert.AreEqual(TimingSystemType.Standard, standardEngine.ActiveTimingSystem);
+            Assert.AreEqual(TimingSystemType.Compressed, compressedEngine.ActiveTimingSystem);
+            Assert.AreEqual(TimingSystemType.VariableSpeed, variableEngine.ActiveTimingSystem);
+            
+            // Different timing systems should provide different statistics
+            var standardStats = standardEngine.GetCurrentTimingStatistics();
+            var compressedStats = compressedEngine.GetCurrentTimingStatistics();
+            var variableStats = variableEngine.GetCurrentTimingStatistics();
+            
+            // Statistics should be different types
+            Assert.AreNotEqual(standardStats?.GetType(), compressedStats?.GetType());
+            Assert.AreNotEqual(standardStats?.GetType(), variableStats?.GetType());
+            Assert.AreNotEqual(compressedStats?.GetType(), variableStats?.GetType());
+        }
+        
+        // Helper methods
+        private TimingIntegrationConfiguration CreateTestConfig(TimingSystemType timingSystem)
+        {
+            return new TimingIntegrationConfiguration
+            {
+                DefaultTimingSystem = timingSystem,
+                AllowRuntimeTimingSwitch = true,
+                EnableTimingTelemetry = true,
+                CompressedTimingConfig = new CompressedTimingConfiguration
+                {
+                    TargetMatchDurationMinutes = 10f, // Short for testing
+                    EnableAICoachIntegration = true,
+                    AutoPauseForGoals = true
+                },
+                VariableSpeedConfig = new VariableSpeedConfiguration
+                {
+                    DefaultSpeedMultiplier = 2.0f,
+                    AutoPauseForGoals = true,
+                    AutoPauseForInjuries = true
+                },
+                StandardTimingConfig = EnhancedTimingConfiguration.Default
+            };
+        }
+        
+        private List<Domain.Entities.Player> CreateTestRoster(string teamPrefix)
+        {
+            var roster = new List<Domain.Entities.Player>();
+            
+            for (int i = 1; i <= 25; i++)
+            {
+                roster.Add(new Domain.Entities.Player
+                {
+                    PlayerId = $"{teamPrefix}_Player_{i:D2}",
+                    Name = $"{teamPrefix} Test Player {i}",
+                    Age = 25,
+                    Kicking = 80,
+                    Handballing = 80,
+                    Marking = 80,
+                    Tackling = 80,
+                    Speed = 80,
+                    Endurance = 80,
+                    Condition = 100
+                });
+            }
+            
+            return roster;
+        }
+    }
+}

@@ -68,12 +68,12 @@ namespace AFLCoachSim.Core.Training
                     {DevelopmentStage.Prime, 1.0f},
                     {DevelopmentStage.Veteran, 0.8f}
                 },
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.Centre, 1.4f},
-                    {Position.Wing, 1.3f},
-                    {Position.HalfForward, 1.1f},
-                    {Position.HalfBack, 1.1f}
+                    {Role.MID, 1.4f},
+                    {Role.WING, 1.3f},
+                    {Role.HFF, 1.1f},
+                    {Role.HBF, 1.1f}
                 }
             };
         }
@@ -98,12 +98,12 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.0f,
                 InjuryRiskModifier = 1.3f,
                 FatigueRateModifier = 1.4f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.Ruckman, 1.5f},
-                    {Position.FullForward, 1.3f},
-                    {Position.FullBack, 1.3f},
-                    {Position.Centre, 1.2f}
+                    {Role.RUC, 1.5f},
+                    {Role.KPF, 1.3f},
+                    {Role.KPD, 1.3f},
+                    {Role.MID, 1.2f}
                 }
             };
         }
@@ -128,12 +128,12 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.1f,
                 InjuryRiskModifier = 1.1f,
                 FatigueRateModifier = 1.2f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.Wing, 1.4f},
-                    {Position.HalfForward, 1.3f},
-                    {Position.ForwardPocket, 1.2f},
-                    {Position.BackPocket, 1.2f}
+                    {Role.WING, 1.4f},
+                    {Role.HFF, 1.3f},
+                    {Role.SMLF, 1.2f},
+                    {Role.SMLB, 1.2f}
                 }
             };
         }
@@ -221,12 +221,12 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.4f,
                 InjuryRiskModifier = 0.6f,
                 FatigueRateModifier = 0.8f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.HalfBack, 1.5f},
-                    {Position.Centre, 1.3f},
-                    {Position.Wing, 1.3f},
-                    {Position.HalfForward, 1.2f}
+                    {Role.HBF, 1.5f},
+                    {Role.MID, 1.3f},
+                    {Role.WING, 1.3f},
+                    {Role.HFF, 1.2f}
                 }
             };
         }
@@ -250,13 +250,13 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.3f,
                 InjuryRiskModifier = 0.9f,
                 FatigueRateModifier = 1.0f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.FullForward, 1.4f},
-                    {Position.FullBack, 1.4f},
-                    {Position.Ruckman, 1.3f},
-                    {Position.HalfForward, 1.2f},
-                    {Position.HalfBack, 1.2f}
+                    {Role.KPF, 1.4f},
+                    {Role.KPD, 1.4f},
+                    {Role.RUC, 1.3f},
+                    {Role.HFF, 1.2f},
+                    {Role.HBF, 1.2f}
                 }
             };
         }
@@ -280,11 +280,11 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.2f,
                 InjuryRiskModifier = 0.5f,
                 FatigueRateModifier = 0.7f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.Centre, 1.4f},
-                    {Position.Rover, 1.4f},
-                    {Position.RuckRover, 1.3f}
+                    {Role.MID, 1.4f},
+                    {Role.MID, 1.4f},
+                    {Role.MID, 1.3f}
                 }
             };
         }
@@ -310,12 +310,10 @@ namespace AFLCoachSim.Core.Training
                 BaseEffectiveness = 1.1f,
                 InjuryRiskModifier = 1.2f,
                 FatigueRateModifier = 1.3f,
-                PositionMultipliers = new Dictionary<Position, float>
+                PositionMultipliers = new Dictionary<Role, float>
                 {
-                    {Position.Centre, 1.3f},
-                    {Position.Rover, 1.3f},
-                    {Position.RuckRover, 1.2f},
-                    {Position.Ruckman, 1.1f}
+                    {Role.MID, 1.3f},
+                    {Role.RUC, 1.1f}
                 }
             };
         }
@@ -334,9 +332,9 @@ namespace AFLCoachSim.Core.Training
                 },
                 MinimumAge = 17,
                 MaximumAge = 35,
-                SuitablePositions = new List<Position> 
+                SuitablePositions = new List<Role> 
                 { 
-                    Position.FullForward, Position.HalfForward, Position.ForwardPocket 
+                    Role.KPF, Role.HFF, Role.SMLF 
                 },
                 DurationDays = 28,
                 BaseIntensity = TrainingIntensity.Moderate,
@@ -665,7 +663,7 @@ namespace AFLCoachSim.Core.Training
                 },
                 MinimumAge = 18,
                 MaximumAge = 34,
-                SuitablePositions = new List<Position> { Position.Ruckman },
+                SuitablePositions = new List<Role> { Role.RUC },
                 DurationDays = 35,
                 BaseIntensity = TrainingIntensity.High,
                 BaseEffectiveness = 1.5f,
@@ -690,7 +688,7 @@ namespace AFLCoachSim.Core.Training
                 },
                 MinimumAge = 17,
                 MaximumAge = 32,
-                SuitablePositions = new List<Position> { Position.ForwardPocket, Position.HalfForward },
+                SuitablePositions = new List<Role> { Role.SMLF, Role.HFF },
                 DurationDays = 28,
                 BaseIntensity = TrainingIntensity.High,
                 BaseEffectiveness = 1.3f,
@@ -715,7 +713,7 @@ namespace AFLCoachSim.Core.Training
                 },
                 MinimumAge = 18,
                 MaximumAge = 34,
-                SuitablePositions = new List<Position> { Position.FullBack, Position.HalfBack },
+                SuitablePositions = new List<Role> { Role.KPD, Role.HBF },
                 DurationDays = 32,
                 BaseIntensity = TrainingIntensity.Moderate,
                 BaseEffectiveness = 1.3f,
@@ -741,7 +739,7 @@ namespace AFLCoachSim.Core.Training
                 },
                 MinimumAge = 18,
                 MaximumAge = 32,
-                SuitablePositions = new List<Position> { Position.Centre, Position.Wing, Position.Rover, Position.RuckRover },
+                SuitablePositions = new List<Role> { Role.MID, Role.WING },
                 DurationDays = 35,
                 BaseIntensity = TrainingIntensity.High,
                 BaseEffectiveness = 1.2f,

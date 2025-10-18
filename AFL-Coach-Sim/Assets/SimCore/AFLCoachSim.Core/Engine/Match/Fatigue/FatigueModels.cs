@@ -460,7 +460,7 @@ namespace AFLCoachSim.Core.Engine.Match.Fatigue
         public Dictionary<Guid, PlayerMatchFatigueStats> PlayerStats { get; set; } = new Dictionary<Guid, PlayerMatchFatigueStats>();
         public float TotalFatigueGenerated { get; set; }
         public float TotalRecoveryApplied { get; set; }
-        public int TotalSubstitutionsDueTo Fatigue { get; set; }
+        public int TotalSubstitutionsDueToFatigue { get; set; }
         public Dictionary<FatigueActivity, float> ActivityFatigueBreakdown { get; set; } = new Dictionary<FatigueActivity, float>();
 
         /// <summary>

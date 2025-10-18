@@ -2,10 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using AFLCoachSim.Core.Engine.Match;
 
 namespace AFLCoachSim.Core.Engine.Match.Weather
 {
     #region Enums
+
+    /// <summary>
+    /// Weather conditions that can affect match gameplay
+    /// </summary>
+    public enum Weather 
+    { 
+        Clear, 
+        Windy, 
+        LightRain, 
+        HeavyRain,
+        // Additional weather types used by advanced weather system
+        Wet,     // Alias for rainy conditions
+        Hot,     // High temperature conditions
+        Cold,    // Low temperature conditions  
+        Storm    // Severe weather conditions
+    }
 
     /// <summary>
     /// Types of kicks affected differently by weather
@@ -61,6 +78,13 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
         public float Temperature { get; set; } = 20f; // Celsius
         public float Humidity { get; set; } = 50f; // Percentage
         public float Visibility { get; set; } = 100f; // Percentage (100% = perfect visibility)
+        
+        // Additional property for backward compatibility
+        public float RainIntensity 
+        {
+            get => WeatherType == Weather.Wet ? Intensity : 0f;
+            set => Intensity = value;
+        }
 
         public WeatherConditions(Weather weatherType)
         {
@@ -151,6 +175,16 @@ namespace AFLCoachSim.Core.Engine.Match.Weather
 
     #region Weather Effects
 
+    /// <summary>
+    /// Player-specific weather effects
+    /// </summary>
+    public class PlayerWeatherEffect
+    {
+        public float SpeedModifier { get; set; } = 1.0f;
+        public float AccuracyModifier { get; set; } = 1.0f;
+        public float EnduranceModifier { get; set; } = 1.0f;
+    }
+    
     /// <summary>
     /// Defines how a specific weather type affects gameplay mechanics
     /// </summary>

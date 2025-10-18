@@ -7,6 +7,7 @@ using AFLCoachSim.Core.Engine.Match.Ratings;
 using AFLCoachSim.Core.Engine.Match.Fatigue;
 using AFLCoachSim.Core.Engine.Match.Momentum;
 using AFLCoachSim.Core.Engine.Match.Weather;
+using AFLCoachSim.Core.Engine.Match;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics
 {
@@ -60,7 +61,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
             };
 
             // Core tactical analysis
-            analysis.CurrentGamePlan = _tacticalSystem.GetGamePlan(new TeamId(teamId.ToString()));
+            analysis.CurrentGamePlan = _tacticalSystem.GetGamePlan(new TeamId(teamId.GetHashCode()));
             analysis.FormationEffectiveness = AnalyzeFormationPerformance(teamId);
             analysis.TacticalBalance = AnalyzeTacticalBalance(teamId);
 
@@ -167,6 +168,41 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         #endregion
 
         #region System Integration Analysis
+        
+        /// <summary>
+        /// Analyze formation performance effectiveness
+        /// </summary>
+        private FormationEffectiveness AnalyzeFormationPerformance(Guid teamId)
+        {
+            // Create default formation effectiveness analysis
+            return new FormationEffectiveness
+            {
+                OverallEffectiveness = 0.7f, // Default moderate effectiveness
+                OffensiveEffectiveness = 0.7f,
+                DefensiveEffectiveness = 0.7f,
+                CenterBounceAdvantage = 0.0f,
+                OpenPlayAdvantage = 0.0f,
+                Inside50Advantage = 0.0f,
+                Confidence = 0.6f
+            };
+        }
+        
+        /// <summary>
+        /// Analyze tactical balance across different areas
+        /// </summary>
+        private TacticalBalance AnalyzeTacticalBalance(Guid teamId)
+        {
+            // Create default tactical balance analysis
+            return new TacticalBalance
+            {
+                OffensiveBalance = 0.5f, // Neutral balance
+                DefensiveBalance = 0.5f,
+                MidfieldBalance = 0.5f,
+                FieldPositionBalance = 0.5f,
+                PossessionBalance = 0.5f,
+                OverallBalance = 0.5f
+            };
+        }
 
         private PlayerPerformanceAnalysis AnalyzePlayerPerformanceImpact(Guid teamId)
         {
@@ -654,7 +690,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
             var situation = CreateCurrentMatchSituation();
             
             return _tacticalSystem.MakeTacticalAdjustment(
-                new TeamId(decision.TeamId.ToString()), 
+                new TeamId(decision.TeamId.GetHashCode()), 
                 adjustment, 
                 situation, 
                 1.0f);

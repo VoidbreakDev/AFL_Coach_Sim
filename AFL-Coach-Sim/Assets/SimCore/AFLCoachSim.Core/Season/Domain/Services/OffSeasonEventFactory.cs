@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using AFLCoachSim.Core.Season.Domain.Entities;
 using AFLCoachSim.Core.Season.Domain.ValueObjects;
-using AFLCoachSim.Core.Season.Utilities;
+using AFLCalendarUtilities = AFLCoachSim.Core.Season.Utilities.AFLCalendarUtilities;
 
 namespace AFLCoachSim.Core.Season.Domain.Services
 {

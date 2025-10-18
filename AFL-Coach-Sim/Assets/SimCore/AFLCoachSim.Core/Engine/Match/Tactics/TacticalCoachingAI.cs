@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match.Runtime;
+using AFLCoachSim.Core.Engine.Match.Weather;
 using AFLCoachSim.Core.Infrastructure.Logging;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics
@@ -170,7 +171,7 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
 
         private bool EvaluateScoreTrigger(TacticalTrigger trigger, float scoreDifferential)
         {
-            float threshold = trigger.Parameters.GetValueOrDefault("threshold", 0f);
+            float threshold = (float)trigger.Parameters.GetValueOrDefault("threshold", 0f);
             string condition = trigger.Parameters.GetValueOrDefault("condition", "behind").ToString();
 
             return condition.ToLower() switch
@@ -184,13 +185,13 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
 
         private bool EvaluateTimeTrigger(TacticalTrigger trigger, float timeRemainingPercent)
         {
-            float threshold = trigger.Parameters.GetValueOrDefault("threshold", 0.25f);
+            float threshold = (float)trigger.Parameters.GetValueOrDefault("threshold", 0.25f);
             return timeRemainingPercent <= threshold;
         }
 
         private bool EvaluateMomentumTrigger(TacticalTrigger trigger, float momentum)
         {
-            float threshold = trigger.Parameters.GetValueOrDefault("threshold", -0.3f);
+            float threshold = (float)trigger.Parameters.GetValueOrDefault("threshold", -0.3f);
             string condition = trigger.Parameters.GetValueOrDefault("condition", "negative").ToString();
 
             return condition.ToLower() switch
@@ -205,20 +206,20 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         {
             // This would need access to opponent formation data
             // For now, return a probability-based trigger
-            float probability = trigger.Parameters.GetValueOrDefault("probability", 0.1f);
+            float probability = (float)trigger.Parameters.GetValueOrDefault("probability", 0.1f);
             return _random.NextDouble() < probability;
         }
 
         private bool EvaluateTurnoverTrigger(TacticalTrigger trigger, float turnoverRate)
         {
-            float threshold = trigger.Parameters.GetValueOrDefault("threshold", 0.6f);
+            float threshold = (float)trigger.Parameters.GetValueOrDefault("threshold", 0.6f);
             return turnoverRate >= threshold;
         }
 
-        private bool EvaluateWeatherTrigger(TacticalTrigger trigger, Weather weather)
+        private bool EvaluateWeatherTrigger(TacticalTrigger trigger, AFLCoachSim.Core.Engine.Match.Weather.Weather weather)
         {
-            var targetWeather = (Weather)trigger.Parameters.GetValueOrDefault("weather", (int)Weather.Clear);
-            return weather == targetWeather && weather != Weather.Clear;
+            var targetWeather = (AFLCoachSim.Core.Engine.Match.Weather.Weather)trigger.Parameters.GetValueOrDefault("weather", (int)AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear);
+            return weather == targetWeather && weather != AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear;
         }
 
         #endregion

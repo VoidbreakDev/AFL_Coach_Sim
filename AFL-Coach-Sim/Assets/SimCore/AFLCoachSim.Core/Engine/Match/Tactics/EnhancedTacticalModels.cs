@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match.Momentum;
+using AFLCoachSim.Core.Engine.Match.Weather;
+using AFLCoachSim.Core.Engine.Match;
 
 namespace AFLCoachSim.Core.Engine.Match.Tactics
 {
@@ -18,8 +21,8 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
 
         // Core tactical analysis
         public TacticalGamePlan CurrentGamePlan { get; set; }
-        public float FormationEffectiveness { get; set; }
-        public float TacticalBalance { get; set; }
+        public FormationEffectiveness FormationEffectiveness { get; set; }
+        public TacticalBalance TacticalBalance { get; set; }
 
         // System integrations
         public PlayerPerformanceAnalysis PlayerPerformanceAnalysis { get; set; }
@@ -294,7 +297,44 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
     #region System Impact Models
 
     /// <summary>
-    /// System impact prediction for tactical decisions
+    /// Tactical balance analysis across different areas of the game
+    /// </summary>
+    public class TacticalBalance
+    {
+        public float OffensiveBalance { get; set; } = 0.5f; // 0 = fully defensive, 1 = fully offensive
+        public float DefensiveBalance { get; set; } = 0.5f; // 0 = weak defense, 1 = strong defense
+        public float MidfieldBalance { get; set; } = 0.5f; // 0 = weak midfield, 1 = strong midfield
+        public float FieldPositionBalance { get; set; } = 0.5f; // 0 = poor position, 1 = excellent position
+        public float PossessionBalance { get; set; } = 0.5f; // 0 = poor possession, 1 = excellent possession
+        public float OverallBalance { get; set; } = 0.5f; // Overall tactical balance
+        
+        /// <summary>
+        /// Calculate overall balance score
+        /// </summary>
+        public float CalculateOverallBalance()
+        {
+            return (OffensiveBalance + DefensiveBalance + MidfieldBalance + FieldPositionBalance + PossessionBalance) / 5f;
+        }
+        
+        /// <summary>
+        /// Get balance description
+        /// </summary>
+        public string GetBalanceDescription()
+        {
+            var overall = CalculateOverallBalance();
+            return overall switch
+            {
+                >= 0.8f => "Excellent Balance",
+                >= 0.6f => "Good Balance",
+                >= 0.4f => "Moderate Balance",
+                >= 0.2f => "Poor Balance",
+                _ => "Very Poor Balance"
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Predicted system impact from tactical decision
     /// </summary>
     public class SystemImpactPrediction
     {
@@ -438,6 +478,21 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         RoleReassignment,
         StrategyShift
     }
+    
+    /// <summary>
+    /// Game plan tactical strategies
+    /// </summary>
+    public enum GamePlan
+    {
+        Attacking,
+        Defensive,
+        Balanced,
+        CounterAttack,
+        Possession,
+        HighPressure,
+        Conservative,
+        Aggressive
+    }
 
     /// <summary>
     /// Overall tactical situation assessment
@@ -516,31 +571,6 @@ namespace AFLCoachSim.Core.Engine.Match.Tactics
         public bool IsFinalSeries { get; set; }
     }
 
-    /// <summary>
-    /// Weather conditions for tactical analysis
-    /// </summary>
-    public class WeatherConditions
-    {
-        public WeatherType WeatherType { get; set; } = WeatherType.Clear;
-        public float Temperature { get; set; } = 20f; // Celsius
-        public float RainIntensity { get; set; } = 0f; // 0-1
-        public float WindSpeed { get; set; } = 0f; // km/h
-        public WindDirection WindDirection { get; set; } = WindDirection.None;
-        public float Humidity { get; set; } = 0.5f; // 0-1
-    }
-
-    /// <summary>
-    /// Weather types
-    /// </summary>
-    public enum WeatherType
-    {
-        Clear,
-        Overcast,
-        Rainy,
-        Hot,
-        Cold,
-        Windy
-    }
 
     /// <summary>
     /// Wind directions

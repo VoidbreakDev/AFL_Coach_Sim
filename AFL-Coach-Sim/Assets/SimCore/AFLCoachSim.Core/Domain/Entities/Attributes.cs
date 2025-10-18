@@ -8,7 +8,7 @@ namespace AFLCoachSim.Core.Domain.Entities
         // Physical
         public int Speed, Acceleration, Strength, Agility, Jump;
         // Skills
-        public int Kicking, Marking, Handball, Tackling, Clearance, RuckWork, Spoiling;
+        public int Kicking, Marking, Handball, Tackling, Clearance, RuckWork, Spoiling, GroundBall;
         // Mental
         public int DecisionMaking, Composure, WorkRate, Positioning, Leadership;
 
@@ -24,7 +24,7 @@ namespace AFLCoachSim.Core.Domain.Entities
             // Skill attributes (50% weight)
             float skillScore = (Kicking * 1.0f + Marking * 0.9f + Handball * 1.0f + 
                               Tackling * 0.8f + Clearance * 0.7f + RuckWork * 0.4f + 
-                              Spoiling * 0.6f) / 5.4f;
+                              Spoiling * 0.6f + GroundBall * 0.8f) / 6.2f;
             
             // Mental attributes (20% weight)
             float mentalScore = (DecisionMaking * 1.0f + Composure * 0.8f + WorkRate * 0.9f + 
@@ -55,6 +55,7 @@ namespace AFLCoachSim.Core.Domain.Entities
                 case "clearance": Clearance = value; break;
                 case "ruckwork": RuckWork = value; break;
                 case "spoiling": Spoiling = value; break;
+                case "groundball": GroundBall = value; break;
                 case "decisionmaking": DecisionMaking = value; break;
                 case "composure": Composure = value; break;
                 case "workrate": WorkRate = value; break;
@@ -82,6 +83,7 @@ namespace AFLCoachSim.Core.Domain.Entities
                 case "clearance": return Clearance;
                 case "ruckwork": return RuckWork;
                 case "spoiling": return Spoiling;
+                case "groundball": return GroundBall;
                 case "decisionmaking": return DecisionMaking;
                 case "composure": return Composure;
                 case "workrate": return WorkRate;

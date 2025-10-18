@@ -789,7 +789,7 @@ namespace AFLManager.Systems.Training
         public string SessionName { get; set; }
         public DateTime ScheduledDate { get; set; }
         public RecommendationType RecommendationType { get; set; }
-        public RecommendationPriority Priority { get; set; }
+        public TrainingRecommendationPriority Priority { get; set; }
         public string Description { get; set; }
         public List<string> SuggestedActions { get; set; } = new List<string>();
     }
@@ -844,7 +844,7 @@ namespace AFLManager.Systems.Training
         ResourceAllocation
     }
     
-    public enum RecommendationPriority
+    public enum TrainingRecommendationPriority
     {
         Low,
         Medium,

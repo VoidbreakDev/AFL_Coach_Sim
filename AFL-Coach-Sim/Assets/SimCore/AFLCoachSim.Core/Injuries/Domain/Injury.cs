@@ -19,6 +19,7 @@ namespace AFLCoachSim.Core.Injuries.Domain
         public string Description { get; private set; }
         public InjuryStatus Status { get; private set; }
         public float PerformanceImpactMultiplier { get; private set; }
+        public AFLCoachSim.Core.Engine.Match.Injury.BodyPart BodyPart { get; private set; } = AFLCoachSim.Core.Engine.Match.Injury.BodyPart.Other; // Default body part
         
         // Recovery tracking
         public DateTime? ReturnToTrainingDate { get; private set; }

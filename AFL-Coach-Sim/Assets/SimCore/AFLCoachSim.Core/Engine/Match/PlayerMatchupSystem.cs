@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AFLCoachSim.Core.Models;
+using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Domain.ValueObjects;
 
 namespace AFLCoachSim.Core.Engine.Match
 {
@@ -176,19 +177,19 @@ namespace AFLCoachSim.Core.Engine.Match
         private void CreatePositionalMatchups(List<Player> team1Players, List<Player> team2Players)
         {
             // Create key positional matchups (forwards vs defenders, etc.)
-            var team1Forwards = team1Players.Where(p => p.Position.Contains("Forward")).ToList();
-            var team2Defenders = team2Players.Where(p => p.Position.Contains("Defender")).ToList();
+            var team1Forwards = team1Players.Where(p => p.Position.ToString().Contains("Forward")).ToList();
+            var team2Defenders = team2Players.Where(p => p.Position.ToString().Contains("Defender")).ToList();
             
             CreateMatchupsForPositions(team1Forwards, team2Defenders, MatchupType.Positional);
             
-            var team2Forwards = team2Players.Where(p => p.Position.Contains("Forward")).ToList();
-            var team1Defenders = team1Players.Where(p => p.Position.Contains("Defender")).ToList();
+            var team2Forwards = team2Players.Where(p => p.Position.ToString().Contains("Forward")).ToList();
+            var team1Defenders = team1Players.Where(p => p.Position.ToString().Contains("Back")).ToList();
             
             CreateMatchupsForPositions(team2Forwards, team1Defenders, MatchupType.Positional);
             
             // Create midfield matchups
-            var team1Mids = team1Players.Where(p => p.Position.Contains("Midfielder")).ToList();
-            var team2Mids = team2Players.Where(p => p.Position.Contains("Midfielder")).ToList();
+            var team1Mids = team1Players.Where(p => IsMiddleFieldPosition(p.Position)).ToList();
+            var team2Mids = team2Players.Where(p => IsMiddleFieldPosition(p.Position)).ToList();
             
             CreateMatchupsForPositions(team1Mids, team2Mids, MatchupType.Positional);
         }
@@ -224,7 +225,7 @@ namespace AFLCoachSim.Core.Engine.Match
             quality += Math.Max(0f, (20f - skillDifference) / 20f) * 0.3f;
             
             // Position compatibility
-            quality += GetPositionMatchupCompatibility(player1.Position, player2.Position) * 0.2f;
+            quality += GetPositionMatchupCompatibility(player1.Position.ToString(), player2.Position.ToString()) * 0.2f;
             
             // Playing style contrast
             quality += CalculateStyleContrast(player1, player2) * 0.3f;
@@ -233,6 +234,11 @@ namespace AFLCoachSim.Core.Engine.Match
             quality += GetHistoricalSignificance(player1.Id, player2.Id) * 0.2f;
             
             return quality;
+        }
+        
+        private bool IsMiddleFieldPosition(Role position)
+        {
+            return position == Role.MID || position == Role.WING;
         }
         
         private float GetPositionMatchupCompatibility(string position1, string position2)
@@ -279,7 +285,7 @@ namespace AFLCoachSim.Core.Engine.Match
             float contrast = 0f;
             
             contrast += Math.Abs(player1.Aggression - player2.Aggression) * 0.3f;
-            contrast += Math.Abs(player1.PlayingStyle - player2.PlayingStyle) * 0.4f;
+            contrast += (player1.PlayingStyle == player2.PlayingStyle ? 0f : 1f) * 0.4f; // String comparison instead of subtraction
             contrast += Math.Abs(player1.RiskTaking - player2.RiskTaking) * 0.3f;
             
             return Math.Min(1f, contrast);
@@ -318,8 +324,8 @@ namespace AFLCoachSim.Core.Engine.Match
         
         private void CreateRuckMatchups(List<Player> team1Players, List<Player> team2Players)
         {
-            var team1Rucks = team1Players.Where(p => p.Position == "Ruck").ToList();
-            var team2Rucks = team2Players.Where(p => p.Position == "Ruck").ToList();
+            var team1Rucks = team1Players.Where(p => p.Position == Role.RUC).ToList();
+            var team2Rucks = team2Players.Where(p => p.Position == Role.RUC).ToList();
             
             foreach (var ruck1 in team1Rucks)
             {
@@ -334,12 +340,12 @@ namespace AFLCoachSim.Core.Engine.Match
         private void CreateBallWinnerMatchups(List<Player> team1Players, List<Player> team2Players)
         {
             var team1BallWinners = team1Players
-                .Where(p => p.Position.Contains("Midfielder") && p.ContestedBall > 75)
+                .Where(p => IsMiddleFieldPosition(p.Position) && p.ContestedBall > 75)
                 .OrderByDescending(p => p.ContestedBall)
                 .Take(3);
             
             var team2BallWinners = team2Players
-                .Where(p => p.Position.Contains("Midfielder") && p.ContestedBall > 75)
+                .Where(p => IsMiddleFieldPosition(p.Position) && p.ContestedBall > 75)
                 .OrderByDescending(p => p.ContestedBall)
                 .Take(3);
             
@@ -356,11 +362,11 @@ namespace AFLCoachSim.Core.Engine.Match
         private void CreateDynamicMatchups(MatchContext context)
         {
             // Create new matchups based on current game situations
-            if (context.CurrentPhase == MatchPhase.Inside50)
+            if (context.CurrentPhase == Phase.Inside50)
             {
                 CreateInside50Matchups(context);
             }
-            else if (context.CurrentPhase == MatchPhase.OpenPlay)
+            else if (context.CurrentPhase == Phase.OpenPlay)
             {
                 CreateOpenPlayMatchups(context);
             }
@@ -528,12 +534,12 @@ namespace AFLCoachSim.Core.Engine.Match
         private float CalculatePlayerPerformanceScore(Player player, MatchContext context)
         {
             // Simple performance score based on recent actions
-            var recentActions = context.GetRecentPlayerActions(player.Id, TimeSpan.FromMinutes(2));
+            var recentActionStrings = context.GetRecentPlayerActions(player.Id.ToString());
             
             float score = 0f;
-            foreach (var action in recentActions)
+            foreach (var actionString in recentActionStrings)
             {
-                score += GetActionValue(action);
+                score += GetActionValueFromString(actionString);
             }
             
             return Math.Max(0f, score);
@@ -551,6 +557,27 @@ namespace AFLCoachSim.Core.Engine.Match
                 ActionType.ContestedPossession => 2.5f,
                 ActionType.Turnover => -1.5f,
                 ActionType.MissedShot => -1.0f,
+                _ => 0f
+            };
+        }
+        
+        private float GetActionValueFromString(string actionString)
+        {
+            // Simple string matching for action values
+            // In a full implementation, this would parse structured action data
+            if (string.IsNullOrEmpty(actionString)) return 0f;
+            
+            var action = actionString.ToLower();
+            return action switch
+            {
+                var s when s.Contains("goal") => 5.0f,
+                var s when s.Contains("behind") => 2.0f,
+                var s when s.Contains("mark") => 2.0f,
+                var s when s.Contains("tackle") => 2.0f,
+                var s when s.Contains("contested") => 2.5f,
+                var s when s.Contains("disposal") => 1.0f,
+                var s when s.Contains("turnover") => -1.5f,
+                var s when s.Contains("miss") => -1.0f,
                 _ => 0f
             };
         }
@@ -621,7 +648,7 @@ namespace AFLCoachSim.Core.Engine.Match
                     break;
                     
                 case MatchupType.OneOnOne:
-                    if (player.Position.Contains("Forward"))
+                    if (player.Position.ToString().Contains("Forward"))
                     {
                         advantage = (player.Leading - opponent.OneOnOne) * 0.01f;
                         advantage += (player.GroundBall - opponent.Spoiling) * 0.005f;

@@ -26,8 +26,7 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
         {
             // Create test injury manager
             var repository = new InMemoryTestRepository();
-            var service = new InjuryService(repository);
-            _injuryManager = new InjuryManager(service);
+            _injuryManager = new InjuryManager(repository);
             
             // Create injury model
             _injuryModel = new InjuryModel(_injuryManager);
@@ -58,8 +57,8 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
         public void InitializeMatchInjuryStates_WithInjuredPlayer_AppliesPreExistingEffects()
         {
             // Add an injury to a player before initialization
-            var playerId = _testPlayers[0].Player.ID;
-            _injuryManager.RecordInjury(playerId, InjuryType.Muscle, InjurySeverity.Minor, BodyPart.UpperLeg, "Test", 1.0f);
+            var playerId = _testPlayers[0].Player.Id;
+            _injuryManager.RecordInjury((int)playerId, InjuryType.Muscle, InjurySeverity.Minor, InjurySource.Training);
             
             // Re-create and initialize the model to pick up the injury
             _injuryModel = new InjuryModel(_injuryManager);
@@ -179,11 +178,11 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
             {
                 var player = new Domain.Entities.Player
                 {
-                    ID = i,
+                    Id = new PlayerId(i),
                     Durability = 85 // Standard durability
                 };
                 
-                var runtime = new PlayerRuntime(player, TeamId.Adelaide)
+                var runtime = new PlayerRuntime(player, TeamId.Adelaide, true)
                 {
                     FatigueMult = 1.0f, // Not fatigued
                     InjuryMult = 1.0f,  // Not injured
@@ -217,9 +216,9 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
                 return _histories.TryGetValue(playerId, out var history) ? history : null;
             }
             
-            public List<AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> LoadAllPlayerInjuryHistories()
+            public IDictionary<int, AFLCoachSim.Core.Injuries.Domain.PlayerInjuryHistory> LoadAllPlayerInjuryHistories()
             {
-                return _histories.Values.ToList();
+                return _histories;
             }
             
             public void RemovePlayerInjuryHistory(int playerId)
@@ -237,14 +236,14 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
                 return _injuries.TryGetValue(injuryId, out var injury) ? injury : null;
             }
             
-            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadPlayerInjuries(int playerId)
+            public IEnumerable<AFLCoachSim.Core.Injuries.Domain.Injury> LoadPlayerInjuries(int playerId)
             {
-                return _injuries.Values.Where(i => i.PlayerId == playerId).ToList();
+                return _injuries.Values.Where(i => i.PlayerId == playerId);
             }
             
-            public List<AFLCoachSim.Core.Injuries.Domain.Injury> LoadActiveInjuries()
+            public IEnumerable<AFLCoachSim.Core.Injuries.Domain.Injury> LoadActiveInjuries()
             {
-                return _injuries.Values.Where(i => i.Status == InjuryStatus.Active).ToList();
+                return _injuries.Values.Where(i => i.Status == InjuryStatus.Active);
             }
             
             public void SaveAllInjuryData(AFLCoachSim.Core.DTO.InjuryDataDTO data) { }
@@ -264,8 +263,8 @@ namespace AFLCoachSim.Core.Engine.Match.Injury.Tests
                 }
             }
             public bool HasInjuryData() { return _injuries.Any() || _histories.Any(); }
-            public bool BackupInjuryData(string backupPath) { return true; }
-            public bool RestoreInjuryData(string backupPath) { return true; }
+            public void BackupInjuryData(string backupSuffix) { }
+            public bool RestoreInjuryData(string backupSuffix) { return true; }
         }
     }
 }

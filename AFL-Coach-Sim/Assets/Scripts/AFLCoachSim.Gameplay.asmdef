@@ -2,10 +2,10 @@
     "name": "AFLCoachSim.Gameplay",
     "rootNamespace": "",
     "references": [
-            "AFLCoachSim.Core",
-    		"Unity.TextMeshPro",
-    		"Unity.UGUI"
-    		],
+        "AFLCoachSim.Core",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

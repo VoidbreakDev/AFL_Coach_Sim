@@ -20,7 +20,7 @@ namespace AFLCoachSim.Core.Season.Services
         public FixtureGenerationEngine(int? seed = null)
         {
             _random = seed.HasValue ? new Random(seed.Value) : new Random();
-            _allTeams = Enum.GetValues<TeamId>().Where(t => t != TeamId.None).ToList();
+            _allTeams = Enum.GetValues(typeof(TeamId)).Cast<TeamId>().Where(t => t != TeamId.None).ToList();
         }
         
         /// <summary>
@@ -413,13 +413,13 @@ namespace AFLCoachSim.Core.Season.Services
         
         private string GetTeamState(TeamId teamId)
         {
-            return teamId switch
-            {
-                TeamId.Adelaide or TeamId.PortAdelaide => "SA",
-                TeamId.Brisbane or TeamId.GoldCoast => "QLD", 
-                TeamId.WestCoast or TeamId.Fremantle => "WA",
-                _ => "VIC"
-            };
+            if (teamId == TeamId.Adelaide || teamId == TeamId.PortAdelaide)
+                return "SA";
+            if (teamId == TeamId.Brisbane || teamId == TeamId.GoldCoast)
+                return "QLD";
+            if (teamId == TeamId.WestCoast || teamId == TeamId.Fremantle)
+                return "WA";
+            return "VIC";
         }
         
         private bool ValidateMatchupsCount(List<TeamMatchup> matchups, int targetPerTeam)
