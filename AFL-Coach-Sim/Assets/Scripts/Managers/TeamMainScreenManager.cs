@@ -62,7 +62,31 @@ namespace AFLManager.Managers
 
         public void OnClickPlayNext()
         {
-            PreMatchFlow.Begin(this, playerTeamId, schedule, cachedTeams);
+            var results = SaveLoadManager.LoadAllResults();
+            var nextMatch = schedule.Fixtures
+                .Where(m => m.InvolvesTeam(playerTeamId))
+                .FirstOrDefault(m => !results.Any(r => r.MatchId == m.StableId(schedule)));
+
+            if (nextMatch != null)
+            {
+                LaunchMatchFlow(nextMatch);
+            }
+            else
+            {
+                Debug.Log("[TeamMainScreen] No upcoming matches");
+            }
+        }
+
+        private void LaunchMatchFlow(Match match)
+        {
+            // Store match data for MatchFlow scene
+            PlayerPrefs.SetString("CurrentMatchData", JsonUtility.ToJson(match));
+            PlayerPrefs.SetString("CurrentMatchPlayerTeam", playerTeamId);
+            PlayerPrefs.SetString("MatchFlowReturnScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            PlayerPrefs.Save();
+
+            // Load match flow scene
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MatchFlow");
         }
 
         private List<Team> LoadAllTeams()

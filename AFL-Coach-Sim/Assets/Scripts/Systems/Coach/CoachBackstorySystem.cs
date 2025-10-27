@@ -7,6 +7,7 @@ using AFLManager.Systems.Development;
 using AFLManager.Systems.Training;
 using AFLCoachSim.Core.Season.Domain.Entities;
 using AFLCoachSim.Core.Domain.Entities;
+using CoachSkills = AFLCoachSim.Core.Domain.Entities.CoachSkills;
 
 namespace AFLManager.Systems.Coach
 {

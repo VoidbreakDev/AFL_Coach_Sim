@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using AFLManager.Models;
 using AFLManager.Managers;   // SaveLoadManager, SeasonScheduler
 using AFLManager.UI;         // MatchEntryUI
@@ -113,17 +114,42 @@ namespace AFLManager.Managers
         {
             if (match == null) { Debug.LogError("[SeasonScreen] SimulateMatch null"); return; }
 
-            string matchId = GetMatchId(match);
-            var result = MatchSimulator.SimulateMatch(
-                matchId, "R?", match.HomeTeamId, match.AwayTeamId,
-                new MatchSimulator.DefaultRatingProvider(
-                    id => GetTeamAverage(id),
-                    id => new[] { $"{id}_P1", $"{id}_P2", $"{id}_P3", $"{id}_P4", $"{id}_P5", $"{id}_P6" }),
-                seed: matchId.GetHashCode());
+            // Check if this match involves the player's team
+            string playerTeamId = PlayerPrefs.GetString("PlayerTeamId", coachKey);
+            bool isPlayerMatch = match.HomeTeamId == playerTeamId || match.AwayTeamId == playerTeamId;
 
-            match.Result = $"{result.HomeScore}–{result.AwayScore}";
-            SaveLoadManager.SaveMatchResult(result);
-            RebuildMiniLadder();
+            if (isPlayerMatch)
+            {
+                // Launch full match flow for player matches
+                LaunchMatchFlow(match);
+            }
+            else
+            {
+                // Quick simulate for CPU matches
+                string matchId = GetMatchId(match);
+                var result = MatchSimulator.SimulateMatch(
+                    matchId, "R?", match.HomeTeamId, match.AwayTeamId,
+                    new MatchSimulator.DefaultRatingProvider(
+                        id => GetTeamAverage(id),
+                        id => new[] { $"{id}_P1", $"{id}_P2", $"{id}_P3", $"{id}_P4", $"{id}_P5", $"{id}_P6" }),
+                    seed: matchId.GetHashCode());
+
+                match.Result = $"{result.HomeScore}–{result.AwayScore}";
+                SaveLoadManager.SaveMatchResult(result);
+                RebuildMiniLadder();
+            }
+        }
+
+        private void LaunchMatchFlow(Match match)
+        {
+            // Store match data for MatchFlow scene
+            PlayerPrefs.SetString("CurrentMatchData", JsonUtility.ToJson(match));
+            PlayerPrefs.SetString("CurrentMatchPlayerTeam", PlayerPrefs.GetString("PlayerTeamId", coachKey));
+            PlayerPrefs.SetString("MatchFlowReturnScene", "SeasonScreen");
+            PlayerPrefs.Save();
+
+            // Load match flow scene
+            SceneManager.LoadScene("MatchFlow");
         }
 
         private float GetTeamAverage(string teamId)

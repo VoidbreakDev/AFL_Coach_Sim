@@ -5,6 +5,7 @@ using UnityEngine;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLManager.Systems.Development;
 using AFLManager.Models;
+using CoachSkills = AFLCoachSim.Core.Domain.Entities.CoachSkills;
 
 namespace AFLManager.Systems.Coach
 {
@@ -28,10 +29,10 @@ namespace AFLManager.Systems.Coach
         // Events for UI and other systems
         public event Action<string, int, int> OnSkillLevelChanged; // skillName, oldLevel, newLevel
         public event Action<string, int> OnExperienceGained; // skillName, experienceGained
-        public event Action<AFLCoachSim.Core.Domain.Entities.CoachSkills> OnSkillsUpdated;
+        public event Action<CoachSkills> OnSkillsUpdated;
 
         // Active coach skills
-        private AFLCoachSim.Core.Domain.Entities.CoachSkills _currentCoachSkills;
+        private CoachSkills _currentCoachSkills;
         private DateTime _lastSkillUpdate = DateTime.Now;
 
         // Cached effects for performance
@@ -45,7 +46,7 @@ namespace AFLManager.Systems.Coach
             // Initialize with default coach skills if none exist
             if (_currentCoachSkills == null)
             {
-                _currentCoachSkills = new AFLCoachSim.Core.Domain.Entities.CoachSkills();
+                _currentCoachSkills = new CoachSkills();
             }
         }
 
@@ -61,9 +62,9 @@ namespace AFLManager.Systems.Coach
         /// <summary>
         /// Set the active coach skills (called when loading a save or creating a new coach)
         /// </summary>
-        public void SetCoachSkills(AFLCoachSim.Core.Domain.Entities.CoachSkills coachSkills)
+        public void SetCoachSkills(CoachSkills coachSkills)
         {
-            _currentCoachSkills = coachSkills ?? new AFLCoachSim.Core.Domain.Entities.CoachSkills();
+            _currentCoachSkills = coachSkills ?? new CoachSkills();
             RefreshCachedEffects();
             OnSkillsUpdated?.Invoke(_currentCoachSkills);
         }
@@ -71,7 +72,7 @@ namespace AFLManager.Systems.Coach
         /// <summary>
         /// Get the current coach skills
         /// </summary>
-        public AFLCoachSim.Core.Domain.Entities.CoachSkills GetCoachSkills()
+        public CoachSkills GetCoachSkills()
         {
             return _currentCoachSkills;
         }
