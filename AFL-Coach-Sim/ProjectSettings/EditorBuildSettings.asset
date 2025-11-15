@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TestDataScene.unity
     guid: f59361c46a2d74c27a4ff634d31d50e9
+  - enabled: 1
+    path: Assets/Scenes/MatchFlow.unity
+    guid: 3f9197939df99451fbcf63df62006be6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -95,6 +95,14 @@ namespace AFLCoachSim.Core.Engine.Match
             var matchContext = CreateMatchContext(ctx);
             ctx.InjuryContextProvider.SetMatchContext(matchContext);
 
+            // Telemetry counters for debugging
+            int totalTicks = 0;
+            int openPlayTicks = 0;
+            int inside50Entries = 0;
+            int shots = 0;
+            int goals = 0;
+            int behinds = 0;
+            
             // Four quarters
             for (int q = 1; q <= 4; q++)
             {
@@ -104,10 +112,34 @@ namespace AFLCoachSim.Core.Engine.Match
 
                 while (ctx.TimeRemaining > 0)
                 {
+                    totalTicks++;
+                    if (ctx.Phase == Phase.OpenPlay) openPlayTicks++;
+                    if (ctx.Phase == Phase.Inside50) inside50Entries++;
+                    if (ctx.Phase == Phase.ShotOnGoal) shots++;
+                    
+                    int preGoals = ctx.Score.HomeGoals + ctx.Score.AwayGoals;
+                    int preBehinds = ctx.Score.HomeBehinds + ctx.Score.AwayBehinds;
+                    
                     SimTick(ctx, 5, sink);
+                    
+                    int postGoals = ctx.Score.HomeGoals + ctx.Score.AwayGoals;
+                    int postBehinds = ctx.Score.HomeBehinds + ctx.Score.AwayBehinds;
+                    goals += (postGoals - preGoals);
+                    behinds += (postBehinds - preBehinds);
+                    
                     ctx.TimeRemaining -= 5;
                 }
             }
+            
+            // Log telemetry
+            CoreLogger.Log($"[MatchEngine] TELEMETRY:");
+            CoreLogger.Log($"  Total Ticks: {totalTicks}");
+            CoreLogger.Log($"  OpenPlay Ticks: {openPlayTicks} ({100.0 * openPlayTicks / totalTicks:F1}%)");
+            CoreLogger.Log($"  Inside50 Entries: {inside50Entries}");
+            CoreLogger.Log($"  Shots: {shots}");
+            CoreLogger.Log($"  Goals: {goals}, Behinds: {behinds}");
+            CoreLogger.Log($"  Conversion Rate: {(shots > 0 ? 100.0 * goals / shots : 0):F1}%");
+            CoreLogger.Log($"  Final Score: {ctx.Score.HomePoints}-{ctx.Score.AwayPoints}");
 
             // Finalize match telemetry
             ctx.Telemetry.HomeAvgConditionEnd = AverageCondition(ctx.HomeOnField, ctx.HomeBench);
@@ -129,14 +161,23 @@ namespace AFLCoachSim.Core.Engine.Match
             sink?.OnComplete(final);
             TelemetryHub.PublishComplete(final);
 
-            return new MatchResultDTO
+            var result = new MatchResultDTO
             {
                 Round = round,
                 Home = homeId,
                 Away = awayId,
                 HomeScore = ctx.Score.HomePoints,
-                AwayScore = ctx.Score.AwayPoints
+                AwayScore = ctx.Score.AwayPoints,
+                TotalTicks = totalTicks,
+                Inside50Entries = inside50Entries,
+                Shots = shots,
+                Goals = goals,
+                Behinds = behinds
             };
+            
+            CoreLogger.Log($"[MatchEngine] TELEMETRY: Ticks={totalTicks}, I50={inside50Entries}, Shots={shots}, Goals={goals}, Behinds={behinds}, Score={ctx.Score.HomePoints}-{ctx.Score.AwayPoints}");
+            
+            return result;
         }
 
         private static void SimTick(MatchContext ctx, int dt, ITelemetrySink sink)
@@ -256,9 +297,10 @@ namespace AFLCoachSim.Core.Engine.Match
             float attackQuality   = Rating.Inside50Quality(atkOn);
             float defensePressure = Rating.DefensePressure(defOn);
 
-            // Chance to manufacture a shot from the entry
+            // Chance to manufacture a shot from the entry (increased for realistic AFL scoring)
             float entryBias = 0.5f + 0.5f * (attTactics.KickingRisk / 100f);
-            float chanceCreateShot = Clamp01(0.30f + 0.55f * (attackQuality - 0.5f) - 0.40f * (defensePressure - 0.5f));
+            // Changed from 0.30 base to 0.50 base to increase shot creation from ~16% to ~45%
+            float chanceCreateShot = Clamp01(0.50f + 0.55f * (attackQuality - 0.5f) - 0.30f * (defensePressure - 0.5f));
             chanceCreateShot *= entryBias;
 
             float r = ctx.Rng.NextFloat();

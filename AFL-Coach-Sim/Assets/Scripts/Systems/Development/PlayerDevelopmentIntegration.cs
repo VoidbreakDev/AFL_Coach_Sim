@@ -85,44 +85,33 @@ namespace AFLManager.Systems.Development
             // This is a simplified example - you'd need proper conversion logic
             return new AFLCoachSim.Core.Domain.Entities.Player
             {
-                Id = unityPlayer.GetHashCode(), // Use proper ID system
+                Id = new AFLCoachSim.Core.Domain.ValueObjects.PlayerId(unityPlayer.GetHashCode()), // Use proper ID system
                 Name = unityPlayer.Name,
-                Position = ConvertPosition(unityPlayer.Role),
-                DateOfBirth = System.DateTime.Now.AddYears(-unityPlayer.Age), // Approximate
-                Attributes = ConvertAttributes(unityPlayer.Stats)
+                PrimaryRole = ConvertToRole(unityPlayer.Role),
+                Age = unityPlayer.Age
+                // Note: Core Player doesn't have Attributes property - stats are handled differently
             };
         }
         
-        private Position ConvertPosition(PlayerRole role)
+        private AFLCoachSim.Core.Domain.ValueObjects.Role ConvertToRole(PlayerRole role)
         {
-            // Convert Unity PlayerRole to Core Position enum
-            // This mapping would need to match your enum structures
+            // Convert Unity PlayerRole to Core Role enum
             return role switch
             {
-                PlayerRole.FullBack => Position.FullBack,
-                PlayerRole.HalfBack => Position.HalfBack,
-                PlayerRole.Centre => Position.Centre,
-                PlayerRole.Wing => Position.Wing,
-                PlayerRole.FullForward => Position.FullForward,
-                PlayerRole.HalfForward => Position.HalfForward,
-                PlayerRole.Ruckman => Position.Ruckman,
-                _ => Position.Utility
+                PlayerRole.FullBack => AFLCoachSim.Core.Domain.ValueObjects.Role.FB,
+                PlayerRole.HalfBack => AFLCoachSim.Core.Domain.ValueObjects.Role.HBF,
+                PlayerRole.Centre => AFLCoachSim.Core.Domain.ValueObjects.Role.C,
+                PlayerRole.Wing => AFLCoachSim.Core.Domain.ValueObjects.Role.WING,
+                PlayerRole.FullForward => AFLCoachSim.Core.Domain.ValueObjects.Role.FF,
+                PlayerRole.HalfForward => AFLCoachSim.Core.Domain.ValueObjects.Role.HFF,
+                PlayerRole.Ruckman => AFLCoachSim.Core.Domain.ValueObjects.Role.RUCK,
+                _ => AFLCoachSim.Core.Domain.ValueObjects.Role.MID
             };
         }
         
-        private Attributes ConvertAttributes(PlayerStats stats)
-        {
-            // Convert Unity PlayerStats to Core Attributes
-            return new Attributes
-            {
-                Kicking = stats.Kicking,
-                Marking = stats.Marking,
-                Handballing = stats.Handballing,
-                Contested = stats.Tackling, // Map tackling to contested
-                Endurance = stats.Stamina,
-                // Add other attributes as needed
-            };
-        }
+        // Note: Core Player model doesn't use Attributes - this method is no longer needed
+        // Stats are represented differently in the Core domain model
+        // Removed ConvertAttributes method as Player.Attributes doesn't exist
         
         private PlayerStatsDelta ConvertToStatsDelta(PlayerDevelopmentFramework.PlayerDevelopmentUpdate update)
         {

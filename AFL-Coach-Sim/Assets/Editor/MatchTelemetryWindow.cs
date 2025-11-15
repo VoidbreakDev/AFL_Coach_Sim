@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AFLCoachSim.Core.Domain.Aggregates;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Domain.Entities;
@@ -11,6 +12,11 @@ using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Data; // TeamTactics
 using AFLCoachSim.Core.Engine.Match.Runtime.Telemetry;
 using AFLCoachSim.Core.Engine.Match.Tuning;   // MatchTuningSO / Provider
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Injuries.Domain;
+using AFLCoachSim.Core.Persistence;
+using AFLCoachSim.Core.DTO;
+using Weather = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 public class MatchTelemetryWindow : EditorWindow
 {
@@ -292,10 +298,13 @@ public class MatchTelemetryWindow : EditorWindow
             }
 
             // Kick off a single blocking sim (fast). TelemetryHub will stream snapshots to the window.
+            var injuryManager = new AFLCoachSim.Core.Injuries.InjuryManager(new NullInjuryRepository());
             var dto = MatchEngine.PlayMatch(
                 round: 1,
                 homeId: new TeamId(1), awayId: new TeamId(2),
-                teams: teams, rosters: rosters, tactics: tactics,
+                teams: teams,
+                injuryManager: injuryManager,
+                rosters: rosters, tactics: tactics,
                 weather: weather, ground: new Ground(),
                 quarterSeconds: qSeconds,
                 rng: new DeterministicRandom(seed),
@@ -423,6 +432,28 @@ public class MatchTelemetryWindow : EditorWindow
             });
         }
         return list;
+    }
+
+    /// <summary>
+    /// Null implementation of IInjuryRepository for testing
+    /// </summary>
+    private class NullInjuryRepository : IInjuryRepository
+    {
+        public void SavePlayerInjuryHistory(PlayerInjuryHistory history) { }
+        public PlayerInjuryHistory LoadPlayerInjuryHistory(int playerId) => null;
+        public IDictionary<int, PlayerInjuryHistory> LoadAllPlayerInjuryHistories() => new Dictionary<int, PlayerInjuryHistory>();
+        public void RemovePlayerInjuryHistory(int playerId) { }
+        public void SaveInjury(Injury injury) { }
+        public Injury LoadInjury(InjuryId injuryId) => null;
+        public IEnumerable<Injury> LoadPlayerInjuries(int playerId) => Enumerable.Empty<Injury>();
+        public IEnumerable<Injury> LoadActiveInjuries() => Enumerable.Empty<Injury>();
+        public void SaveAllInjuryData(InjuryDataDTO data) { }
+        public InjuryDataDTO LoadAllInjuryData() => new InjuryDataDTO();
+        public void ClearAllInjuryData() { }
+        public void ClearPlayerInjuryData(int playerId) { }
+        public bool HasInjuryData() => false;
+        public void BackupInjuryData(string backupSuffix) { }
+        public bool RestoreInjuryData(string backupSuffix) => true;
     }
 }
 #endif

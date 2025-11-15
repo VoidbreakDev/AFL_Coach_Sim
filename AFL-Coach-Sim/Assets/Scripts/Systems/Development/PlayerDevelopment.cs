@@ -26,13 +26,27 @@ namespace AFLManager.Systems.Development
         
         public PlayerDevelopment()
         {
-            // Default values for a new player
-            PotentialCeiling = UnityEngine.Random.Range(65, 85);
-            GrowthRate = UnityEngine.Random.Range(0.8f, 1.2f);
-            CurveType = (DevelopmentCurve)UnityEngine.Random.Range(0, 4);
+            // Default values for a new player (safe defaults, randomized in Initialize())
+            PotentialCeiling = 75;  // Average potential
+            GrowthRate = 1.0f;      // Average growth
+            CurveType = DevelopmentCurve.Steady;
             ExperiencePoints = 0f;
             DevelopmentMomentum = 1.0f;
             Weights = new PositionDevelopmentWeights();
+        }
+        
+        /// <summary>
+        /// Initialize with randomized values - call this after deserialization
+        /// </summary>
+        public void InitializeRandomValues()
+        {
+            if (PotentialCeiling == 75 && GrowthRate == 1.0f && CurveType == DevelopmentCurve.Steady)
+            {
+                // Only randomize if still at defaults (not yet randomized)
+                PotentialCeiling = UnityEngine.Random.Range(65, 85);
+                GrowthRate = UnityEngine.Random.Range(0.8f, 1.2f);
+                CurveType = (DevelopmentCurve)UnityEngine.Random.Range(0, 4);
+            }
         }
         
         /// <summary>

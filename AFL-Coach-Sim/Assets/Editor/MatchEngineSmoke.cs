@@ -1,12 +1,18 @@
 using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using AFLCoachSim.Core.Domain.Aggregates;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Engine.Match;
 using AFLCoachSim.Core.Engine.Simulation;
 using AFLCoachSim.Core.Data;
 using AFLCoachSim.Core.Domain.Entities;
+using AFLCoachSim.Core.Injuries;
+using AFLCoachSim.Core.Injuries.Domain;
+using AFLCoachSim.Core.Persistence;
+using AFLCoachSim.Core.DTO;
+using Weather = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
 public static class MatchEngineSmoke
 {
@@ -48,10 +54,13 @@ public static class MatchEngineSmoke
             [new TeamId(2)] = new TeamTactics { ContestBias=50, KickingRisk=50, TargetInterchangesPerGame=70 },
         };
 
+        var injuryManager = new InjuryManager(new NullInjuryRepository());
         var result = AFLCoachSim.Core.Engine.Match.MatchEngine.PlayMatch(
             round: 1,
             homeId: new TeamId(1), awayId: new TeamId(2),
-            teams: teams, rosters: rosters, tactics: tactics,
+            teams: teams,
+            injuryManager: injuryManager,
+            rosters: rosters, tactics: tactics,
             weather: Weather.Clear, ground: new Ground(),
             quarterSeconds: 20*60,
             rng: new DeterministicRandom(12345)
@@ -85,17 +94,40 @@ public static class MatchEngineSmoke
                 [new TeamId(2)] = new TeamTactics { TargetInterchangesPerGame=90, ContestBias=50, KickingRisk=50 },
             };
 
+            var injuryMgr = new InjuryManager(new NullInjuryRepository());
             var resL = AFLCoachSim.Core.Engine.Match.MatchEngine.PlayMatch(
-                1, new TeamId(1), new TeamId(2), teams, rosters, low,
+                1, new TeamId(1), new TeamId(2), teams, injuryMgr, rosters, low,
                 Weather.Clear, new Ground(), 10*60, new DeterministicRandom(100+i));
             totLow += resL.HomeScore + resL.AwayScore;
 
             var resH = AFLCoachSim.Core.Engine.Match.MatchEngine.PlayMatch(
-                1, new TeamId(1), new TeamId(2), teams, rosters, high,
+                1, new TeamId(1), new TeamId(2), teams, injuryMgr, rosters, high,
                 Weather.Clear, new Ground(), 10*60, new DeterministicRandom(200+i));
             totHigh += resH.HomeScore + resH.AwayScore;
         }
 
         Debug.Log($"[M3] Totals over {trials} short sims — LowRot: {totLow}, HighRot: {totHigh} (High should be > Low)");
+    }
+
+    /// <summary>
+    /// Null implementation of IInjuryRepository for testing
+    /// </summary>
+    private class NullInjuryRepository : IInjuryRepository
+    {
+        public void SavePlayerInjuryHistory(PlayerInjuryHistory history) { }
+        public PlayerInjuryHistory LoadPlayerInjuryHistory(int playerId) => null;
+        public IDictionary<int, PlayerInjuryHistory> LoadAllPlayerInjuryHistories() => new Dictionary<int, PlayerInjuryHistory>();
+        public void RemovePlayerInjuryHistory(int playerId) { }
+        public void SaveInjury(Injury injury) { }
+        public Injury LoadInjury(InjuryId injuryId) => null;
+        public IEnumerable<Injury> LoadPlayerInjuries(int playerId) => Enumerable.Empty<Injury>();
+        public IEnumerable<Injury> LoadActiveInjuries() => Enumerable.Empty<Injury>();
+        public void SaveAllInjuryData(InjuryDataDTO data) { }
+        public InjuryDataDTO LoadAllInjuryData() => new InjuryDataDTO();
+        public void ClearAllInjuryData() { }
+        public void ClearPlayerInjuryData(int playerId) { }
+        public bool HasInjuryData() => false;
+        public void BackupInjuryData(string backupSuffix) { }
+        public bool RestoreInjuryData(string backupSuffix) => true;
     }
 }

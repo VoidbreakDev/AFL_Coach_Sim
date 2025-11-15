@@ -1,8 +1,5 @@
 ﻿<Solution>
-  <Project Path="AFLCoachSim.Gameplay.csproj" />
-  <Project Path="AFLCoachSim.Core.csproj" />
-  <Project Path="AFLCoachSim.Editor.csproj" />
-  <Project Path="AFLCoachSim.Core.Tests.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="AFLCoachSim.Core.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

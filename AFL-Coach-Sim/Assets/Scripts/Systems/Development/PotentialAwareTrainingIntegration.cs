@@ -70,7 +70,7 @@ namespace AFLManager.Systems.Development
             
             return new PotentialStatus
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 CurrentOverall = assessment.CurrentOverall,
                 PredictedCeiling = assessment.PredictedCeiling,
                 PointsToReachCeiling = gapToCeiling,

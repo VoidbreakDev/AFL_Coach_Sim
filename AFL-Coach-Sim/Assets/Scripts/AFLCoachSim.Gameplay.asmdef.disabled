@@ -1,0 +1,18 @@
+{
+    "name": "AFLCoachSim.Gameplay",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c91c8ebe0095d4e959e8f427acaf9a96",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

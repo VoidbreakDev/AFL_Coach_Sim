@@ -252,7 +252,10 @@ namespace AFLManager.UI
                 lineImage.color = connectionColor;
                 
             if (lineRenderer != null)
-                lineRenderer.color = connectionColor;
+            {
+                lineRenderer.startColor = connectionColor;
+                lineRenderer.endColor = connectionColor;
+            }
         }
     }
 

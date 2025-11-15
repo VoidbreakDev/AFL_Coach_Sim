@@ -29,12 +29,12 @@ namespace AFLManager.Systems.Training
         [Header("Fatigue Thresholds")]
         [SerializeField] private float lightTrainingThreshold = 75f; // Condition below this = light training only
         [SerializeField] private float noTrainingThreshold = 50f; // Condition below this = no training
-        [SerializeField] private float highRiskThreshold = 60f; // Condition below this = high injury risk
+        // [SerializeField] private float highRiskThreshold = 60f; // Condition below this = high injury risk // TODO: Implement high risk threshold logic
         
         [Header("Recovery Configuration")]
-        [SerializeField] private bool enableActiveRecovery = true;
+        // [SerializeField] private bool enableActiveRecovery = true; // TODO: Implement active recovery toggle
         [SerializeField] private float activeRecoveryMultiplier = 1.2f;
-        [SerializeField] private int sleepRecoveryHours = 8;
+        // [SerializeField] private int sleepRecoveryHours = 8; // TODO: Implement sleep recovery calculation
         [SerializeField] private float nutritionRecoveryBonus = 1.15f;
         
         // Player tracking data
@@ -46,7 +46,7 @@ namespace AFLManager.Systems.Training
         public event System.Action<int, PlayerLoadState> OnPlayerLoadStateChanged;
         public event System.Action<int, FatigueAlert> OnFatigueAlert;
         public event System.Action<LoadManagementRecommendation> OnLoadManagementRecommendation;
-        public event System.Action<int, RecoverySession> OnRecoverySessionRecommended;
+        // public event System.Action<int, RecoverySession> OnRecoverySessionRecommended; // TODO: Implement recovery session recommendation system
         
         private void Start()
         {
@@ -66,9 +66,11 @@ namespace AFLManager.Systems.Training
         public void Initialize()
         {
             // Find fatigue model if not assigned
+            // Note: FatigueModel is not a MonoBehaviour, so we can't use FindObjectOfType
+            // It should be injected or created separately
             if (fatigueModel == null)
             {
-                fatigueModel = FindObjectOfType<FatigueModel>();
+                Debug.LogWarning("[TrainingFatigueIntegration] FatigueModel not assigned. Some features may be unavailable.");
             }
             
             // Subscribe to training system events if available
@@ -181,8 +183,8 @@ namespace AFLManager.Systems.Training
                 ConditionImprovement = conditionRecovery,
                 LoadReduction = loadReduction,
                 NewFatigueLevel = fatigueData.CurrentFatigueLevel,
-                NewCondition = player.Condition,
-                Message = $"Recovery applied: -{recoveryAmount:F1} fatigue, +{conditionImprovement:F1} condition"
+                NewCondition = (int)player.Stamina,
+                Message = $"Recovery applied: -{recoveryAmount:F1} fatigue, +{conditionRecovery:F1} condition"
             };
             
             // Update tracking
@@ -205,7 +207,7 @@ namespace AFLManager.Systems.Training
             {
                 PlayerId = playerId,
                 PlayerName = player?.Name ?? "Unknown",
-                CurrentCondition = player?.Condition ?? 0,
+                CurrentCondition = (int)(player?.Stamina ?? 0),
                 CurrentFatigueLevel = fatigueData.CurrentFatigueLevel,
                 DailyLoadAccumulated = loadState.GetDailyLoad(),
                 WeeklyLoadAccumulated = loadState.GetWeeklyLoad(),
@@ -290,18 +292,18 @@ namespace AFLManager.Systems.Training
             var check = new PlayerLoadCapacityCheck { PlayerId = playerId };
             
             // Check condition thresholds
-            if (player.Condition <= noTrainingThreshold)
+            if (player.Stamina <= noTrainingThreshold)
             {
                 check.CanTrain = false;
-                check.Reason = $"Player condition too low ({player.Condition}) for training";
+                check.Reason = $"Player condition too low ({player.Stamina}) for training";
                 check.RecommendedAction = "Complete rest required";
                 return check;
             }
             
-            if (player.Condition <= lightTrainingThreshold && intensity > TrainingIntensity.Light)
+            if (player.Stamina <= lightTrainingThreshold && intensity > TrainingIntensity.Light)
             {
                 check.CanTrain = false;
-                check.Reason = $"Player condition ({player.Condition}) only suitable for light training";
+                check.Reason = $"Player condition ({player.Stamina}) only suitable for light training";
                 check.RecommendedAction = "Reduce training intensity to Light";
                 return check;
             }
@@ -356,7 +358,7 @@ namespace AFLManager.Systems.Training
             };
             
             // Player endurance reduces impact (similar to fatigue model)
-            float endurance = player.Stats?.Endurance ?? 70f;
+            float endurance = player.Stats?.Stamina ?? 70f;
             float enduranceMultiplier = 1.15f - 0.5f * (endurance / 100f);
             
             // Duration factor
@@ -380,7 +382,7 @@ namespace AFLManager.Systems.Training
             };
             
             // Player fitness affects fatigue accumulation
-            float fitness = player.Stats?.Endurance ?? 70f;
+            float fitness = player.Stats?.Stamina ?? 70f;
             float fitnessMultiplier = (100f - fitness) / 100f + 0.5f;
             
             return baseFatigue * intensityMultiplier * fitnessMultiplier;
@@ -391,7 +393,7 @@ namespace AFLManager.Systems.Training
             float baseEffectiveness = 1.0f;
             
             // Condition affects effectiveness (similar to fatigue model)
-            float conditionMultiplier = 0.75f + 0.25f * (player.Condition / 100f);
+            float conditionMultiplier = 0.75f + 0.25f * (player.Stamina / 100f);
             
             // Accumulated load reduces effectiveness
             var dailyLoad = loadState.GetDailyLoad();
@@ -426,7 +428,7 @@ namespace AFLManager.Systems.Training
         private float CalculateConditionRecovery(RecoveryType recoveryType, TimeSpan duration, Player player)
         {
             // Recovery improves condition back toward 100
-            float maxRecovery = 100f - player.Condition;
+            float maxRecovery = 100f - player.Stamina;
             float recoveryRate = recoveryType switch
             {
                 RecoveryType.PassiveRest => 8f, // Points per hour
@@ -457,8 +459,8 @@ namespace AFLManager.Systems.Training
         
         private void ApplyConditionChange(Player player, float conditionChange)
         {
-            int newCondition = Mathf.Clamp(player.Condition + (int)conditionChange, 0, 100);
-            player.Condition = newCondition;
+            float newCondition = Mathf.Clamp(player.Stamina + conditionChange, 0f, 100f);
+            player.Stamina = newCondition;
         }
         
         private float CalculatePlayerRecoveryRate(Player player)
@@ -469,7 +471,7 @@ namespace AFLManager.Systems.Training
                                  player.Age <= 32 ? 0.9f : 0.8f;
             
             // Fitter players recover better
-            float fitnessMultiplier = (player.Stats?.Endurance ?? 70f) / 100f + 0.5f;
+            float fitnessMultiplier = (player.Stats?.Stamina ?? 70f) / 100f + 0.5f;
             
             return ageMultiplier * fitnessMultiplier;
         }
@@ -486,7 +488,7 @@ namespace AFLManager.Systems.Training
             // Matches drain more condition than training
             float baseImpact = minutesPlayed / 90f * 25f; // 90min match = ~25 condition points
             
-            float endurance = player.Stats?.Endurance ?? 70f;
+            float endurance = player.Stats?.Stamina ?? 70f;
             float enduranceMultiplier = 1.15f - 0.5f * (endurance / 100f);
             
             return baseImpact * matchIntensity * enduranceMultiplier;
@@ -519,7 +521,7 @@ namespace AFLManager.Systems.Training
                     fatigueData.ApplyPassiveRecovery(recoveryAmount);
                     
                     // Condition recovery (when resting)
-                    if (player.Condition < 100)
+                    if (player.Stamina < 100)
                     {
                         var conditionRecovery = 6f * (float)timeDelta.TotalHours; // 6 points per hour passive
                         ApplyConditionChange(player, conditionRecovery);
@@ -648,9 +650,10 @@ namespace AFLManager.Systems.Training
         {
             return severity switch
             {
-                AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Minor => TimeSpan.FromHours(12),
-                AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Mild => TimeSpan.FromDays(1),
+                AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Niggle => TimeSpan.FromHours(12),
+                AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Minor => TimeSpan.FromDays(1),
                 AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Moderate => TimeSpan.FromDays(3),
+                AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Major => TimeSpan.FromDays(5),
                 AFLCoachSim.Core.Injuries.Domain.InjurySeverity.Severe => TimeSpan.FromDays(7),
                 _ => TimeSpan.FromHours(6)
             };

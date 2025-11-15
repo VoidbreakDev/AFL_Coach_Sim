@@ -16,11 +16,11 @@ namespace AFLManager.Systems.Training.AI
     public class TrainingRecommendationEngine : MonoBehaviour
     {
         [Header("AI Configuration")]
-        [SerializeField] private float playerAttributeWeight = 0.25f;
-        [SerializeField] private float developmentPotentialWeight = 0.20f;
-        [SerializeField] private float injuryHistoryWeight = 0.15f;
-        [SerializeField] private float fixtureContextWeight = 0.20f;
-        [SerializeField] private float teamNeedsWeight = 0.20f;
+        // [SerializeField] private float playerAttributeWeight = 0.25f; // TODO: Implement weighted scoring
+        // [SerializeField] private float developmentPotentialWeight = 0.20f; // TODO: Implement weighted scoring
+        // [SerializeField] private float injuryHistoryWeight = 0.15f; // TODO: Implement weighted scoring
+        // [SerializeField] private float fixtureContextWeight = 0.20f; // TODO: Implement weighted scoring
+        // [SerializeField] private float teamNeedsWeight = 0.20f; // TODO: Implement weighted scoring
         
         [Header("Learning Parameters")]
         [SerializeField] private bool enableMachineLearning = true;
@@ -44,7 +44,7 @@ namespace AFLManager.Systems.Training.AI
         private Dictionary<TrainingProgramType, EffectivenessMetrics> programEffectiveness = new Dictionary<TrainingProgramType, EffectivenessMetrics>();
         
         // Events
-        public event System.Action<TrainingProgramRecommendation> OnRecommendationGenerated;
+        // public event System.Action<TrainingProgramRecommendation> OnRecommendationGenerated; // TODO: Implement recommendation event handler
         public event System.Action<int, List<TrainingProgramRecommendation>> OnPlayerRecommendationsUpdated;
         public event System.Action<TeamTrainingStrategy> OnTeamStrategyRecommended;
         
@@ -87,7 +87,7 @@ namespace AFLManager.Systems.Training.AI
             var context = BuildAnalysisContext(player, targetDate);
             var recommendations = new PlayerTrainingRecommendations
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 PlayerName = player.Name,
                 GeneratedDate = DateTime.Now,
                 TargetDate = targetDate,
@@ -117,9 +117,9 @@ namespace AFLManager.Systems.Training.AI
             recommendations.PriorityRecommendation = recommendations.Recommendations.FirstOrDefault();
             
             // Store for learning
-            StoreRecommendationForLearning(player.ID, recommendations);
+            StoreRecommendationForLearning(int.Parse(player.Id), recommendations);
             
-            OnPlayerRecommendationsUpdated?.Invoke(player.ID, recommendations.Recommendations);
+            OnPlayerRecommendationsUpdated?.Invoke(int.Parse(player.Id), recommendations.Recommendations);
             
             Debug.Log($"[AI TrainingRecommendation] Generated {recommendations.Recommendations.Count} recommendations for {player.Name}");
             
@@ -251,25 +251,26 @@ namespace AFLManager.Systems.Training.AI
             };
             
             // Get fixture context
-            var upcomingMatches = seasonCalendar?.GetUpcomingMatches(targetDate, 14) ?? new List<ScheduledMatch>();
-            context.UpcomingMatches = upcomingMatches;
-            context.DaysUntilNextMatch = GetDaysUntilNextMatch(upcomingMatches);
+            // NOTE: SeasonTrainingCalendarManager doesn't have GetUpcomingMatches method
+            // This needs to be implemented or use a different approach
+            context.UpcomingMatches = new List<ScheduledMatch>();
+            context.DaysUntilNextMatch = 7; // Default placeholder
             
             // Get current training load and fatigue
-            var fatigueStatus = fatigueManager?.GetPlayerFatigueStatus(player.ID);
-            context.CurrentFatigueLevel = fatigueStatus?.FatigueLevel ?? 0f;
-            context.CurrentLoad = fatigueStatus?.CurrentLoad ?? 0f;
-            context.RiskLevel = fatigueStatus?.RiskLevel ?? FatigueRiskLevel.Low;
+            var fatigueStatus = fatigueManager?.GetPlayerFatigueStatus(int.Parse(player.Id));
+            context.CurrentFatigueLevel = fatigueStatus?.CurrentFatigueLevel ?? 0f;
+            context.CurrentLoad = fatigueStatus?.DailyLoadAccumulated ?? 0f;
+            context.RiskLevel = DetermineRiskLevel(fatigueStatus);
             
             // Get historical performance
-            context.HistoricalOutcomes = GetPlayerHistoricalOutcomes(player.ID);
+            context.HistoricalOutcomes = GetPlayerHistoricalOutcomes(int.Parse(player.Id));
             
             // Development analysis
             context.DevelopmentPotential = CalculateDevelopmentPotential(player);
             context.SkillGaps = IdentifySkillGaps(player);
             
             // Injury context
-            context.InjuryHistory = GetPlayerInjuryHistory(player.ID);
+            context.InjuryHistory = GetPlayerInjuryHistory(int.Parse(player.Id));
             context.InjuryRisk = injuryRiskModel.AssessRisk(player, context);
             
             return context;
@@ -282,10 +283,10 @@ namespace AFLManager.Systems.Training.AI
                 Players = players,
                 TargetDate = targetDate,
                 CurrentDate = DateTime.Now,
-                UpcomingMatches = seasonCalendar?.GetUpcomingMatches(targetDate, 14) ?? new List<ScheduledMatch>(),
+                UpcomingMatches = new List<ScheduledMatch>(), // Placeholder until GetUpcomingMatches is implemented
                 SeasonPhase = DetermineSeasonPhase(targetDate),
-                TeamAverageCondition = players.Average(p => p.Condition),
-                TeamAverageAge = players.Average(p => p.Age),
+                TeamAverageCondition = (float)players.Average(p => p.Stamina),
+                TeamAverageAge = (float)players.Average(p => p.Age),
                 PositionDistribution = AnalyzePositionDistribution(players)
             };
         }
@@ -328,7 +329,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Balanced Program for {player.Name}",
                 Description = "Well-rounded training program focusing on overall fitness and skill maintenance",
                 Duration = TimeSpan.FromDays(7),
-                TargetPlayerId = player.ID
+                TargetPlayerId = int.Parse(player.Id)
             };
             
             // Analyze player attributes to determine focus areas
@@ -539,12 +540,26 @@ namespace AFLManager.Systems.Training.AI
         
         // Utility methods
         private float CalculateBenefitScore(List<string> benefits) => benefits?.Count > 0 ? 0.8f : 0.5f;
-        private float CalculateRiskPenalty(List<string> risks) => risks?.Count * 0.1f;
+        private float CalculateRiskPenalty(List<string> risks) => (risks?.Count ?? 0) * 0.1f;
         private float CalculateContextRelevance(TrainingProgramRecommendation rec, TrainingAnalysisContext context) => 0.7f;
         private float GetHistoricalEffectiveness(TrainingProgramType programType) => programEffectiveness.ContainsKey(programType) ? programEffectiveness[programType].SmoothedEffectiveness : 0.7f;
         private SeasonPhase DetermineSeasonPhase(DateTime date) => SeasonPhase.Regular;
         private Dictionary<string, int> AnalyzePositionDistribution(List<Player> players) => new Dictionary<string, int>();
         private List<InjuryRecord> GetPlayerInjuryHistory(int playerId) => new List<InjuryRecord>();
+        
+        private FatigueRiskLevel DetermineRiskLevel(PlayerFatigueStatus fatigueStatus)
+        {
+            if (fatigueStatus == null) return FatigueRiskLevel.Low;
+            
+            // Determine risk level based on fatigue and load
+            if (fatigueStatus.CurrentFatigueLevel > 80f || fatigueStatus.WeeklyLoadAccumulated > 90f)
+                return FatigueRiskLevel.Critical;
+            if (fatigueStatus.CurrentFatigueLevel > 60f || fatigueStatus.WeeklyLoadAccumulated > 75f)
+                return FatigueRiskLevel.High;
+            if (fatigueStatus.CurrentFatigueLevel > 40f || fatigueStatus.WeeklyLoadAccumulated > 60f)
+                return FatigueRiskLevel.Moderate;
+            return FatigueRiskLevel.Low;
+        }
         
         #endregion
     }

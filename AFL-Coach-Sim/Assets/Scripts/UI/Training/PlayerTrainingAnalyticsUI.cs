@@ -116,7 +116,7 @@ namespace AFLManager.UI.Training
             
             foreach (var player in currentAnalytics.TeamPlayers)
             {
-                var loadAnalytics = currentAnalytics.PlayerLoadStates?.FirstOrDefault(p => p.PlayerId == player.ID);
+                var loadAnalytics = currentAnalytics.PlayerLoadStates?.FirstOrDefault(p => p.PlayerId == int.Parse(player.Id));
                 
                 var cardData = new PlayerAnalyticsCardData
                 {
@@ -183,13 +183,13 @@ namespace AFLManager.UI.Training
             // Injured only filter
             if (currentFilter.InjuredOnly)
             {
-                filtered = filtered.Where(p => p.Player.Condition < 70); // Assuming low condition = injured
+                filtered = filtered.Where(p => p.Player.Stamina < 70); // Assuming low condition = injured
             }
             
             // Position filter
             if (!string.IsNullOrEmpty(currentFilter.Position) && currentFilter.Position != "All Positions")
             {
-                filtered = filtered.Where(p => GetPlayerPositionGroup(p.Player.Role) == currentFilter.Position);
+                filtered = filtered.Where(p => GetPlayerPositionGroup(p.Player.Role.ToString()) == currentFilter.Position);
             }
             
             return filtered.ToList();
@@ -282,11 +282,11 @@ namespace AFLManager.UI.Training
         {
             return new PlayerLoadAnalytics
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 PlayerName = player.Name,
                 CurrentLoad = Random.Range(20f, 80f),
                 FatigueLevel = Random.Range(10f, 60f),
-                Condition = player.Condition,
+                Condition = player.Stamina,
                 RiskLevel = FatigueRiskLevel.Low,
                 RecommendedAction = "Continue current training"
             };
@@ -544,7 +544,7 @@ public class PlayerAnalyticsCardUI : MonoBehaviour
         
         playerNameText.text = player.Name;
         playerAgeText.text = $"Age: {player.Age}";
-        playerPositionText.text = player.Role;
+        playerPositionText.text = player.Role.ToString();
         
         // Set player portrait (placeholder)
         // playerPortrait.sprite = GetPlayerPortrait(player);
@@ -604,10 +604,10 @@ public class PlayerAnalyticsCardUI : MonoBehaviour
     private void SetupActionButtons()
     {
         viewDetailsButton?.onClick.RemoveAllListeners();
-        viewDetailsButton?.onClick.AddListener(() => OnViewDetailsClicked(currentCardData.Player.ID));
+        viewDetailsButton?.onClick.AddListener(() => OnViewDetailsClicked(int.Parse(currentCardData.Player.Id)));
         
         adjustProgramButton?.onClick.RemoveAllListeners();
-        adjustProgramButton?.onClick.AddListener(() => OnAdjustProgramClicked(currentCardData.Player.ID));
+        adjustProgramButton?.onClick.AddListener(() => OnAdjustProgramClicked(int.Parse(currentCardData.Player.Id)));
     }
     
     #region Helper Methods

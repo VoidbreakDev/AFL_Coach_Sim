@@ -120,7 +120,7 @@ namespace AFLManager.Systems.Development
             return PlayerStatus.Available;
         }
         
-        private void UpdateForm(MatchPerformanceRating performance)
+        protected void UpdateForm(MatchPerformanceRating performance)
         {
             float change = 0f;
             
@@ -155,7 +155,7 @@ namespace AFLManager.Systems.Development
             UpdateFormTrend();
         }
         
-        private void UpdateCondition(int minutesPlayed, bool injured)
+        protected void UpdateCondition(int minutesPlayed, bool injured)
         {
             // Condition decreases based on minutes played
             float conditionLoss = minutesPlayed / 90f * 15f; // Up to 15 points for full game
@@ -172,7 +172,7 @@ namespace AFLManager.Systems.Development
             Fatigue = Mathf.Min(100f, Fatigue + conditionLoss * 0.8f);
         }
         
-        private void UpdateConfidence(MatchPerformanceRating performance)
+        protected void UpdateConfidence(MatchPerformanceRating performance)
         {
             float change = ((float)performance - 5f) * 2f; // -8 to +10 based on performance
             
@@ -186,7 +186,7 @@ namespace AFLManager.Systems.Development
             Confidence = Mathf.Clamp(Confidence + change, 15f, 95f);
         }
         
-        private void RecordPerformance(MatchPerformanceRating performance, int minutesPlayed)
+        protected void RecordPerformance(MatchPerformanceRating performance, int minutesPlayed)
         {
             var snapshot = new FormSnapshot
             {
@@ -309,7 +309,7 @@ namespace AFLManager.Systems.Development
             });
         }
         
-        private PlayerIssue GenerateInjury(MatchPerformanceRating performance, int minutesPlayed)
+        protected PlayerIssue GenerateInjury(MatchPerformanceRating performance, int minutesPlayed)
         {
             // More likely to be injured if played poorly (may indicate struggling)
             // or if played full game (fatigue)

@@ -111,6 +111,8 @@ namespace AFLManager.Managers
             
             // Run the actual simulation
             var matchId = currentMatch.StableId(GetSeasonSchedule());
+            // Use combination of match ID hash + current time to ensure unique simulations
+            int seed = matchId.GetHashCode() ^ (int)(System.DateTime.Now.Ticks & 0xFFFFFFFF);
             currentResult = MatchSimulator.SimulateMatch(
                 matchId,
                 "R?",
@@ -119,7 +121,7 @@ namespace AFLManager.Managers
                 new MatchSimulator.DefaultRatingProvider(
                     id => GetTeamAverage(id),
                     id => GetPlayerIds(id)),
-                seed: matchId.GetHashCode()
+                seed: seed
             );
             
             // Update simulation UI with progress

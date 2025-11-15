@@ -229,8 +229,8 @@ namespace AFLManager.Examples
             
             foreach (var player in examplePlayers.Take(5)) // Show first 5 players
             {
-                var load = scheduleManager.GetPlayerWeeklyLoad(player.ID);
-                var canTrain = scheduleManager.CanPlayerTrain(player.ID, 25f); // Test with 25 load points
+                var load = scheduleManager.GetPlayerWeeklyLoad(int.Parse(player.Id));
+                var canTrain = scheduleManager.CanPlayerTrain(int.Parse(player.Id), 25f); // Test with 25 load points
                 
                 Debug.Log($"  • {player.Name}: {load.CurrentLoad:F1}/{load.MaxLoad} load ({load.GetLoadUtilization():F1}%) - Can train more: {canTrain}");
                 
@@ -256,7 +256,6 @@ namespace AFLManager.Examples
             {
                 var player = new Player
                 {
-                    ID = i + 1,
                     Name = names[i],
                     Role = positions[i % positions.Length],
                     Age = UnityEngine.Random.Range(19, 33),
@@ -264,13 +263,15 @@ namespace AFLManager.Examples
                     Morale = UnityEngine.Random.Range(70f, 90f),
                     Stats = new PlayerStats
                     {
-                        Kicking = UnityEngine.Random.Range(60f, 85f),
-                        Marking = UnityEngine.Random.Range(55f, 80f),
-                        Handballing = UnityEngine.Random.Range(65f, 85f),
-                        Contested = UnityEngine.Random.Range(50f, 75f),
-                        Endurance = UnityEngine.Random.Range(60f, 80f)
+                        Kicking = UnityEngine.Random.Range(60, 85),
+                        Handballing = UnityEngine.Random.Range(65, 85),
+                        Tackling = UnityEngine.Random.Range(50, 75),
+                        Speed = UnityEngine.Random.Range(55, 80),
+                        Stamina = UnityEngine.Random.Range(60, 80),
+                        Knowledge = UnityEngine.Random.Range(55, 75),
+                        Playmaking = UnityEngine.Random.Range(50, 70)
                     },
-                    Development = new PlayerDevelopment(i + 1) // Basic development system
+                    Development = new PlayerDevelopment() // Basic development system
                 };
                 
                 players.Add(player);
@@ -297,7 +298,7 @@ namespace AFLManager.Examples
             // Generate sessions from template (simplified)
             for (int day = 0; day < 7; day++)
             {
-                var dayOfWeek = (DayOfWeek)((int)(schedule.WeekStartDate.DayOfWeek) + day) % 7;
+                var dayOfWeek = (DayOfWeek)(((int)schedule.WeekStartDate.DayOfWeek + day) % 7);
                 var dayTemplate = template.GetDayTemplate(dayOfWeek);
                 
                 if (dayTemplate != null && !dayTemplate.IsRestDay)
@@ -373,7 +374,7 @@ namespace AFLManager.Examples
                 if (UnityEngine.Random.Range(0f, 1f) < 0.85f)
                 {
                     // Check if player can handle the training load
-                    if (scheduleManager != null && scheduleManager.CanPlayerTrain(player.ID, session.GetSessionLoad()))
+                    if (scheduleManager != null && scheduleManager.CanPlayerTrain(int.Parse(player.Id), session.GetSessionLoad()))
                     {
                         participants.Add(player);
                     }
@@ -435,7 +436,7 @@ namespace AFLManager.Examples
                 analytics.TotalSessionsCompleted = currentWeekSchedule.DailySessions.Count(s => s.Status == TrainingSessionStatus.Completed);
                 
                 // Calculate average load across all players
-                var playerLoads = examplePlayers.Select(p => scheduleManager?.GetPlayerWeeklyLoad(p.ID).CurrentLoad ?? 0f).ToList();
+                var playerLoads = examplePlayers.Select(p => scheduleManager?.GetPlayerWeeklyLoad(int.Parse(p.Id)).CurrentLoad ?? 0f).ToList();
                 analytics.AveragePlayerLoad = playerLoads.Any() ? playerLoads.Average() : 0f;
                 
                 // Count overloaded players
@@ -464,7 +465,7 @@ namespace AFLManager.Examples
         
         private void OnPlayerLoadExceeded(int playerId, float currentLoad)
         {
-            var player = examplePlayers.FirstOrDefault(p => p.ID == playerId);
+            var player = examplePlayers.FirstOrDefault(p => int.Parse(p.Id) == playerId);
             var playerName = player?.Name ?? $"Player {playerId}";
             Debug.LogWarning($"[Event] Player load exceeded: {playerName} at {currentLoad:F1} load");
         }

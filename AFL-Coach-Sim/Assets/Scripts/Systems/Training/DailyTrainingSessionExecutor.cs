@@ -17,17 +17,17 @@ namespace AFLManager.Systems.Training
     public class DailyTrainingSessionExecutor : MonoBehaviour
     {
         [Header("Execution Configuration")]
-        [SerializeField] private float sessionUpdateIntervalSeconds = 0.1f;
+        // [SerializeField] private float sessionUpdateIntervalSeconds = 0.1f; // TODO: Implement session update interval
         [SerializeField] private bool enableRealTimeSimulation = false;
         [SerializeField] private float realTimeSpeedMultiplier = 60f; // 1 minute = 1 second
         
         [Header("Risk Management")]
         [SerializeField] private float baseInjuryRiskMultiplier = 1.0f;
         [SerializeField] private float fatigueInjuryThreshold = 75f;
-        [SerializeField] private bool enableAutomaticIntensityReduction = true;
+        // [SerializeField] private bool enableAutomaticIntensityReduction = true; // TODO: Implement automatic intensity reduction
         
         [Header("Performance Tracking")]
-        [SerializeField] private bool trackDetailedMetrics = true;
+        // [SerializeField] private bool trackDetailedMetrics = true; // TODO: Implement detailed metrics tracking
         [SerializeField] private bool logExecutionDetails = false;
         
         // Dependencies (inject via Initialize method)
@@ -141,9 +141,9 @@ namespace AFLManager.Systems.Training
                     eligibleParticipants.Add(player);
                     
                     // Initialize player state for this session
-                    playerStates[player.ID] = new PlayerSessionState
+                    playerStates[int.Parse(player.Id)] = new PlayerSessionState
                     {
-                        PlayerId = player.ID,
+                        PlayerId = int.Parse(player.Id),
                         Player = player,
                         SessionId = execution.SessionId,
                         StartingFatigue = GetPlayerFatigue(player),
@@ -306,15 +306,15 @@ namespace AFLManager.Systems.Training
             // Execute for each eligible participant
             foreach (var player in execution.EligibleParticipants)
             {
-                var playerState = playerStates[player.ID];
+                var playerState = playerStates[int.Parse(player.Id)];
                 var playerResult = ExecuteComponentForPlayer(component, player, playerState, execution.Session);
                 
-                result.PlayerResults[player.ID] = playerResult;
+                result.PlayerResults[int.Parse(player.Id)] = playerResult;
                 
                 // Track any injuries
                 if (playerResult.InjuryOccurred)
                 {
-                    OnTrainingInjuryOccurred?.Invoke(player.ID, playerResult.Injury);
+                    OnTrainingInjuryOccurred?.Invoke(int.Parse(player.Id), playerResult.Injury);
                 }
             }
             
@@ -331,7 +331,7 @@ namespace AFLManager.Systems.Training
         {
             var result = new PlayerComponentResult
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 ComponentType = component.ComponentType,
                 StartTime = DateTime.Now
             };
@@ -403,11 +403,11 @@ namespace AFLManager.Systems.Training
             // Generate final results for each participant
             foreach (var player in execution.EligibleParticipants)
             {
-                var playerState = playerStates[player.ID];
+                var playerState = playerStates[int.Parse(player.Id)];
                 var sessionResult = GeneratePlayerSessionResult(player, playerState, execution);
                 
-                execution.ParticipantResults[player.ID] = sessionResult;
-                OnPlayerSessionResult?.Invoke(player.ID, sessionResult);
+                execution.ParticipantResults[int.Parse(player.Id)] = sessionResult;
+                OnPlayerSessionResult?.Invoke(int.Parse(player.Id), sessionResult);
             }
             
             // Calculate session-wide metrics
@@ -415,7 +415,7 @@ namespace AFLManager.Systems.Training
             
             // Update the original session object
             execution.Session.Status = TrainingSessionStatus.Completed;
-            execution.Session.ActualParticipants = execution.EligibleParticipants.Select(p => p.ID).ToList();
+            execution.Session.ActualParticipants = execution.EligibleParticipants.Select(p => int.Parse(p.Id)).ToList();
             execution.Session.CompletionTime = execution.EndTime;
             
             execution.CompletionMessage = $"Session completed successfully with {execution.EligibleParticipants.Count} participants";
@@ -431,7 +431,7 @@ namespace AFLManager.Systems.Training
             // Clean up player states
             foreach (var player in execution.EligibleParticipants)
             {
-                playerStates.Remove(player.ID);
+                playerStates.Remove(int.Parse(player.Id));
             }
         }
         
@@ -442,10 +442,10 @@ namespace AFLManager.Systems.Training
         /// </summary>
         private PlayerEligibilityResult CheckPlayerEligibility(Player player, DailyTrainingSession session)
         {
-            var result = new PlayerEligibilityResult { PlayerId = player.ID };
+            var result = new PlayerEligibilityResult { PlayerId = int.Parse(player.Id) };
             
             // Check injury status
-            if (injuryManager != null && !injuryManager.CanPlayerTrain(player.ID))
+            if (injuryManager != null && !injuryManager.CanPlayerTrain(int.Parse(player.Id)))
             {
                 result.IsEligible = false;
                 result.Reason = "Currently injured";
@@ -589,7 +589,7 @@ namespace AFLManager.Systems.Training
             
             // Apply component-specific scaling
             var componentScaling = component.LoadMultiplier / 15f; // Normalize to typical load
-            return development.Scale(componentScaling);
+            return ScaleStatsDelta(development, componentScaling);
         }
         
         /// <summary>
@@ -610,7 +610,7 @@ namespace AFLManager.Systems.Training
             };
             
             // Player fitness affects fatigue accumulation
-            var fitness = player.Stats?.Endurance ?? 70f;
+            var fitness = player.Stats?.Stamina ?? 70f;
             baseFatigue *= (100f - fitness) / 100f + 0.5f;
             
             return Mathf.Clamp(baseFatigue, 0.5f, 15f);
@@ -624,22 +624,20 @@ namespace AFLManager.Systems.Training
             if (injuryManager != null)
             {
                 // Use the injury manager to generate appropriate injury
-                return injuryManager.RecordTrainingInjury(player.ID, injuryRisk, player.Age, GetPlayerDurability(player));
+                return injuryManager.RecordTrainingInjury(int.Parse(player.Id), injuryRisk, player.Age, GetPlayerDurability(player));
             }
             
             // Fallback basic injury generation
-            var severities = new[] { InjurySeverity.Minor, InjurySeverity.Mild, InjurySeverity.Moderate };
-            var types = new[] { InjuryType.Muscle, InjuryType.Joint, InjuryType.Fatigue };
+            var severities = new[] { InjurySeverity.Niggle, InjurySeverity.Minor, InjurySeverity.Moderate };
+            var types = new[] { InjuryType.Muscle, InjuryType.Joint, InjuryType.Other };
             
-            return new Injury
-            {
-                PlayerId = player.ID,
-                Type = types[UnityEngine.Random.Range(0, types.Length)],
-                Severity = severities[UnityEngine.Random.Range(0, severities.Length)],
-                Description = $"Training {component.ComponentType.ToString().ToLower()} injury",
-                OccurrenceDate = DateTime.Now,
-                Source = InjurySource.Training
-            };
+            return new Injury(
+                playerId: int.Parse(player.Id),
+                type: types[UnityEngine.Random.Range(0, types.Length)],
+                severity: severities[UnityEngine.Random.Range(0, severities.Length)],
+                source: InjurySource.Training,
+                description: $"Training {component.ComponentType.ToString().ToLower()} injury"
+            );
         }
         
         /// <summary>
@@ -648,19 +646,19 @@ namespace AFLManager.Systems.Training
         private PlayerSessionResult GeneratePlayerSessionResult(Player player, PlayerSessionState playerState, TrainingSessionExecution execution)
         {
             var componentResults = execution.ComponentResults
-                .Where(cr => cr.PlayerResults.ContainsKey(player.ID))
-                .Select(cr => cr.PlayerResults[player.ID])
+                .Where(cr => cr.PlayerResults.ContainsKey(int.Parse(player.Id)))
+                .Select(cr => cr.PlayerResults[int.Parse(player.Id)])
                 .ToList();
                 
             var result = new PlayerSessionResult
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 SessionId = execution.SessionId,
                 PlayerName = player.Name,
                 ComponentResults = componentResults,
                 TotalStatChanges = componentResults
                     .Where(cr => cr.StatChanges != null)
-                    .Aggregate(new PlayerStatsDelta(), (acc, cr) => acc.Add(cr.StatChanges)),
+                    .Aggregate(new PlayerStatsDelta(), (acc, cr) => AddStatDeltas(acc, cr.StatChanges)),
                 TotalFatigueIncrease = componentResults.Sum(cr => cr.FatigueIncrease),
                 TotalLoadContribution = componentResults.Sum(cr => cr.LoadContribution),
                 AverageEffectiveness = componentResults.Any() ? componentResults.Average(cr => cr.EffectivenessRating) : 0f,
@@ -714,7 +712,7 @@ namespace AFLManager.Systems.Training
             // Terminate if not enough healthy participants remaining
             var healthyParticipants = execution.EligibleParticipants.Count(p => 
                 !execution.ComponentResults.Any(cr => 
-                    cr.PlayerResults.ContainsKey(p.ID) && cr.PlayerResults[p.ID].InjuryOccurred));
+                    cr.PlayerResults.ContainsKey(int.Parse(p.Id)) && cr.PlayerResults[int.Parse(p.Id)].InjuryOccurred));
                     
             if (healthyParticipants < CalculateMinimumParticipants(execution.Session) / 2)
             {
@@ -759,12 +757,47 @@ namespace AFLManager.Systems.Training
         
         private float GetPlayerCondition(Player player)
         {
-            return player.Condition ?? 85f; // Default good condition
+            return player.Stamina; // Player.Stamina is already a float, not nullable
         }
         
         private int GetPlayerDurability(Player player)
         {
-            return player.Durability; // Assuming this exists
+            // Durability can be estimated from player stats (average of physical attributes)
+            return Mathf.RoundToInt((player.Stats.Stamina + player.Stats.Tackling + player.Stats.Speed) / 3f);
+        }
+        
+        /// <summary>
+        /// Scales a PlayerStatsDelta by a multiplier
+        /// </summary>
+        private PlayerStatsDelta ScaleStatsDelta(PlayerStatsDelta delta, float multiplier)
+        {
+            return new PlayerStatsDelta
+            {
+                Kicking = delta.Kicking * multiplier,
+                Handballing = delta.Handballing * multiplier,
+                Tackling = delta.Tackling * multiplier,
+                Speed = delta.Speed * multiplier,
+                Stamina = delta.Stamina * multiplier,
+                Knowledge = delta.Knowledge * multiplier,
+                Playmaking = delta.Playmaking * multiplier
+            };
+        }
+        
+        /// <summary>
+        /// Adds two PlayerStatsDelta objects together
+        /// </summary>
+        private PlayerStatsDelta AddStatDeltas(PlayerStatsDelta a, PlayerStatsDelta b)
+        {
+            return new PlayerStatsDelta
+            {
+                Kicking = a.Kicking + b.Kicking,
+                Handballing = a.Handballing + b.Handballing,
+                Tackling = a.Tackling + b.Tackling,
+                Speed = a.Speed + b.Speed,
+                Stamina = a.Stamina + b.Stamina,
+                Knowledge = a.Knowledge + b.Knowledge,
+                Playmaking = a.Playmaking + b.Playmaking
+            };
         }
         
         private float GetPlayerCurrentWeeklyLoad(Player player)
@@ -830,7 +863,7 @@ namespace AFLManager.Systems.Training
                 // Clean up player states
                 foreach (var player in execution.EligibleParticipants ?? new List<Player>())
                 {
-                    playerStates.Remove(player.ID);
+                    playerStates.Remove(int.Parse(player.Id));
                 }
                 
                 return true;

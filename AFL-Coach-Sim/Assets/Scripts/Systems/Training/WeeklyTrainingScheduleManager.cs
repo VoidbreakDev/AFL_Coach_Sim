@@ -142,7 +142,7 @@ namespace AFLManager.Systems.Training
             
             // Update session status
             session.Status = TrainingSessionStatus.Completed;
-            session.ActualParticipants = availableParticipants.Select(p => p.Id).ToList();
+            session.ActualParticipants = availableParticipants.Select(p => int.Parse(p.Id)).ToList();
             session.CompletionTime = DateTime.Now;
             
             OnDailySessionCompleted?.Invoke(session, results);
@@ -271,8 +271,8 @@ namespace AFLManager.Systems.Training
                 var component = new TrainingComponent
                 {
                     ComponentType = componentTemplate.Type,
-                    Program = trainingManager.GetAvailablePrograms()
-                        .FirstOrDefault(p => p.FocusType == componentTemplate.Focus),
+                    // Program lookup would go here if GetAvailablePrograms existed
+                    Program = null,
                     Duration = componentTemplate.Duration,
                     Intensity = ApplyContextualIntensity(componentTemplate.Intensity, sessionDate, weekMatches),
                     LoadMultiplier = componentTemplate.LoadMultiplier
@@ -353,9 +353,10 @@ namespace AFLManager.Systems.Training
             {
                 // Check if player can handle additional training load
                 var additionalLoad = session.TrainingComponents.Sum(c => c.LoadMultiplier);
-                if (!CanPlayerTrain(player.Id, additionalLoad))
+                var playerId = int.Parse(player.Id);
+                if (!CanPlayerTrain(playerId, additionalLoad))
                 {
-                    OnPlayerLoadExceeded?.Invoke(player.Id, GetPlayerWeeklyLoad(player.Id).CurrentLoad);
+                    OnPlayerLoadExceeded?.Invoke(playerId, GetPlayerWeeklyLoad(playerId).CurrentLoad);
                     continue;
                 }
                 
@@ -412,7 +413,7 @@ namespace AFLManager.Systems.Training
         {
             foreach (var result in results)
             {
-                var load = GetPlayerWeeklyLoad(result.Player.Id);
+                var load = GetPlayerWeeklyLoad(int.Parse(result.Player.Id));
                 load.AddTrainingLoad(loadMultiplier, result.EffectivenessRating);
             }
         }
@@ -454,7 +455,7 @@ namespace AFLManager.Systems.Training
                         SessionType = DailySessionType.Main,
                         Components = new List<ComponentTemplate>
                         {
-                            new ComponentTemplate { Type = TrainingComponentType.Skills, Focus = TrainingFocus.Kicking, Duration = TimeSpan.FromMinutes(90), Intensity = TrainingIntensity.Moderate, LoadMultiplier = 15f }
+                            new ComponentTemplate { Type = TrainingComponentType.Skills, Focus = TrainingFocus.SkillDevelopment, Duration = TimeSpan.FromMinutes(90), Intensity = TrainingIntensity.Moderate, LoadMultiplier = 15f }
                         }
                     },
                     // Tuesday - Fitness
@@ -467,7 +468,7 @@ namespace AFLManager.Systems.Training
                         SessionType = DailySessionType.Main,
                         Components = new List<ComponentTemplate>
                         {
-                            new ComponentTemplate { Type = TrainingComponentType.Fitness, Focus = TrainingFocus.Endurance, Duration = TimeSpan.FromMinutes(90), Intensity = TrainingIntensity.High, LoadMultiplier = 20f }
+                            new ComponentTemplate { Type = TrainingComponentType.Fitness, Focus = TrainingFocus.Conditioning, Duration = TimeSpan.FromMinutes(90), Intensity = TrainingIntensity.High, LoadMultiplier = 20f }
                         }
                     },
                     // Wednesday - Rest day
@@ -487,7 +488,7 @@ namespace AFLManager.Systems.Training
                         SessionType = DailySessionType.Main,
                         Components = new List<ComponentTemplate>
                         {
-                            new ComponentTemplate { Type = TrainingComponentType.Tactical, Focus = TrainingFocus.GamePlan, Duration = TimeSpan.FromMinutes(120), Intensity = TrainingIntensity.Moderate, LoadMultiplier = 12f }
+                            new ComponentTemplate { Type = TrainingComponentType.Tactical, Focus = TrainingFocus.TacticalAwareness, Duration = TimeSpan.FromMinutes(120), Intensity = TrainingIntensity.Moderate, LoadMultiplier = 12f }
                         }
                     },
                     // Friday - Light skills
@@ -501,7 +502,7 @@ namespace AFLManager.Systems.Training
                         SkipOnMatchDay = true,
                         Components = new List<ComponentTemplate>
                         {
-                            new ComponentTemplate { Type = TrainingComponentType.Skills, Focus = TrainingFocus.Kicking, Duration = TimeSpan.FromMinutes(60), Intensity = TrainingIntensity.Light, LoadMultiplier = 8f }
+                            new ComponentTemplate { Type = TrainingComponentType.Skills, Focus = TrainingFocus.SkillDevelopment, Duration = TimeSpan.FromMinutes(60), Intensity = TrainingIntensity.Light, LoadMultiplier = 8f }
                         }
                     }
                 }

@@ -1,0 +1,52 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="platinumGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E5E4E2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0C0C0;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="shine" cx="50%" cy="30%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#E5E4E2;stop-opacity:0.2" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#platinumGrad)" stroke="#A8A8A8" stroke-width="3"/>
+  <circle cx="100" cy="100" r="85" fill="none" stroke="#D3D3D3" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- Trophy base -->
+  <rect x="85" y="150" width="30" height="8" rx="2" fill="#8B7355" stroke="#654321" stroke-width="2"/>
+  <rect x="90" y="145" width="20" height="5" fill="#A0826D" stroke="#654321" stroke-width="1"/>
+  
+  <!-- Trophy stem -->
+  <rect x="95" y="130" width="10" height="15" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+  
+  <!-- Trophy cup -->
+  <path d="M 75 130 L 70 90 Q 70 75, 80 70 L 120 70 Q 130 75, 130 90 L 125 130 Z" 
+        fill="url(#shine)" stroke="#A8A8A8" stroke-width="2"/>
+  
+  <!-- Trophy handles -->
+  <path d="M 70 100 Q 55 100, 55 110 Q 55 120, 70 120" 
+        fill="none" stroke="#A8A8A8" stroke-width="3"/>
+  <path d="M 130 100 Q 145 100, 145 110 Q 145 120, 130 120" 
+        fill="none" stroke="#A8A8A8" stroke-width="3"/>
+  
+  <!-- Trophy details -->
+  <ellipse cx="100" cy="72" rx="20" ry="5" fill="#D3D3D3" opacity="0.6"/>
+  <line x1="80" y1="90" x2="120" y2="90" stroke="#FFD700" stroke-width="2"/>
+  <line x1="82" y1="105" x2="118" y2="105" stroke="#FFD700" stroke-width="2"/>
+  
+  <!-- Championship star -->
+  <polygon points="100,95 103,103 112,103 105,108 108,116 100,111 92,116 95,108 88,103 97,103" 
+           fill="#FFD700" stroke="#FFA500" stroke-width="1"/>
+  
+  <!-- Whistle accent -->
+  <ellipse cx="140" cy="65" rx="8" ry="6" fill="#1A1A1A" stroke="#000" stroke-width="1.5"/>
+  <circle cx="147" cy="65" r="3" fill="#1A1A1A"/>
+  <path d="M 147 68 L 152 75" stroke="#333" stroke-width="1.5"/>
+  
+  <!-- Text -->
+  <text x="100" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1A1A1A" text-anchor="middle">HEAD</text>
+  <text x="100" y="53" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1A1A1A" text-anchor="middle">COACH</text>
+</svg>

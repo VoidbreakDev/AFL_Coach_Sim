@@ -12,5 +12,12 @@ namespace AFLCoachSim.Core.DTO
     public int AwayScore { get; set; }
     public TeamId Winner => HomeScore > AwayScore ? Home : (AwayScore > HomeScore ? Away : new TeamId(0));
     public bool IsDraw => HomeScore == AwayScore;
+    
+    // Debug telemetry
+    public int TotalTicks { get; set; }
+    public int Inside50Entries { get; set; }
+    public int Shots { get; set; }
+    public int Goals { get; set; }
+    public int Behinds { get; set; }
 }
 }

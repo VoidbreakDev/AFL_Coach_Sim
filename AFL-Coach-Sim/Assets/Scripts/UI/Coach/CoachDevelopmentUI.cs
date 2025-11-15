@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using AFLManager.Systems.Coach;
+using CoachSkills = AFLCoachSim.Core.Domain.Entities.CoachSkills;
 
 namespace AFLManager.UI.Coach
 {
@@ -118,8 +119,8 @@ namespace AFLManager.UI.Coach
         /// </summary>
         private void FindSystemReferences()
         {
-            _developmentSystem = FindObjectOfType<CoachDevelopmentPoints>();
-            _skillsManager = FindObjectOfType<CoachSkillsManager>();
+            _developmentSystem = FindFirstObjectByType<CoachDevelopmentPoints>();
+            _skillsManager = FindFirstObjectByType<CoachSkillsManager>();
             
             if (_developmentSystem == null)
             {

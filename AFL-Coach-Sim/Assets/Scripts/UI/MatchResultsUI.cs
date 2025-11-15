@@ -44,10 +44,11 @@ namespace AFLManager.Managers
         
         [Header("Controls")]
         [SerializeField] private Button continueButton;
-        [SerializeField] private Button viewStatsButton;
+        [SerializeField] private Button viewStatsButton;  // Optional - detailed stats not implemented yet
         
         private MatchResult result;
         private string playerTeamId;
+        private System.Collections.Generic.List<string> commentary;
         
         public System.Action OnContinue;
         public System.Action OnViewStats;
@@ -61,10 +62,11 @@ namespace AFLManager.Managers
                 viewStatsButton.onClick.AddListener(() => OnViewStats?.Invoke());
         }
         
-        public void Initialize(MatchResult matchResult, Match match, Team homeTeam, Team awayTeam, string userTeamId)
+        public void Initialize(MatchResult matchResult, Match match, Team homeTeam, Team awayTeam, string userTeamId, System.Collections.Generic.List<string> capturedCommentary = null)
         {
             result = matchResult;
             playerTeamId = userTeamId;
+            commentary = capturedCommentary;
             
             bool playerWon = DeterminePlayerResult(matchResult, userTeamId);
             
@@ -147,20 +149,39 @@ namespace AFLManager.Managers
             foreach (Transform child in highlightsContainer)
                 Destroy(child.gameObject);
             
-            // Generate key moments
-            string[] highlights = new[]
+            // Use real commentary if available
+            if (commentary != null && commentary.Count > 0)
             {
-                $"Q1 - Strong start from {result.HomeTeamId}",
-                $"Q2 - Momentum swings as {result.AwayTeamId} fights back",
-                $"Q3 - Physical contest intensifies",
-                $"Q4 - {(result.HomeScore > result.AwayScore ? result.HomeTeamId : result.AwayTeamId)} seals the victory"
-            };
-            
-            foreach (var highlight in highlights)
+                // Take key highlights from commentary (goals, injuries, quarter starts)
+                var highlights = commentary
+                    .Where(c => c.Contains("Goal") || c.Contains("Q") || c.Contains("start") || c.Contains("Behind"))
+                    .Take(10)  // Limit to 10 highlights
+                    .ToList();
+                
+                foreach (var highlight in highlights)
+                {
+                    var entry = Instantiate(highlightEntryPrefab, highlightsContainer);
+                    var text = entry.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text) text.text = highlight;
+                }
+            }
+            else
             {
-                var entry = Instantiate(highlightEntryPrefab, highlightsContainer);
-                var text = entry.GetComponentInChildren<TextMeshProUGUI>();
-                if (text) text.text = highlight;
+                // Fallback to generic highlights
+                string[] highlights = new[]
+                {
+                    $"Q1 - Strong start from {result.HomeTeamId}",
+                    $"Q2 - Momentum swings as {result.AwayTeamId} fights back",
+                    $"Q3 - Physical contest intensifies",
+                    $"Q4 - {(result.HomeScore > result.AwayScore ? result.HomeTeamId : result.AwayTeamId)} seals the victory"
+                };
+                
+                foreach (var highlight in highlights)
+                {
+                    var entry = Instantiate(highlightEntryPrefab, highlightsContainer);
+                    var text = entry.GetComponentInChildren<TextMeshProUGUI>();
+                    if (text) text.text = highlight;
+                }
             }
         }
         

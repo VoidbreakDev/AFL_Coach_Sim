@@ -1,0 +1,19 @@
+{
+  "name": "AFLCoachSim.Editor",
+  "rootNamespace": "AFLCoachSim.Editor",
+  "references": [
+    "GUID:c91c8ebe0095d4e959e8f427acaf9a96",
+    "AFLCoachSim.Gameplay",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
+  ],
+  "includePlatforms": [ "Editor" ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

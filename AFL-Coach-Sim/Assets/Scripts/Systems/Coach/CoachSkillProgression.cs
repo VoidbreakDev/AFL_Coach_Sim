@@ -329,11 +329,11 @@ namespace AFLManager.Systems.Coach
             
             var baseExp = result.Quality switch
             {
-                TrainingQuality.Poor => eventSettings.trainingExperience / 2,
-                TrainingQuality.Below => eventSettings.trainingExperience / 2,
-                TrainingQuality.Average => eventSettings.trainingExperience,
-                TrainingQuality.Good => eventSettings.trainingExperience * 2,
-                TrainingQuality.Excellent => eventSettings.trainingExperience * 3,
+                CoachSkillsManager.TrainingQuality.Poor => eventSettings.trainingExperience / 2,
+                CoachSkillsManager.TrainingQuality.Below => eventSettings.trainingExperience / 2,
+                CoachSkillsManager.TrainingQuality.Average => eventSettings.trainingExperience,
+                CoachSkillsManager.TrainingQuality.Good => eventSettings.trainingExperience * 2,
+                CoachSkillsManager.TrainingQuality.Excellent => eventSettings.trainingExperience * 3,
                 _ => eventSettings.trainingExperience
             };
 

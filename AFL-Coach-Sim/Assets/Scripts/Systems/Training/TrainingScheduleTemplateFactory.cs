@@ -164,7 +164,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(90), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 15f,
@@ -197,7 +197,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromMinutes(75), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 20f,
@@ -230,7 +230,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(90), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 12f,
@@ -239,7 +239,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 6f,
@@ -264,7 +264,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(45), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 8f,
@@ -273,7 +273,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(15), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 2f,
@@ -325,7 +325,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(60), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 12f
@@ -333,7 +333,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 10f
@@ -356,7 +356,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(75), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 8f,
@@ -365,7 +365,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(15), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 2f
@@ -389,7 +389,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 5f,
@@ -398,7 +398,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(15), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 2f,
@@ -426,7 +426,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(120), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 25f,
@@ -435,7 +435,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Specialized, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 8f,
@@ -459,7 +459,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromMinutes(90), 
                         Intensity = TrainingIntensity.VeryHigh, 
                         LoadMultiplier = 30f,
@@ -491,7 +491,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(120), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 18f,
@@ -515,7 +515,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(75), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 20f
@@ -523,7 +523,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromMinutes(75), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 22f
@@ -546,7 +546,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Specialized, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(90), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 15f,
@@ -555,7 +555,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 5f,
@@ -627,7 +627,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromHours(2), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 35f,
@@ -659,7 +659,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromHours(2), 
                         Intensity = TrainingIntensity.VeryHigh, 
                         LoadMultiplier = 40f,
@@ -668,7 +668,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 8f,
@@ -692,7 +692,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromHours(1.5f), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 25f,
@@ -701,7 +701,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 8f
@@ -724,7 +724,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromHours(1.5f), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 20f,
@@ -733,7 +733,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.Fitness, 
+                        Focus = TrainingFocus.Conditioning, 
                         Duration = TimeSpan.FromHours(1), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 15f,
@@ -757,7 +757,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Fitness, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromHours(1), 
                         Intensity = TrainingIntensity.High, 
                         LoadMultiplier = 18f,
@@ -793,7 +793,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromHours(1), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 8f,
@@ -802,7 +802,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 3f,
@@ -826,7 +826,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromHours(1), 
                         Intensity = TrainingIntensity.Moderate, 
                         LoadMultiplier = 12f,
@@ -835,7 +835,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 6f,
@@ -859,7 +859,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Tactical, 
-                        Focus = TrainingFocus.Tactical, 
+                        Focus = TrainingFocus.TacticalAwareness, 
                         Duration = TimeSpan.FromMinutes(45), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 5f,
@@ -868,7 +868,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 4f,
@@ -892,7 +892,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Skills, 
-                        Focus = TrainingFocus.Skills, 
+                        Focus = TrainingFocus.SkillDevelopment, 
                         Duration = TimeSpan.FromMinutes(30), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 3f,
@@ -901,7 +901,7 @@ namespace AFLManager.Systems.Training
                     new ComponentTemplate 
                     { 
                         Type = TrainingComponentType.Mental, 
-                        Focus = TrainingFocus.General, 
+                        Focus = TrainingFocus.IndividualDevelopment, 
                         Duration = TimeSpan.FromMinutes(15), 
                         Intensity = TrainingIntensity.Light, 
                         LoadMultiplier = 2f,

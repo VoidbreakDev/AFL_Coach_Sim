@@ -2,10 +2,10 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using AFLCoachSim.Core.Models;
 using AFLCoachSim.Core.Training;
 using AFLCoachSim.Core.Domain.Entities;
 using AFLCoachSim.Core.Domain.ValueObjects;
+using CorePlayer = AFLCoachSim.Core.Domain.Entities.Player;
 
 namespace AFLCoachSim.Training
 {
@@ -21,7 +21,7 @@ namespace AFLCoachSim.Training
         [SerializeField] private int simulationDays = 30;
 
         private TrainingManager _trainingManager;
-        private List<Player> _demoPlayers;
+        private List<CorePlayer> _demoPlayers;
 
         void Start()
         {
@@ -78,12 +78,12 @@ namespace AFLCoachSim.Training
         {
             Debug.Log("\n--- Creating Demo Players ---");
             
-            _demoPlayers = new List<Player>();
-            var positions = new[] 
+            _demoPlayers = new List<CorePlayer>();
+            var roles = new[] 
             { 
-                Position.FullForward, Position.HalfForward, Position.Centre, Position.Wing, 
-                Position.Rover, Position.HalfBack, Position.FullBack, Position.Ruckman,
-                Position.ForwardPocket, Position.BackPocket
+                Role.FF, Role.HFF, Role.C, Role.WING, 
+                Role.MID, Role.HBF, Role.FB, Role.RUCK,
+                Role.ForwardPocket, Role.SmallDefender
             };
 
             for (int i = 0; i < numberOfPlayers; i++)
@@ -91,30 +91,36 @@ namespace AFLCoachSim.Training
                 var player = CreateRealisticPlayer(
                     id: i + 1,
                     name: $"Player {i + 1}",
-                    position: positions[i % positions.Length],
+                    role: roles[i % roles.Length],
                     age: UnityEngine.Random.Range(18, 34)
                 );
                 
                 _demoPlayers.Add(player);
-                Debug.Log($"Created {player.NameOf()} ({player.Position}, Age {CalculateAge(player.DateOfBirth)})");
+                Debug.Log($"Created {player.Name} ({player.Role}, Age {CalculateAge(player.DateOfBirth)})");
             }
         }
 
-        private Player CreateRealisticPlayer(int id, string name, Position position, int age)
+        private CorePlayer CreateRealisticPlayer(int id, string name, Role role, int age)
         {
-            var player = new Player
+            var playerId = new PlayerId(id);
+            var attributes = GenerateRoleAppropriateAttributes(role);
+            var dateOfBirth = DateTime.Today.AddYears(-age);
+            
+            var player = new CorePlayer
             {
-                Id = id,
+                Id = playerId,
                 Name = name,
-                Position = position,
-                DateOfBirth = DateTime.Today.AddYears(-age),
-                Attributes = GeneratePositionAppropriateAttributes(position)
+                PrimaryRole = role,
+                Position = role,
+                Age = age,
+                DateOfBirth = dateOfBirth,
+                Attr = attributes
             };
 
             return player;
         }
 
-        private Attributes GeneratePositionAppropriateAttributes(Position position)
+        private Attributes GenerateRoleAppropriateAttributes(Role role)
         {
             var attrs = new Attributes();
             
@@ -125,26 +131,32 @@ namespace AFLCoachSim.Training
             attrs.Tackling = UnityEngine.Random.Range(50, 80);
             attrs.WorkRate = UnityEngine.Random.Range(50, 80);
 
-            // Apply position-specific bonuses
-            switch (position)
+            // Apply role-specific bonuses
+            switch (role)
             {
-                case Position.FullForward:
+                case Role.FF:
+                case Role.KeyForward:
                     attrs.Kicking += UnityEngine.Random.Range(5, 15);
                     attrs.Marking += UnityEngine.Random.Range(10, 20);
                     break;
-                case Position.Centre:
+                case Role.C:
+                case Role.MID:
                     attrs.WorkRate += UnityEngine.Random.Range(10, 20);
                     attrs.Handball += UnityEngine.Random.Range(5, 15);
                     break;
-                case Position.Ruckman:
+                case Role.RUCK:
+                case Role.RUC:
                     attrs.RuckWork += UnityEngine.Random.Range(10, 20);
                     attrs.Marking += UnityEngine.Random.Range(8, 15);
                     break;
-                case Position.HalfBack:
+                case Role.HBF:
+                case Role.CHB:
                     attrs.Kicking += UnityEngine.Random.Range(8, 15);
                     attrs.Marking += UnityEngine.Random.Range(5, 12);
                     break;
-                case Position.Wing:
+                case Role.WING:
+                case Role.LW:
+                case Role.RW:
                     attrs.Speed += UnityEngine.Random.Range(8, 18);
                     break;
             }
@@ -169,7 +181,7 @@ namespace AFLCoachSim.Training
                 var age = CalculateAge(player.DateOfBirth);
                 var stage = GetDevelopmentStage(age);
                 
-                Debug.Log($"\n{player.NameOf()} ({player.Position}, Age {age}, Stage: {stage}):");
+                Debug.Log($"\n{player.Name} ({player.Role}, Age {age}, Stage: {stage}):");
                 Debug.Log($"  Overall Potential: {potential.OverallPotential:F1}/100");
                 Debug.Log($"  Development Rate: {potential.DevelopmentRate:F2}x");
                 Debug.Log($"  Injury Proneness: {potential.InjuryProneness:F2}x");
@@ -193,7 +205,7 @@ namespace AFLCoachSim.Training
             var samplePlayer = _demoPlayers[0];
             var recommendations = _trainingManager.GetRecommendedPrograms(samplePlayer);
             
-            Debug.Log($"\nTop 5 training recommendations for {samplePlayer.NameOf()}:");
+            Debug.Log($"\nTop 5 training recommendations for {samplePlayer.Name}:");
             foreach (var (program, priority, reason) in recommendations)
             {
                 Debug.Log($"  {program.Name} (Priority: {priority:F2})");
@@ -218,11 +230,11 @@ namespace AFLCoachSim.Training
                 if (suitable.Any())
                 {
                     var selectedProgram = suitable.First();
-                    bool enrolled = _trainingManager.EnrollPlayer(player.Id, selectedProgram.Id);
+                    bool enrolled = _trainingManager.EnrollPlayer(player.Id.Value.GetHashCode(), selectedProgram.Id);
                     
                     if (enrolled)
                     {
-                        Debug.Log($"Enrolled {player.NameOf()} in '{selectedProgram.Name}'");
+                        Debug.Log($"Enrolled {player.Name} in '{selectedProgram.Name}'");
                     }
                 }
             }
@@ -231,7 +243,7 @@ namespace AFLCoachSim.Training
             Debug.Log("\n--- Scheduling Training Sessions ---");
             
             var enrolledPrograms = _demoPlayers
-                .SelectMany(p => _trainingManager.GetPlayerEnrollments(p.Id))
+                .SelectMany(p => _trainingManager.GetPlayerEnrollments(p.Id.Value.GetHashCode()))
                 .GroupBy(e => e.ProgramId)
                 .Select(g => g.Key)
                 .Distinct()
@@ -258,7 +270,7 @@ namespace AFLCoachSim.Training
                     if (session != null)
                     {
                         // Execute the session
-                        var players = _demoPlayers.Where(p => enrollees.Contains(p.Id)).ToList();
+                        var players = _demoPlayers.Where(p => enrollees.Contains(p.Id.Value.GetHashCode())).ToList();
                         bool executed = _trainingManager.ExecuteSession(session.Id, players);
                         
                         if (executed)
@@ -276,9 +288,9 @@ namespace AFLCoachSim.Training
             
             // Generate player reports
             var samplePlayer = _demoPlayers[0];
-            var playerReport = _trainingManager.GeneratePlayerReport(samplePlayer.Id);
+            var playerReport = _trainingManager.GeneratePlayerReport(samplePlayer.Id.Value.GetHashCode());
             
-            Debug.Log($"\nTraining report for {samplePlayer.NameOf()}:");
+            Debug.Log($"\nTraining report for {samplePlayer.Name}:");
             Debug.Log($"  Active Programs: {playerReport.ActiveEnrollments.Count}");
             Debug.Log($"  Completed Programs: {playerReport.CompletedPrograms.Count}");
             Debug.Log($"  Total Sessions: {playerReport.TotalSessionsCompleted}");
@@ -304,7 +316,7 @@ namespace AFLCoachSim.Training
 
             // Generate team report
             Debug.Log("\n--- Team Training Summary ---");
-            var playerIds = _demoPlayers.Select(p => p.Id).ToList();
+            var playerIds = _demoPlayers.Select(p => p.Id.Value.GetHashCode()).ToList();
             var teamReport = _trainingManager.GenerateTeamReport(playerIds);
             
             Debug.Log($"Team Training Report ({teamReport.ReportDate:yyyy-MM-dd}):");
@@ -327,9 +339,9 @@ namespace AFLCoachSim.Training
             
             foreach (var player in _demoPlayers.Take(3)) // Show insights for first 3 players
             {
-                var insights = _trainingManager.GetTrainingInsights(player.Id);
+                var insights = _trainingManager.GetTrainingInsights(player.Id.Value.GetHashCode());
                 
-                Debug.Log($"\nTraining insights for {player.NameOf()}:");
+                Debug.Log($"\nTraining insights for {player.Name}:");
                 if (insights.Any())
                 {
                     foreach (var insight in insights)
@@ -355,10 +367,10 @@ namespace AFLCoachSim.Training
             
             foreach (var outcome in outcomes.Take(2)) // Show first 2 outcomes
             {
-                var player = _demoPlayers.First(p => p.Id == outcome.Key);
+                var player = _demoPlayers.First(p => p.Id.Value.GetHashCode() == outcome.Key);
                 var result = outcome.Value;
                 
-                Debug.Log($"  {player.NameOf()}: Gains={string.Join(",", result.AttributeGains.Select(kv => $"{kv.Key}+{kv.Value:F1}"))} " +
+                Debug.Log($"  {player.Name}: Gains={string.Join(",", result.AttributeGains.Select(kv => $"{kv.Key}+{kv.Value:F1}"))} " +
                          $"Risk={result.InjuryRisk:F3} Fatigue={result.FatigueAccumulation:F1}");
                 
                 if (result.SpecialEffects.Any())
@@ -370,25 +382,25 @@ namespace AFLCoachSim.Training
 
         private void OnPlayerEnrolled(int playerId, PlayerTrainingEnrollment enrollment)
         {
-            var player = _demoPlayers.First(p => p.Id == playerId);
+            var player = _demoPlayers.First(p => p.Id.Value.GetHashCode() == playerId);
             var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == enrollment.ProgramId);
-            Debug.Log($"Player enrolled: {player.NameOf()} started '{program.Name}'");
+            Debug.Log($"Player enrolled: {player.Name} started '{program.Name}'");
         }
 
         private void OnPlayerProgramCompleted(int playerId, string programId)
         {
-            var player = _demoPlayers.First(p => p.Id == playerId);
+            var player = _demoPlayers.First(p => p.Id.Value.GetHashCode() == playerId);
             var program = _trainingManager.GetAvailablePrograms().First(p => p.Id == programId);
-            Debug.Log($"Program completed: {player.NameOf()} finished '{program.Name}'!");
+            Debug.Log($"Program completed: {player.Name} finished '{program.Name}'!");
         }
 
         #endregion
 
         #region Helper Methods
 
-        private float GetPlayerAttributeValue(Player player, string attribute)
+        private float GetPlayerAttributeValue(CorePlayer player, string attribute)
         {
-            var attrs = player.Attributes;
+            var attrs = player.Attr;
             switch (attribute)
             {
                 case "Kicking":
@@ -396,11 +408,11 @@ namespace AFLCoachSim.Training
                 case "Marking":
                     return attrs.Marking;
                 case "Handballing":
-                    return attrs.Handballing;
+                    return attrs.Handball;
                 case "Contested":
-                    return attrs.Contested;
+                    return attrs.Tackling;
                 case "Endurance":
-                    return attrs.Endurance;
+                    return attrs.WorkRate;
                 default:
                     return 50f;
             }
@@ -432,48 +444,52 @@ namespace AFLCoachSim.Training
         /// <summary>
         /// Create demo potential for display purposes
         /// </summary>
-        private DevelopmentPotential CreateDemoPotential(Player player)
+        private DevelopmentPotential CreateDemoPotential(CorePlayer player)
         {
             // Use the training manager's GetRecommendedPrograms which calculates potential internally
             var recommendations = _trainingManager.GetRecommendedPrograms(player);
             
-            // Create a demo potential based on player attributes and position
+            // Create a demo potential based on player attributes and role
             var age = CalculateAge(player.DateOfBirth);
             var stage = GetDevelopmentStage(age);
             
             var potential = new DevelopmentPotential
             {
-                PlayerId = player.Id,
+                PlayerId = player.Id.Value.GetHashCode(),
                 OverallPotential = UnityEngine.Random.Range(60f, 95f),
                 DevelopmentRate = stage == DevelopmentStage.Rookie ? 1.5f : 
                                 stage == DevelopmentStage.Developing ? 1.2f : 
                                 stage == DevelopmentStage.Prime ? 1.0f : 0.7f,
                 InjuryProneness = UnityEngine.Random.Range(0.8f, 1.3f),
-                PreferredTraining = GetPreferredTrainingForPosition(player.Position)
+                PreferredTraining = GetPreferredTrainingForRole(player.Role)
             };
             
             // Set attribute potentials
-            var attrs = player.Attributes;
+            var attrs = player.Attr;
             potential.AttributePotentials["Kicking"] = Mathf.Min(95f, attrs.Kicking + UnityEngine.Random.Range(5f, 25f));
             potential.AttributePotentials["Marking"] = Mathf.Min(95f, attrs.Marking + UnityEngine.Random.Range(5f, 25f));
-            potential.AttributePotentials["Handballing"] = Mathf.Min(95f, attrs.Handballing + UnityEngine.Random.Range(5f, 25f));
-            potential.AttributePotentials["Contested"] = Mathf.Min(95f, attrs.Contested + UnityEngine.Random.Range(5f, 25f));
-            potential.AttributePotentials["Endurance"] = Mathf.Min(95f, attrs.Endurance + UnityEngine.Random.Range(5f, 25f));
+            potential.AttributePotentials["Handballing"] = Mathf.Min(95f, attrs.Handball + UnityEngine.Random.Range(5f, 25f));
+            potential.AttributePotentials["Contested"] = Mathf.Min(95f, attrs.Tackling + UnityEngine.Random.Range(5f, 25f));
+            potential.AttributePotentials["Endurance"] = Mathf.Min(95f, attrs.WorkRate + UnityEngine.Random.Range(5f, 25f));
             
             return potential;
         }
         
-        private List<TrainingFocus> GetPreferredTrainingForPosition(Position position)
+        private List<TrainingFocus> GetPreferredTrainingForRole(Role role)
         {
-            switch (position)
+            switch (role)
             {
-                case Position.FullForward:
+                case Role.FF:
+                case Role.KeyForward:
                     return new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.Strength};
-                case Position.Centre:
+                case Role.C:
+                case Role.MID:
                     return new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Handballing, TrainingFocus.DecisionMaking};
-                case Position.Ruckman:
+                case Role.RUCK:
+                case Role.RUC:
                     return new List<TrainingFocus> {TrainingFocus.Strength, TrainingFocus.Contested, TrainingFocus.Marking};
-                case Position.HalfBack:
+                case Role.HBF:
+                case Role.CHB:
                     return new List<TrainingFocus> {TrainingFocus.Kicking, TrainingFocus.Marking, TrainingFocus.DecisionMaking};
                 default:
                     return new List<TrainingFocus> {TrainingFocus.Endurance, TrainingFocus.Kicking};

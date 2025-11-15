@@ -70,7 +70,7 @@ namespace AFLManager.Systems.Training
         {
             if (player == null) return FitnessForTraining.CompleteRest;
             
-            var condition = player.Condition;
+            var condition = player.Stamina;
             var fatigueLevel = fatigueData.CurrentFatigueLevel;
             
             // Critical thresholds
@@ -208,7 +208,7 @@ namespace AFLManager.Systems.Training
             var dailyLoad = loadState.GetDailyLoad();
             var weeklyLoad = loadState.GetWeeklyLoad();
             var fatigueLevel = fatigueData.CurrentFatigueLevel;
-            var condition = player?.Condition ?? 70;
+            var condition = player?.Stamina ?? 70;
             
             // Immediate post-training recommendations
             if (fatigueLevel > 70)
@@ -347,7 +347,7 @@ namespace AFLManager.Systems.Training
                     RecommendedAction = "Immediate rest and recovery required",
                     RequiresImmediateAttention = true,
                     FatigueLevel = fatigueData.CurrentFatigueLevel,
-                    ConditionLevel = player?.Condition ?? 0
+                    ConditionLevel = player?.Stamina ?? 0
                 });
             }
             
@@ -364,7 +364,7 @@ namespace AFLManager.Systems.Training
                     Message = $"Rapid fatigue accumulation detected ({recentFatigueRate:F1} points/hour)",
                     RecommendedAction = "Monitor closely and consider reducing training intensity",
                     FatigueLevel = fatigueData.CurrentFatigueLevel,
-                    ConditionLevel = player?.Condition ?? 0
+                    ConditionLevel = player?.Stamina ?? 0
                 });
             }
             
@@ -381,7 +381,7 @@ namespace AFLManager.Systems.Training
                     Message = $"Poor recovery rate detected ({recoveryRate:F1} points/hour)",
                     RecommendedAction = "Investigate recovery practices and consider extended rest",
                     FatigueLevel = fatigueData.CurrentFatigueLevel,
-                    ConditionLevel = player?.Condition ?? 0
+                    ConditionLevel = player?.Stamina ?? 0
                 });
             }
             
@@ -397,7 +397,7 @@ namespace AFLManager.Systems.Training
                     Message = $"Training effectiveness reduced to {result.EffectivenessMultiplier:P1}",
                     RecommendedAction = "Consider modified training approach or additional recovery",
                     FatigueLevel = fatigueData.CurrentFatigueLevel,
-                    ConditionLevel = player?.Condition ?? 0
+                    ConditionLevel = player?.Stamina ?? 0
                 });
             }
             

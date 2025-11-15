@@ -73,8 +73,8 @@ namespace AFLManager.UI.Training
         private DateTime analyticsStartDate = DateTime.Now.AddDays(-30); // Default: last 30 days
         
         // Events
-        public event System.Action<int> OnPlayerSelected;
-        public event System.Action<TrainingRecommendation> OnRecommendationGenerated;
+        // public event System.Action<int> OnPlayerSelected; // TODO: Implement player selection event handler
+        // public event System.Action<TrainingRecommendation> OnRecommendationGenerated; // TODO: Implement recommendation event handler
         
         private void Start()
         {
@@ -116,13 +116,13 @@ namespace AFLManager.UI.Training
         private void FindSystemDependencies()
         {
             if (scheduleManager == null)
-                scheduleManager = FindObjectOfType<WeeklyTrainingScheduleManager>();
+                scheduleManager = FindFirstObjectByType<WeeklyTrainingScheduleManager>();
                 
             if (fatigueManager == null)
-                fatigueManager = FindObjectOfType<TrainingFatigueIntegrationManager>();
+                fatigueManager = FindFirstObjectByType<TrainingFatigueIntegrationManager>();
                 
             if (sessionExecutor == null)
-                sessionExecutor = FindObjectOfType<DailyTrainingSessionExecutor>();
+                sessionExecutor = FindFirstObjectByType<DailyTrainingSessionExecutor>();
         }
         
         /// <summary>
@@ -195,16 +195,16 @@ namespace AFLManager.UI.Training
             
             foreach (var player in teamPlayers)
             {
-                var fatigueStatus = fatigueManager.GetPlayerFatigueStatus(player.ID);
+                var fatigueStatus = fatigueManager.GetPlayerFatigueStatus(int.Parse(player.Id));
                 var playerAnalytics = new PlayerLoadAnalytics
                 {
-                    PlayerId = player.ID,
+                    PlayerId = int.Parse(player.Id),
                     PlayerName = player.Name,
-                    CurrentLoad = fatigueStatus.CurrentLoad,
-                    FatigueLevel = fatigueStatus.FatigueLevel,
-                    Condition = fatigueStatus.Condition,
-                    RiskLevel = fatigueStatus.RiskLevel,
-                    RecommendedAction = fatigueStatus.RecommendedAction
+                    CurrentLoad = fatigueStatus.DailyLoadAccumulated,
+                    FatigueLevel = fatigueStatus.CurrentFatigueLevel,
+                    Condition = fatigueStatus.CurrentCondition,
+                    RiskLevel = DetermineFatigueRiskLevel(fatigueStatus),
+                    RecommendedAction = DetermineRecommendedAction(fatigueStatus)
                 };
                 
                 analytics.PlayerLoadStates.Add(playerAnalytics);
@@ -221,7 +221,7 @@ namespace AFLManager.UI.Training
             var analytics = currentAnalytics;
             analytics.PerformanceMetrics = new TeamPerformanceMetrics
             {
-                AverageCondition = teamPlayers.Average(p => p.Condition),
+                AverageCondition = teamPlayers.Average(p => p.Stamina),
                 TrainingEffectivenessScore = CalculateTrainingEffectiveness(),
                 DevelopmentProgressScore = CalculateDevelopmentProgress(),
                 InjuryPreventionScore = CalculateInjuryPreventionScore()
@@ -537,9 +537,21 @@ namespace AFLManager.UI.Training
             
             foreach (var player in teamPlayers)
             {
+                var loadAnalytics = currentAnalytics.PlayerLoadStates?.FirstOrDefault(p => p.PlayerId == int.Parse(player.Id));
+                var cardData = new PlayerAnalyticsCardData
+                {
+                    Player = player,
+                    LoadAnalytics = loadAnalytics ?? CreateDefaultPlayerLoadAnalytics(player),
+                    DevelopmentScore = 75f, // TODO: Calculate from development system
+                    PerformanceTrend = "Steady",
+                    RecentTrainingEffectiveness = 70f,
+                    InjuryRiskScore = loadAnalytics?.RiskLevel ?? FatigueRiskLevel.Low,
+                    RecommendedActions = new List<string> { "Continue current program" }
+                };
+                
                 var cardUI = Instantiate(playerAnalyticsCardPrefab, playerAnalyticsContainer);
                 var component = cardUI.GetComponent<PlayerAnalyticsCardUI>();
-                component?.DisplayPlayerAnalytics(player, currentAnalytics);
+                component?.DisplayPlayerAnalytics(cardData);
             }
         }
         
@@ -556,6 +568,47 @@ namespace AFLManager.UI.Training
         private void CloseDashboard()
         {
             gameObject.SetActive(false);
+        }
+        
+        #endregion
+        
+        #region Helper Methods
+        
+        private FatigueRiskLevel DetermineFatigueRiskLevel(PlayerFatigueStatus status)
+        {
+            // Determine risk level based on fatigue and load
+            if (status.CurrentFatigueLevel > 80f || status.WeeklyLoadAccumulated > 90f)
+                return FatigueRiskLevel.Critical;
+            if (status.CurrentFatigueLevel > 60f || status.WeeklyLoadAccumulated > 75f)
+                return FatigueRiskLevel.High;
+            if (status.CurrentFatigueLevel > 40f || status.WeeklyLoadAccumulated > 60f)
+                return FatigueRiskLevel.Moderate;
+            return FatigueRiskLevel.Low;
+        }
+        
+        private string DetermineRecommendedAction(PlayerFatigueStatus status)
+        {
+            if (status.CurrentFatigueLevel > 80f)
+                return "Rest required";
+            if (status.CurrentFatigueLevel > 60f)
+                return "Reduce training load";
+            if (status.CurrentFatigueLevel > 40f)
+                return "Monitor closely";
+            return "Continue as planned";
+        }
+        
+        private PlayerLoadAnalytics CreateDefaultPlayerLoadAnalytics(Player player)
+        {
+            return new PlayerLoadAnalytics
+            {
+                PlayerId = int.Parse(player.Id),
+                PlayerName = player.Name,
+                CurrentLoad = 50f,
+                FatigueLevel = 30f,
+                Condition = player.Stamina,
+                RiskLevel = FatigueRiskLevel.Low,
+                RecommendedAction = "Continue as planned"
+            };
         }
         
         #endregion

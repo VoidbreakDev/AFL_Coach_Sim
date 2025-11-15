@@ -79,9 +79,9 @@ namespace AFLManager.Systems.Training
             if (sessionExecutor != null)
             {
                 // Initialize executor with available dependencies
-                var injuryManager = FindObjectOfType<InjuryManager>();
-                var fatigueModel = FindObjectOfType<FatigueModel>();
-                sessionExecutor.Initialize(injuryManager, fatigueModel);
+                // Note: InjuryManager and FatigueModel are not MonoBehaviours, can't use FindObjectOfType
+                // They should be injected or created separately
+                sessionExecutor.Initialize(null, null);
                 
                 // Subscribe to execution events
                 sessionExecutor.OnSessionStarted += OnExecutionStarted;
@@ -359,14 +359,14 @@ namespace AFLManager.Systems.Training
             foreach (var player in participants)
             {
                 // Check weekly load limits
-                if (scheduleManager != null && !scheduleManager.CanPlayerTrain(player.ID, session.GetSessionLoad()))
+                if (scheduleManager != null && !scheduleManager.CanPlayerTrain(int.Parse(player.Id), session.GetSessionLoad()))
                 {
                     continue;
                 }
                 
                 // Check if player is currently in another session
                 var isInSession = runningExecutions.Values.Any(e => 
-                    e.IsActive && e.EligibleParticipants.Any(p => p.ID == player.ID));
+                    e.IsActive && e.EligibleParticipants.Any(p => int.Parse(p.Id) == int.Parse(player.Id)));
                 if (isInSession)
                 {
                     continue;
@@ -387,16 +387,16 @@ namespace AFLManager.Systems.Training
             
             foreach (var player in participants)
             {
-                if (execution.ParticipantResults.ContainsKey(player.ID))
+                if (execution.ParticipantResults.ContainsKey(int.Parse(player.Id)))
                 {
-                    var result = execution.ParticipantResults[player.ID];
+                    var result = execution.ParticipantResults[int.Parse(player.Id)];
                     
                     // Skip injured players
                     if (result.TotalInjuries > 0)
                         continue;
                         
                     // Check fatigue levels
-                    var currentLoad = scheduleManager?.GetPlayerWeeklyLoad(player.ID).CurrentLoad ?? 0f;
+                    var currentLoad = scheduleManager?.GetPlayerWeeklyLoad(int.Parse(player.Id)).CurrentLoad ?? 0f;
                     if (currentLoad > 85f) // High fatigue threshold
                         continue;
                 }
@@ -563,7 +563,7 @@ namespace AFLManager.Systems.Training
                 SessionName = session.SessionName,
                 ScheduledDate = session.SessionDate,
                 RecommendationType = RecommendationType.SessionOptimization,
-                Priority = CalculateRecommendationPriority(session, eligibleCount),
+                Priority = (TrainingRecommendationPriority)CalculateRecommendationPriority(session, eligibleCount),
                 Description = GenerateRecommendationDescription(session, eligibleCount, totalLoad),
                 SuggestedActions = GenerateSuggestedActions(session, eligibleCount, totalLoad)
             };

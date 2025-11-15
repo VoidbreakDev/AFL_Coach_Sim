@@ -1,23 +1,15 @@
 // Assets/Scripts/Models/MatchExtensions.cs
+// Note: Involves() and GetStableId() are already defined in ModelExtensions (Extensions.cs)
 using AFLManager.Models;
 using System;
 
 public static class MatchExtensions
 {
-    public static bool Involves(this Match m, string teamId)
-        => m.HomeTeamId == teamId || m.AwayTeamId == teamId;
-
-    // Alias for consistency
+    // Alias for consistency - uses ModelExtensions.Involves()
     public static bool InvolvesTeam(this Match m, string teamId)
-        => m.Involves(teamId);
+        => ModelExtensions.Involves(m, teamId);
 
-    public static string GetStableId(this Match m, SeasonSchedule schedule)
-    {
-        int i = schedule.Fixtures.IndexOf(m);
-        return $"{i}_{m.HomeTeamId}_{m.AwayTeamId}";
-    }
-
-    // Alias for consistency
+    // Alias for consistency - uses ModelExtensions.GetStableId()
     public static string StableId(this Match m, SeasonSchedule schedule)
-        => m.GetStableId(schedule);
+        => ModelExtensions.GetStableId(m, schedule);
 }

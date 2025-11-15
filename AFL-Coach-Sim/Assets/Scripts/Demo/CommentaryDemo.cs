@@ -64,7 +64,7 @@ namespace AFLManager.Demo
                 awayId: awayId,
                 teams: teams,
                 rosters: rosters,
-                weather: AFLCoachSim.Core.Engine.Match.Weather.Clear,
+                weather: AFLCoachSim.Core.Engine.Match.Weather.Weather.Clear,
                 quarterSeconds: 5 * 60, // Shortened quarters for demo
                 rng: rng);
             

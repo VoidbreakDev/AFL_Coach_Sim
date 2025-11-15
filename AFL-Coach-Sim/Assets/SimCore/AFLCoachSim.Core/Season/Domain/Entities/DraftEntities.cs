@@ -2,6 +2,8 @@ using System;
 using AFLCoachSim.Core.Domain.ValueObjects;
 using AFLCoachSim.Core.Season.Domain.ValueObjects;
 
+#nullable enable
+
 namespace AFLCoachSim.Core.Season.Domain.Entities
 {
     /// <summary>

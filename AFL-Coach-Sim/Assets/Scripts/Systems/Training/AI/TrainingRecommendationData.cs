@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using AFLManager.Models;
 using AFLManager.Systems.Training;
 using AFLCoachSim.Core.Season.Domain.Entities;
+using Random = UnityEngine.Random;
 
 namespace AFLManager.Systems.Training.AI
 {
@@ -483,7 +485,7 @@ namespace AFLManager.Systems.Training.AI
             effectiveness += modelWeights["age_factor"] * GetAgeFactor(player.Age);
             
             // Condition factor
-            effectiveness += modelWeights["condition_factor"] * (player.Condition / 100f);
+            effectiveness += modelWeights["condition_factor"] * (player.Stamina / 100f);
             
             // Skill gap factor (more room for improvement = higher effectiveness)
             var skillGap = (100f - player.Stats.GetAverage()) / 100f;
@@ -538,7 +540,7 @@ namespace AFLManager.Systems.Training.AI
             if (context.CurrentLoad > 75) risk += 0.2f;
             
             // Poor condition increases risk
-            if (player.Condition < 70) risk += 0.15f;
+            if (player.Stamina < 70) risk += 0.15f;
             
             // Age factors
             if (player.Age > 30) risk += 0.1f;
@@ -566,7 +568,7 @@ namespace AFLManager.Systems.Training.AI
             {
                 TeamName = "Team Analysis",
                 AveragePlayerRating = players.Average(p => p.Stats.GetAverage()),
-                AverageAge = players.Average(p => p.Age)
+                AverageAge = (float)players.Average(p => p.Age)
             };
             
             // Analyze positional strengths
@@ -585,13 +587,14 @@ namespace AFLManager.Systems.Training.AI
             return analysis;
         }
         
-        private string GetPositionGroup(string role)
+        private string GetPositionGroup(PlayerRole role)
         {
+            var roleStr = role.ToString();
             // Simplified position grouping
-            if (role.Contains("Forward")) return "Forwards";
-            if (role.Contains("Back")) return "Defenders";
-            if (role.Contains("Mid") || role.Contains("Centre") || role.Contains("Wing")) return "Midfielders";
-            if (role.Contains("Ruck")) return "Rucks";
+            if (roleStr.Contains("Forward")) return "Forwards";
+            if (roleStr.Contains("Back")) return "Defenders";
+            if (roleStr.Contains("Mid") || roleStr.Contains("Centre") || roleStr.Contains("Wing")) return "Midfielders";
+            if (roleStr.Contains("Ruck")) return "Rucks";
             return "Other";
         }
     }

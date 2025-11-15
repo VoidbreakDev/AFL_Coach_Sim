@@ -142,11 +142,12 @@ namespace AFLManager.Systems.Development
         /// </summary>
         public PlayerPotentialProfile InitializePlayerPotential(Player player, CoachInsightLevel coachInsight = CoachInsightLevel.Average)
         {
-            if (_potentialProfiles.ContainsKey(player.ID))
-                return _potentialProfiles[player.ID];
+            int playerId = int.Parse(player.Id);
+            if (_potentialProfiles.ContainsKey(playerId))
+                return _potentialProfiles[playerId];
 
             var profile = CreateInitialPotentialProfile(player, coachInsight);
-            _potentialProfiles[player.ID] = profile;
+            _potentialProfiles[playerId] = profile;
             
             return profile;
         }
@@ -198,7 +199,7 @@ namespace AFLManager.Systems.Development
 
             return new PlayerPotentialAssessment
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 CurrentOverall = CalculateOverallRating(player.Stats),
                 PredictedCeiling = profile.CoachVisibleCeiling,
                 Certainty = CalculateCoachCertainty(profile, player),
@@ -445,7 +446,7 @@ namespace AFLManager.Systems.Development
             
             var profile = new PlayerPotentialProfile
             {
-                PlayerId = player.ID,
+                PlayerId = int.Parse(player.Id),
                 NaturalCeiling = naturalCeiling,
                 CurrentCeiling = naturalCeiling,
                 CoachPerceivedCeiling = naturalCeiling,
@@ -484,8 +485,9 @@ namespace AFLManager.Systems.Development
         /// </summary>
         private PlayerPotentialProfile GetOrCreateProfile(Player player)
         {
-            if (_potentialProfiles.ContainsKey(player.ID))
-                return _potentialProfiles[player.ID];
+            int playerId = int.Parse(player.Id);
+            if (_potentialProfiles.ContainsKey(playerId))
+                return _potentialProfiles[playerId];
                 
             return InitializePlayerPotential(player);
         }

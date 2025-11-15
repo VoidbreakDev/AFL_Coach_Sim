@@ -103,7 +103,7 @@ namespace AFLManager.Systems.Development
                 result.PlayerImprovements.Add(playerResult);
                 
                 // Update last training date
-                _lastTrainingDates[player.ID] = DateTime.Now;
+                _lastTrainingDates[int.Parse(player.Id)] = DateTime.Now;
             }
             
             // Record training session
@@ -137,12 +137,12 @@ namespace AFLManager.Systems.Development
             
             // Calculate injury risk using the injury manager
             float injuryRisk = _injuryManager.CalculateActivityRisk(
-                player.ID, 
+                int.Parse(player.Id), 
                 playerAge, 
                 durability, 
                 currentFatigue,
                 GetTrainingExposureMinutes(program),
-                program.InjuryRiskMultiplier * injuryRiskMultiplier
+                program.InjuryRisk * injuryRiskMultiplier
             );
             
             // Check for training injuries
@@ -161,7 +161,7 @@ namespace AFLManager.Systems.Development
             if (injured)
             {
                 // Record the injury using the injury manager
-                trainingInjury = _injuryManager.RecordTrainingInjury(player.ID, injuryRisk, playerAge, durability);
+                trainingInjury = _injuryManager.RecordTrainingInjury(int.Parse(player.Id), injuryRisk, playerAge, durability);
                 
                 Debug.Log($"[InjuryAwareTrainingSystem] {player.Name} sustained {trainingInjury.Severity} {trainingInjury.Type} injury during {program.Name}");
                 
@@ -169,7 +169,7 @@ namespace AFLManager.Systems.Development
                 OnPlayerInjuredInTraining?.Invoke(player, trainingInjury);
                 
                 // Reduced training benefit when injured
-                development = development.Scale(0.3f); // Only 30% benefit when injured
+                development = ScaleStatsDelta(development, 0.3f); // Only 30% benefit when injured
             }
             
             // Apply the improvements to the player (reduced if injured)
@@ -208,7 +208,7 @@ namespace AFLManager.Systems.Development
             if (_injuryManager == null) return true;
             
             // Check injury status
-            if (!_injuryManager.CanPlayerTrain(player.ID))
+            if (!_injuryManager.CanPlayerTrain(int.Parse(player.Id)))
             {
                 return false;
             }
@@ -227,10 +227,10 @@ namespace AFLManager.Systems.Development
         /// </summary>
         private bool IsPlayerOvertraining(Player player)
         {
-            if (!_lastTrainingDates.ContainsKey(player.ID))
+            if (!_lastTrainingDates.ContainsKey(int.Parse(player.Id)))
                 return false;
                 
-            var daysSinceLastTraining = (DateTime.Now - _lastTrainingDates[player.ID]).Days;
+            var daysSinceLastTraining = (DateTime.Now - _lastTrainingDates[int.Parse(player.Id)]).Days;
             
             // If they've trained recently and have high fatigue, they need rest
             if (daysSinceLastTraining < 2 && GetPlayerFatigue(player) > 80f)
@@ -241,7 +241,7 @@ namespace AFLManager.Systems.Development
             // Check for consecutive training days
             if (daysSinceLastTraining == 0) // Training today
             {
-                int consecutiveDays = GetConsecutiveTrainingDays(player.ID);
+                int consecutiveDays = GetConsecutiveTrainingDays(int.Parse(player.Id));
                 return consecutiveDays >= maxConsecutiveTrainingDays;
             }
             
@@ -256,7 +256,7 @@ namespace AFLManager.Systems.Development
             float baseEffectiveness = program.GetEffectivenessMultiplier(player);
             
             // Apply injury performance impact
-            float injuryImpact = _injuryManager?.GetPlayerPerformanceMultiplier(player.ID) ?? 1.0f;
+            float injuryImpact = _injuryManager?.GetPlayerPerformanceMultiplier(int.Parse(player.Id)) ?? 1.0f;
             
             // Apply fatigue impact
             float fatigue = GetPlayerFatigue(player);
@@ -282,7 +282,7 @@ namespace AFLManager.Systems.Development
             float baseMinutes = 105f;
             
             // Adjust based on program characteristics
-            float intensityMultiplier = program.InjuryRiskMultiplier; // Higher risk programs are typically longer/more intense
+            float intensityMultiplier = program.InjuryRisk; // Higher risk programs are typically longer/more intense
             
             return baseMinutes * intensityMultiplier;
         }
@@ -369,20 +369,38 @@ namespace AFLManager.Systems.Development
         
         private int GetPlayerAge(Player player)
         {
-            // This would typically come from player data - using estimate for now
-            return UnityEngine.Random.Range(18, 35); // Placeholder
+            return player.Age;
         }
         
         private int GetPlayerDurability(Player player)
         {
-            return player.Durability; // Assuming this exists on Player
+            // Durability can be estimated from player stats (average of physical attributes)
+            // This is a placeholder - implement based on your player model
+            return Mathf.RoundToInt((player.Stats.Stamina + player.Stats.Tackling + player.Stats.Speed) / 3f);
         }
         
         private float GetPlayerFatigue(Player player)
         {
-            // This would come from the form/condition system or player data
-            // For now, use a random value between 0-100
-            return UnityEngine.Random.Range(0f, 100f); // Placeholder
+            // Use stamina as inverse measure of fatigue (high stamina = low fatigue)
+            // Convert from 0-100 stamina to 0-100 fatigue (inverted)
+            return 100f - player.Stamina;
+        }
+        
+        /// <summary>
+        /// Scales a PlayerStatsDelta by a multiplier
+        /// </summary>
+        private PlayerStatsDelta ScaleStatsDelta(PlayerStatsDelta delta, float multiplier)
+        {
+            return new PlayerStatsDelta
+            {
+                Kicking = delta.Kicking * multiplier,
+                Handballing = delta.Handballing * multiplier,
+                Tackling = delta.Tackling * multiplier,
+                Speed = delta.Speed * multiplier,
+                Stamina = delta.Stamina * multiplier,
+                Knowledge = delta.Knowledge * multiplier,
+                Playmaking = delta.Playmaking * multiplier
+            };
         }
         
         #endregion

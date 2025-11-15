@@ -117,6 +117,13 @@ namespace AFLManager.Managers
             // Check if this match involves the player's team
             string playerTeamId = PlayerPrefs.GetString("PlayerTeamId", coachKey);
             bool isPlayerMatch = match.HomeTeamId == playerTeamId || match.AwayTeamId == playerTeamId;
+            
+            Debug.Log($"[SeasonScreen] SimulateMatch: {match.HomeTeamId} vs {match.AwayTeamId}");
+            Debug.Log($"[SeasonScreen] PlayerTeamId: '{playerTeamId}'");
+            Debug.Log($"[SeasonScreen] IsPlayerMatch: {isPlayerMatch}");
+            
+            // TEMPORARY: Force all matches to use MatchFlow for testing
+            isPlayerMatch = true;
 
             if (isPlayerMatch)
             {
@@ -143,8 +150,16 @@ namespace AFLManager.Managers
         private void LaunchMatchFlow(Match match)
         {
             // Store match data for MatchFlow scene
-            PlayerPrefs.SetString("CurrentMatchData", JsonUtility.ToJson(match));
-            PlayerPrefs.SetString("CurrentMatchPlayerTeam", PlayerPrefs.GetString("PlayerTeamId", coachKey));
+            string matchJson = JsonUtility.ToJson(match);
+            string playerTeam = PlayerPrefs.GetString("PlayerTeamId", coachKey);
+            
+            Debug.Log($"[SeasonScreen] LaunchMatchFlow called");
+            Debug.Log($"[SeasonScreen] Match: {match.HomeTeamId} vs {match.AwayTeamId}");
+            Debug.Log($"[SeasonScreen] PlayerTeamId: {playerTeam}");
+            Debug.Log($"[SeasonScreen] Match JSON: {matchJson}");
+            
+            PlayerPrefs.SetString("CurrentMatchData", matchJson);
+            PlayerPrefs.SetString("CurrentMatchPlayerTeam", playerTeam);
             PlayerPrefs.SetString("MatchFlowReturnScene", "SeasonScreen");
             PlayerPrefs.Save();
 

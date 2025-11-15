@@ -101,7 +101,7 @@ namespace AFLManager.UI.Coach
             
             // This would normally be populated from your CoachBackstorySystem
             // For now, we'll create simplified display templates
-            foreach (CoachBackstory backstory in Enum.GetValues<CoachBackstory>())
+            foreach (CoachBackstory backstory in Enum.GetValues(typeof(CoachBackstory)))
             {
                 var template = CreateDisplayTemplate(backstory);
                 _backstoryTemplates[backstory] = template;
@@ -568,7 +568,7 @@ namespace AFLManager.UI.Coach
         private CoachBackstory GetSelectedBackstory()
         {
             if (backstoryDropdown == null || backstoryDropdown.value < 0)
-                return CoachBackstory.PlayerDevelopmentSpecialist;
+                return CoachBackstory.VeteranPlayer;
 
             return _backstoryTemplates.Keys.ElementAt(backstoryDropdown.value);
         }
@@ -580,16 +580,11 @@ namespace AFLManager.UI.Coach
         {
             return backstory switch
             {
-                CoachBackstory.PlayerDevelopmentSpecialist => "Player Development Specialist",
-                CoachBackstory.TacticalMastermind => "Tactical Mastermind",
-                CoachBackstory.MotivationalLeader => "Motivational Leader",
-                CoachBackstory.FormerElitePPlayer => "Former Elite Player",
-                CoachBackstory.ScoutingLegend => "Scouting Legend",
-                CoachBackstory.InjuryRehabilitationExpert => "Injury Rehabilitation Expert",
-                CoachBackstory.DataAnalyticsGuru => "Data Analytics Guru",
-                CoachBackstory.InternationalCoach => "International Coach",
-                CoachBackstory.ClubLegend => "Club Legend",
-                CoachBackstory.YoungProdigy => "Young Prodigy",
+                CoachBackstory.VeteranPlayer => "Veteran Player",
+                CoachBackstory.TacticalExpert => "Tactical Expert",
+                CoachBackstory.PeoplePerson => "People Person",
+                CoachBackstory.GrassrootsBloomer => "Grassroots Bloomer",
+                CoachBackstory.Outsider => "Outsider",
                 _ => "Unknown"
             };
         }

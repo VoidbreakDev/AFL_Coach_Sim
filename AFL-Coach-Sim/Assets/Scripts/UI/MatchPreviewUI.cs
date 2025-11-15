@@ -20,8 +20,8 @@ namespace AFLManager.Managers
         [Header("Teams")]
         [SerializeField] private TextMeshProUGUI homeTeamName;
         [SerializeField] private TextMeshProUGUI awayTeamName;
-        [SerializeField] private Image homeTeamLogo;
-        [SerializeField] private Image awayTeamLogo;
+        [SerializeField] private Image homeTeamLogo;  // Optional - team logos not implemented yet
+        [SerializeField] private Image awayTeamLogo;  // Optional - team logos not implemented yet
         
         [Header("Team Stats Comparison")]
         [SerializeField] private TextMeshProUGUI homeRating;

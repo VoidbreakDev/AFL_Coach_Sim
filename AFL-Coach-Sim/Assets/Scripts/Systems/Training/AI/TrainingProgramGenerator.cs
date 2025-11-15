@@ -5,6 +5,7 @@ using UnityEngine;
 using AFLManager.Models;
 using AFLManager.Systems.Training;
 using AFLCoachSim.Core.Season.Domain.Entities;
+using Random = UnityEngine.Random;
 
 namespace AFLManager.Systems.Training.AI
 {
@@ -110,7 +111,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Recovery Focus Program for {player.Name}",
                 Description = "Intensive recovery program to reduce fatigue and injury risk while maintaining fitness",
                 Duration = TimeSpan.FromDays(7),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 25f, // Low load
                 AverageIntensity = TrainingIntensity.Light
             };
@@ -163,7 +164,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Match Preparation for {player.Name}",
                 Description = "Optimized preparation program for upcoming match performance",
                 Duration = TimeSpan.FromDays(context.DaysUntilNextMatch),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = CalculateMatchPrepLoad(context.DaysUntilNextMatch),
                 AverageIntensity = DetermineMatchPrepIntensity(context.DaysUntilNextMatch)
             };
@@ -217,7 +218,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Development Program for {player.Name}",
                 Description = "Comprehensive development program focusing on potential and skill growth",
                 Duration = TimeSpan.FromDays(14), // Longer term development
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 60f,
                 AverageIntensity = TrainingIntensity.Moderate
             };
@@ -338,7 +339,7 @@ namespace AFLManager.Systems.Training.AI
             }
             
             // Position-specific focus
-            var positionFocus = GetPositionSpecificFocus(context.Player.Role);
+            var positionFocus = GetPositionSpecificFocus(context.Player.Role.ToString());
             focusAreas.Add(positionFocus);
             
             return focusAreas.Distinct().ToList();
@@ -393,7 +394,7 @@ namespace AFLManager.Systems.Training.AI
                 }
                 else
                 {
-                    session.SessionType = DailySessionType.Rest;
+                    session.SessionType = DailySessionType.Recovery;
                     session.SessionName = "Complete Rest";
                     session.EstimatedDuration = TimeSpan.Zero;
                 }
@@ -455,7 +456,7 @@ namespace AFLManager.Systems.Training.AI
                     SessionName = $"Development Session {day + 1}",
                     ScheduledStartTime = TimeSpan.FromHours(9), // 9 AM
                     EstimatedDuration = TimeSpan.FromMinutes(150), // Longer for development
-                    SessionType = DailySessionType.SkillDevelopment
+                    SessionType = DailySessionType.SkillsOnly
                 };
                 
                 // Add development components
@@ -465,7 +466,7 @@ namespace AFLManager.Systems.Training.AI
                 }
                 else
                 {
-                    session.SessionType = DailySessionType.LightTraining;
+                    session.SessionType = DailySessionType.Supplementary;
                     session.EstimatedDuration = TimeSpan.FromMinutes(60);
                     session.TrainingComponents.AddRange(CreateLightTrainingComponents());
                 }
@@ -486,13 +487,13 @@ namespace AFLManager.Systems.Training.AI
             
             var sessionTypes = new[] 
             {
-                DailySessionType.SkillDevelopment,
-                DailySessionType.PhysicalConditioning,
-                DailySessionType.TacticalTraining,
+                DailySessionType.SkillsOnly,
+                DailySessionType.FitnessOnly,
+                DailySessionType.Tactical,
                 DailySessionType.MatchPreparation,
                 DailySessionType.Recovery,
-                DailySessionType.LightTraining,
-                DailySessionType.Rest
+                DailySessionType.Supplementary,
+                DailySessionType.Recovery
             };
             
             for (int day = 0; day < 7; day++)
@@ -537,7 +538,7 @@ namespace AFLManager.Systems.Training.AI
                     SessionName = $"Conditioning Day {day + 1}",
                     ScheduledStartTime = TimeSpan.FromHours(8), // Early morning
                     EstimatedDuration = TimeSpan.FromMinutes(120),
-                    SessionType = DailySessionType.PhysicalConditioning
+                    SessionType = DailySessionType.FitnessOnly
                 };
                 
                 if (dayOfWeek != DayOfWeek.Sunday)
@@ -546,7 +547,7 @@ namespace AFLManager.Systems.Training.AI
                 }
                 else
                 {
-                    session.SessionType = DailySessionType.ActiveRecovery;
+                    session.SessionType = DailySessionType.Recovery;
                     session.EstimatedDuration = TimeSpan.FromMinutes(60);
                     session.TrainingComponents.AddRange(CreateActiveRecoveryComponents());
                 }
@@ -570,21 +571,21 @@ namespace AFLManager.Systems.Training.AI
             {
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.ActiveRecovery,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(30),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.3f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Mobility,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(45),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.2f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Regeneration,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(15),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.1f
@@ -606,14 +607,14 @@ namespace AFLManager.Systems.Training.AI
                 {
                     new TrainingComponent
                     {
-                        ComponentType = TrainingComponentType.TacticalWork,
+                        ComponentType = TrainingComponentType.Tactical,
                         Duration = TimeSpan.FromMinutes(60),
                         Intensity = TrainingIntensity.Moderate,
                         LoadMultiplier = 0.7f
                     },
                     new TrainingComponent
                     {
-                        ComponentType = TrainingComponentType.SkillDrills,
+                        ComponentType = TrainingComponentType.Skills,
                         Duration = TimeSpan.FromMinutes(45),
                         Intensity = TrainingIntensity.Moderate,
                         LoadMultiplier = 0.6f
@@ -627,14 +628,14 @@ namespace AFLManager.Systems.Training.AI
                 {
                     new TrainingComponent
                     {
-                        ComponentType = TrainingComponentType.LightSkills,
+                        ComponentType = TrainingComponentType.Skills,
                         Duration = TimeSpan.FromMinutes(30),
                         Intensity = TrainingIntensity.Light,
                         LoadMultiplier = 0.4f
                     },
                     new TrainingComponent
                     {
-                        ComponentType = TrainingComponentType.MatchSimulation,
+                        ComponentType = TrainingComponentType.Tactical,
                         Duration = TimeSpan.FromMinutes(60),
                         Intensity = TrainingIntensity.Moderate,
                         LoadMultiplier = 0.5f
@@ -646,7 +647,7 @@ namespace AFLManager.Systems.Training.AI
                 // Match day preparation
                 components.Add(new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.WarmUp,
+                    ComponentType = TrainingComponentType.Skills,
                     Duration = TimeSpan.FromMinutes(20),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.2f
@@ -671,14 +672,14 @@ namespace AFLManager.Systems.Training.AI
                     {
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.TechnicalSkills,
+                            ComponentType = TrainingComponentType.Skills,
                             Duration = TimeSpan.FromMinutes(60),
                             Intensity = TrainingIntensity.Moderate,
                             LoadMultiplier = 0.7f
                         },
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.SkillDrills,
+                            ComponentType = TrainingComponentType.Skills,
                             Duration = TimeSpan.FromMinutes(45),
                             Intensity = TrainingIntensity.Moderate,
                             LoadMultiplier = 0.6f
@@ -691,14 +692,14 @@ namespace AFLManager.Systems.Training.AI
                     {
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.StrengthTraining,
+                            ComponentType = TrainingComponentType.Fitness,
                             Duration = TimeSpan.FromMinutes(45),
                             Intensity = TrainingIntensity.High,
                             LoadMultiplier = 0.9f
                         },
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.SpeedWork,
+                            ComponentType = TrainingComponentType.Fitness,
                             Duration = TimeSpan.FromMinutes(30),
                             Intensity = TrainingIntensity.High,
                             LoadMultiplier = 0.8f
@@ -711,14 +712,14 @@ namespace AFLManager.Systems.Training.AI
                     {
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.TacticalWork,
+                            ComponentType = TrainingComponentType.Tactical,
                             Duration = TimeSpan.FromMinutes(75),
                             Intensity = TrainingIntensity.Moderate,
                             LoadMultiplier = 0.6f
                         },
                         new TrainingComponent
                         {
-                            ComponentType = TrainingComponentType.GameUnderstanding,
+                            ComponentType = TrainingComponentType.Tactical,
                             Duration = TimeSpan.FromMinutes(30),
                             Intensity = TrainingIntensity.Light,
                             LoadMultiplier = 0.3f
@@ -729,7 +730,7 @@ namespace AFLManager.Systems.Training.AI
                 case 3: // Match application
                     components.Add(new TrainingComponent
                     {
-                        ComponentType = TrainingComponentType.MatchSimulation,
+                        ComponentType = TrainingComponentType.Tactical,
                         Duration = TimeSpan.FromMinutes(90),
                         Intensity = TrainingIntensity.High,
                         LoadMultiplier = 1.0f
@@ -749,14 +750,14 @@ namespace AFLManager.Systems.Training.AI
             {
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.LightSkills,
+                    ComponentType = TrainingComponentType.Skills,
                     Duration = TimeSpan.FromMinutes(30),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.4f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Mobility,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(30),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.3f
@@ -773,21 +774,21 @@ namespace AFLManager.Systems.Training.AI
             {
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Cardio,
+                    ComponentType = TrainingComponentType.Fitness,
                     Duration = TimeSpan.FromMinutes(45),
                     Intensity = TrainingIntensity.High,
                     LoadMultiplier = 0.9f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.StrengthTraining,
+                    ComponentType = TrainingComponentType.Fitness,
                     Duration = TimeSpan.FromMinutes(60),
                     Intensity = TrainingIntensity.Moderate,
                     LoadMultiplier = 0.8f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Flexibility,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(15),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.2f
@@ -804,14 +805,14 @@ namespace AFLManager.Systems.Training.AI
             {
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.ActiveRecovery,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(45),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.3f
                 },
                 new TrainingComponent
                 {
-                    ComponentType = TrainingComponentType.Mobility,
+                    ComponentType = TrainingComponentType.Recovery,
                     Duration = TimeSpan.FromMinutes(15),
                     Intensity = TrainingIntensity.Light,
                     LoadMultiplier = 0.2f
@@ -826,12 +827,12 @@ namespace AFLManager.Systems.Training.AI
         {
             return sessionType switch
             {
-                DailySessionType.SkillDevelopment => CreateDevelopmentComponents(player, 0),
-                DailySessionType.PhysicalConditioning => CreateConditioningComponents(0),
+                DailySessionType.SkillsOnly => CreateDevelopmentComponents(player, 0),
+                DailySessionType.FitnessOnly => CreateConditioningComponents(0),
                 DailySessionType.Recovery => CreateRecoveryComponents(0),
-                DailySessionType.LightTraining => CreateLightTrainingComponents(),
-                DailySessionType.ActiveRecovery => CreateActiveRecoveryComponents(),
-                DailySessionType.Rest => new List<TrainingComponent>(),
+                DailySessionType.Supplementary => CreateLightTrainingComponents(),
+                DailySessionType.Tactical => CreateMatchPrepComponents(0),
+                DailySessionType.MatchPreparation => CreateMatchPrepComponents(0),
                 _ => CreateLightTrainingComponents()
             };
         }
@@ -851,7 +852,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Young Player Development - {player.Name}",
                 Description = "Comprehensive development program for young players focusing on fundamental skills",
                 Duration = TimeSpan.FromDays(21), // 3 weeks
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 70f,
                 AverageIntensity = TrainingIntensity.Moderate,
                 FocusAreas = new List<string> { "Technical Skills", "Game Understanding", "Physical Development" },
@@ -870,7 +871,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Skill Gap Program - {player.Name}",
                 Description = "Targeted program to address specific skill deficiencies",
                 Duration = TimeSpan.FromDays(14),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 65f,
                 AverageIntensity = TrainingIntensity.Moderate,
                 FocusAreas = context.SkillGaps,
@@ -889,10 +890,10 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Position Specific - {player.Role}",
                 Description = $"Specialized training program for {player.Role} position",
                 Duration = TimeSpan.FromDays(10),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 60f,
                 AverageIntensity = TrainingIntensity.Moderate,
-                FocusAreas = new List<string> { GetPositionSpecificFocus(player.Role) },
+                FocusAreas = new List<string> { GetPositionSpecificFocus(player.Role.ToString()) },
                 Confidence = 0.75f
             };
         }
@@ -908,7 +909,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Fatigue Recovery - {player.Name}",
                 Description = "Intensive recovery program to address high fatigue levels",
                 Duration = TimeSpan.FromDays(5),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 20f,
                 AverageIntensity = TrainingIntensity.Light,
                 FocusAreas = new List<string> { "Active Recovery", "Sleep Optimization", "Stress Reduction" },
@@ -927,7 +928,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Injury Prevention - {player.Name}",
                 Description = "Preventive program to reduce injury risk and improve resilience",
                 Duration = TimeSpan.FromDays(7),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 40f,
                 AverageIntensity = TrainingIntensity.Light,
                 FocusAreas = new List<string> { "Mobility", "Stability", "Strength", "Movement Quality" },
@@ -946,7 +947,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Active Recovery - {player.Name}",
                 Description = "Active recovery program maintaining fitness while promoting recovery",
                 Duration = TimeSpan.FromDays(5),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 35f,
                 AverageIntensity = TrainingIntensity.Light,
                 FocusAreas = new List<string> { "Light Movement", "Circulation", "Mental Recovery" },
@@ -965,7 +966,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Technical Skills - {player.Name}",
                 Description = "Focused technical skill development program",
                 Duration = TimeSpan.FromDays(10),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 55f,
                 AverageIntensity = TrainingIntensity.Moderate,
                 FocusAreas = new List<string> { "Ball Handling", "Kicking Accuracy", "Handballing" },
@@ -984,7 +985,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Mental Skills - {player.Name}",
                 Description = "Mental and cognitive skill development program",
                 Duration = TimeSpan.FromDays(7),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 30f,
                 AverageIntensity = TrainingIntensity.Light,
                 FocusAreas = new List<string> { "Game Awareness", "Decision Making", "Mental Resilience" },
@@ -1003,7 +1004,7 @@ namespace AFLManager.Systems.Training.AI
                 ProgramName = $"Physical Conditioning - {player.Name}",
                 Description = "Physical fitness and conditioning program",
                 Duration = TimeSpan.FromDays(14),
-                TargetPlayerId = player.ID,
+                TargetPlayerId = int.Parse(player.Id),
                 EstimatedLoad = 80f,
                 AverageIntensity = TrainingIntensity.High,
                 FocusAreas = new List<string> { "Cardio Fitness", "Strength", "Speed", "Agility" },
@@ -1084,7 +1085,7 @@ namespace AFLManager.Systems.Training.AI
             if (stats.Playmaking < 75) focusAreas.Add("Decision Making");
             
             // Add position-specific focus
-            focusAreas.Add(GetPositionSpecificFocus(player.Role));
+            focusAreas.Add(GetPositionSpecificFocus(player.Role.ToString()));
             
             return focusAreas.Take(4).ToList(); // Limit to top 4 focus areas
         }
@@ -1096,14 +1097,13 @@ namespace AFLManager.Systems.Training.AI
         {
             return sessionType switch
             {
-                DailySessionType.SkillDevelopment => TimeSpan.FromMinutes(120),
-                DailySessionType.PhysicalConditioning => TimeSpan.FromMinutes(90),
-                DailySessionType.TacticalTraining => TimeSpan.FromMinutes(105),
+                DailySessionType.SkillsOnly => TimeSpan.FromMinutes(120),
+                DailySessionType.FitnessOnly => TimeSpan.FromMinutes(90),
+                DailySessionType.Tactical => TimeSpan.FromMinutes(105),
                 DailySessionType.MatchPreparation => TimeSpan.FromMinutes(90),
                 DailySessionType.Recovery => TimeSpan.FromMinutes(60),
-                DailySessionType.LightTraining => TimeSpan.FromMinutes(75),
-                DailySessionType.ActiveRecovery => TimeSpan.FromMinutes(45),
-                DailySessionType.Rest => TimeSpan.Zero,
+                DailySessionType.Supplementary => TimeSpan.FromMinutes(75),
+                DailySessionType.Main => TimeSpan.FromMinutes(120),
                 _ => TimeSpan.FromMinutes(90)
             };
         }
@@ -1144,7 +1144,7 @@ namespace AFLManager.Systems.Training.AI
             float baseRisk = 0.15f;
             
             if (context.DaysUntilNextMatch <= 2) baseRisk += 0.1f; // Close to match
-            if (player.Condition < 70) baseRisk += 0.05f; // Poor condition
+            if (player.Stamina < 70) baseRisk += 0.05f; // Poor condition
             if (context.CurrentFatigueLevel > 60) baseRisk += 0.1f; // High fatigue
             
             return Mathf.Clamp01(baseRisk);
@@ -1172,7 +1172,7 @@ namespace AFLManager.Systems.Training.AI
             
             if (player.Age <= 23) confidence += 0.15f; // Young players develop well
             if (context.DevelopmentPotential > 0.6f) confidence += 0.1f; // High potential
-            if (player.Condition > 80) confidence += 0.05f; // Good condition
+            if (player.Stamina > 80) confidence += 0.05f; // Good condition
             
             return Mathf.Clamp01(confidence);
         }
@@ -1190,7 +1190,7 @@ namespace AFLManager.Systems.Training.AI
             if (context.RiskLevel >= FatigueRiskLevel.High)
                 reasons.Add("Elevated injury risk necessitates recovery focus");
             
-            if (player.Condition < 70)
+            if (player.Stamina < 70)
                 reasons.Add("Poor condition indicates need for recovery");
             
             if (context.InjuryHistory?.Count > 0)

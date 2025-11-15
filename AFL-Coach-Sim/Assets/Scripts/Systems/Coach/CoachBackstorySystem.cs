@@ -57,7 +57,7 @@ namespace AFLManager.Systems.Coach
             
             private void InitializeSpecialtyLevels()
             {
-                foreach (CoachSpecialty specialty in Enum.GetValues<CoachSpecialty>())
+                foreach (CoachSpecialty specialty in (CoachSpecialty[])Enum.GetValues(typeof(CoachSpecialty)))
                 {
                     SpecialtyLevels[specialty] = 1.0f;
                 }

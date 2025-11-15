@@ -380,15 +380,16 @@ namespace AFLCoachSim.Core.Engine.Match.Fatigue
                 FatigueResistance = 1.0f
             };
 
+            var profiles = new Dictionary<Role, PositionFatigueProfile>(_positionProfiles);
             foreach (Role role in Enum.GetValues(typeof(Role)))
             {
-                if (!_positionProfiles.ContainsKey(role))
+                if (!profiles.ContainsKey(role))
                 {
-                    _positionProfiles[role] = defaultProfile;
+                    profiles[role] = defaultProfile;
                 }
             }
 
-            return _positionProfiles;
+            return profiles;
         }
 
         private float CalculateFatigueRate(PlayerFatigueState fatigueState, PositionFatigueProfile profile,

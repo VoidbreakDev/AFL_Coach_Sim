@@ -377,10 +377,10 @@ namespace AFLManager.Systems.Development
             // This is a placeholder implementation for backward compatibility
             
             // Reduce player condition if it exists
-            if (player.Condition != null)
+            if (player.Stamina != null)
             {
                 var conditionReduction = UnityEngine.Random.Range(10f, 25f);
-                player.Condition = Mathf.Max(0f, player.Condition - conditionReduction);
+                player.Stamina = Mathf.Max(0f, player.Stamina - conditionReduction);
             }
             
             // Note: For full injury management, use InjuryAwareTrainingSystem
