@@ -63,17 +63,25 @@ namespace AFLCoachSim.Core.Engine.Match
         // ---------------------------------
         // M3-style (fatigue/injury aware)
         // ---------------------------------
-        
+
         /// <summary>
         /// Position-aware midfield rating - prioritizes actual midfielders and ruckmen
+        /// OPTIMIZED: Uses zero-allocation method when RNG is provided
         /// </summary>
-        public static float MidfieldUnit(IList<PlayerRuntime> onField)
+        public static float MidfieldUnit(IList<PlayerRuntime> onField, Simulation.DeterministicRandom rng = null)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            // Get players most suitable for center bounce work (mids + rucks)
+            // Use optimized method when RNG is available (called from hot path)
+            if (rng != null)
+            {
+                return Selection.PositionalSelector.GetCenterBounceRatingOptimized(onField, rng);
+            }
+
+            // Fallback for backward compatibility (when called without RNG)
+            // This path creates allocations but is only used outside the hot path
             var centerBounceParticipants = Selection.PositionalSelector.GetCenterBounceParticipants(onField, new Simulation.DeterministicRandom(12345), 5);
-            
+
             if (centerBounceParticipants.Count == 0)
             {
                 // Fallback to original logic if no suitable players
@@ -93,7 +101,7 @@ namespace AFLCoachSim.Core.Engine.Match
 
                 return Average(top, topCount);
             }
-            
+
             // Use position-appropriate players
             float sum = 0f;
             for (int i = 0; i < centerBounceParticipants.Count; i++)
@@ -105,17 +113,27 @@ namespace AFLCoachSim.Core.Engine.Match
                          * pr.FatigueMult * pr.InjuryMult;
                 sum += s;
             }
-            
+
             return sum / centerBounceParticipants.Count;
         }
 
-        public static float Inside50Quality(IList<PlayerRuntime> onField)
+        /// <summary>
+        /// Position-aware Inside50 quality rating - prioritizes forwards and attacking midfielders
+        /// OPTIMIZED: Uses zero-allocation method when RNG is provided
+        /// </summary>
+        public static float Inside50Quality(IList<PlayerRuntime> onField, Simulation.DeterministicRandom rng = null)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            // Get players most suitable for Inside50 work (forwards + attacking mids)
+            // Use optimized method when RNG is available (called from hot path)
+            if (rng != null)
+            {
+                return Selection.PositionalSelector.GetInside50RatingOptimized(onField, rng);
+            }
+
+            // Fallback for backward compatibility (when called without RNG)
             var inside50Participants = Selection.PositionalSelector.GetInside50Participants(onField, new Simulation.DeterministicRandom(12345), 6);
-            
+
             if (inside50Participants.Count == 0)
             {
                 // Fallback to original logic
@@ -134,7 +152,7 @@ namespace AFLCoachSim.Core.Engine.Match
 
                 return Average(top, topCount);
             }
-            
+
             // Use position-appropriate players
             float sum = 0f;
             for (int i = 0; i < inside50Participants.Count; i++)
@@ -145,17 +163,27 @@ namespace AFLCoachSim.Core.Engine.Match
                          * pr.FatigueMult * pr.InjuryMult;
                 sum += s;
             }
-            
+
             return sum / inside50Participants.Count;
         }
 
-        public static float DefensePressure(IList<PlayerRuntime> onField)
+        /// <summary>
+        /// Position-aware defense pressure rating - prioritizes defenders and defensive midfielders
+        /// OPTIMIZED: Uses zero-allocation method when RNG is provided
+        /// </summary>
+        public static float DefensePressure(IList<PlayerRuntime> onField, Simulation.DeterministicRandom rng = null)
         {
             if (onField == null || onField.Count == 0) return 1f;
 
-            // Get players most suitable for defensive work (defenders + defensive mids)
+            // Use optimized method when RNG is available (called from hot path)
+            if (rng != null)
+            {
+                return Selection.PositionalSelector.GetDefenseRatingOptimized(onField, rng);
+            }
+
+            // Fallback for backward compatibility (when called without RNG)
             var defensiveParticipants = Selection.PositionalSelector.GetDefensiveParticipants(onField, new Simulation.DeterministicRandom(12345), 6);
-            
+
             if (defensiveParticipants.Count == 0)
             {
                 // Fallback to original logic using all players
@@ -171,7 +199,7 @@ namespace AFLCoachSim.Core.Engine.Match
                 }
                 return cnt == 0 ? 1f : (fallbackSum / cnt);
             }
-            
+
             // Use position-appropriate players
             float sum = 0f;
             for (int i = 0; i < defensiveParticipants.Count; i++)
@@ -182,7 +210,7 @@ namespace AFLCoachSim.Core.Engine.Match
                           * pr.FatigueMult * pr.InjuryMult;
                 sum += s;
             }
-            
+
             return sum / defensiveParticipants.Count;
         }
 

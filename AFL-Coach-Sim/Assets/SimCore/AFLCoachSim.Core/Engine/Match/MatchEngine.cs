@@ -224,8 +224,9 @@ namespace AFLCoachSim.Core.Engine.Match
         private static void ResolveCenterBounce(MatchContext ctx)
         {
             // Use runtime-aware midfield evaluation (fatigue/injury aware)
-            float homeMid = Rating.MidfieldUnit(ctx.HomeOnField);
-            float awayMid = Rating.MidfieldUnit(ctx.AwayOnField);
+            // OPTIMIZED: Pass RNG to avoid allocations in rating calculation
+            float homeMid = Rating.MidfieldUnit(ctx.HomeOnField, ctx.Rng);
+            float awayMid = Rating.MidfieldUnit(ctx.AwayOnField, ctx.Rng);
             float h = homeMid * (0.9f + 0.2f * (ctx.Home.Tactics.ContestBias / 100f));
             float a = awayMid * (0.9f + 0.2f * (ctx.Away.Tactics.ContestBias / 100f));
             h *= 1.03f; // slight HGA at bounce
@@ -237,8 +238,9 @@ namespace AFLCoachSim.Core.Engine.Match
 
         private static void ResolveStoppage(MatchContext ctx)
         {
-            float homeMid = Rating.MidfieldUnit(ctx.HomeOnField);
-            float awayMid = Rating.MidfieldUnit(ctx.AwayOnField);
+            // OPTIMIZED: Pass RNG to avoid allocations in rating calculation
+            float homeMid = Rating.MidfieldUnit(ctx.HomeOnField, ctx.Rng);
+            float awayMid = Rating.MidfieldUnit(ctx.AwayOnField, ctx.Rng);
             float h = homeMid * (0.9f + 0.2f * (ctx.Home.Tactics.ContestBias / 100f));
             float a = awayMid * (0.9f + 0.2f * (ctx.Away.Tactics.ContestBias / 100f));
 
@@ -254,8 +256,9 @@ namespace AFLCoachSim.Core.Engine.Match
             var defOn = ctx.Ball.PossessionTeam.Equals(ctx.Home.TeamId) ? ctx.AwayOnField : ctx.HomeOnField;
 
             // Quality vs pressure
-            float attackQuality   = Rating.Inside50Quality(atkOn);
-            float defensePressure = Rating.DefensePressure(defOn);
+            // OPTIMIZED: Pass RNG to avoid allocations in rating calculation
+            float attackQuality   = Rating.Inside50Quality(atkOn, ctx.Rng);
+            float defensePressure = Rating.DefensePressure(defOn, ctx.Rng);
 
             // Weather penalty for progression
             float weatherPenalty = ctx.Weather == WeatherCondition.Windy     ? ctx.Tuning.WeatherProgressPenalty_Windy
@@ -294,8 +297,9 @@ namespace AFLCoachSim.Core.Engine.Match
             var defOn = ctx.Ball.PossessionTeam.Equals(ctx.Home.TeamId) ? ctx.AwayOnField : ctx.HomeOnField;
             var attTactics = ctx.Ball.PossessionTeam.Equals(ctx.Home.TeamId) ? ctx.Home.Tactics : ctx.Away.Tactics;
 
-            float attackQuality   = Rating.Inside50Quality(atkOn);
-            float defensePressure = Rating.DefensePressure(defOn);
+            // OPTIMIZED: Pass RNG to avoid allocations in rating calculation
+            float attackQuality   = Rating.Inside50Quality(atkOn, ctx.Rng);
+            float defensePressure = Rating.DefensePressure(defOn, ctx.Rng);
 
             // Chance to manufacture a shot from the entry (increased for realistic AFL scoring)
             float entryBias = 0.5f + 0.5f * (attTactics.KickingRisk / 100f);
@@ -328,8 +332,9 @@ namespace AFLCoachSim.Core.Engine.Match
             var defOn = homePoss ? ctx.AwayOnField : ctx.HomeOnField;
 
             // Offensive shot quality vs defensive pressure feeding accuracy
-            float attackQuality   = Rating.Inside50Quality(atkOn);
-            float defensePressure = Rating.DefensePressure(defOn);
+            // OPTIMIZED: Pass RNG to avoid allocations in rating calculation
+            float attackQuality   = Rating.Inside50Quality(atkOn, ctx.Rng);
+            float defensePressure = Rating.DefensePressure(defOn, ctx.Rng);
             float baseAcc = attackQuality - 0.5f * defensePressure; // normalized later via tuning
 
             float weatherAccPenalty = ctx.Weather == WeatherCondition.Windy     ? ctx.Tuning.WeatherAccuracyPenalty_Windy
