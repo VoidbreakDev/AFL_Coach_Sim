@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text; // StringBuilder for optimized string operations
 using AFLCoachSim.Core.DTO;
 using AFLCoachSim.Core.Domain.Aggregates; // Team
 using AFLCoachSim.Core.Domain.ValueObjects;
@@ -469,34 +470,59 @@ namespace AFLCoachSim.Core.Engine.Match
             };
         }
         
+        /// <summary>
+        /// OPTIMIZED: Generate injury report using StringBuilder instead of string concatenation
+        /// Eliminates 15-20 string allocations per call
+        /// </summary>
         private static string GenerateInjuryReport(Injury.MatchInjuryAnalytics analytics)
         {
             if (analytics.TotalNewInjuries == 0)
                 return "No new injuries occurred during this match";
-                
-            var report = $"Match Injury Report:\n";
-            report += $"- Total players tracked: {analytics.TotalPlayersTracked}\n";
-            report += $"- Players with pre-existing injuries: {analytics.PlayersWithPreExistingInjuries}\n";
-            report += $"- New injuries: {analytics.TotalNewInjuries}\n";
-            report += $"- Injury rate: {analytics.InjuryRate:P1}\n";
-            
-            // Breakdown by type
-            var typeGroups = analytics.NewInjuriesByType.GroupBy(t => t).OrderByDescending(g => g.Count());
-            report += "\nInjury Types:\n";
-            foreach (var group in typeGroups)
+
+            // Use StringBuilder to avoid string allocation on each concatenation
+            var sb = new StringBuilder(256); // Pre-allocate reasonable capacity
+
+            sb.Append("Match Injury Report:\n");
+            sb.Append("- Total players tracked: ").Append(analytics.TotalPlayersTracked).Append('\n');
+            sb.Append("- Players with pre-existing injuries: ").Append(analytics.PlayersWithPreExistingInjuries).Append('\n');
+            sb.Append("- New injuries: ").Append(analytics.TotalNewInjuries).Append('\n');
+            sb.Append("- Injury rate: ").Append(analytics.InjuryRate.ToString("P1")).Append('\n');
+
+            // Breakdown by type - use Dictionary instead of LINQ GroupBy
+            var typeCounts = new Dictionary<Injuries.Domain.InjuryType, int>();
+            for (int i = 0; i < analytics.NewInjuriesByType.Count; i++)
             {
-                report += $"- {group.Key}: {group.Count()}\n";
+                var type = analytics.NewInjuriesByType[i];
+                if (typeCounts.ContainsKey(type))
+                    typeCounts[type]++;
+                else
+                    typeCounts[type] = 1;
             }
-            
-            // Breakdown by severity
-            var severityGroups = analytics.NewInjuriesBySeverity.GroupBy(s => s).OrderByDescending(g => g.Count());
-            report += "\nInjury Severities:\n";
-            foreach (var group in severityGroups)
+
+            sb.Append("\nInjury Types:\n");
+            foreach (var kvp in typeCounts)
             {
-                report += $"- {group.Key}: {group.Count()}\n";
+                sb.Append("- ").Append(kvp.Key).Append(": ").Append(kvp.Value).Append('\n');
             }
-            
-            return report;
+
+            // Breakdown by severity - use Dictionary instead of LINQ GroupBy
+            var severityCounts = new Dictionary<Injuries.Domain.InjurySeverity, int>();
+            for (int i = 0; i < analytics.NewInjuriesBySeverity.Count; i++)
+            {
+                var severity = analytics.NewInjuriesBySeverity[i];
+                if (severityCounts.ContainsKey(severity))
+                    severityCounts[severity]++;
+                else
+                    severityCounts[severity] = 1;
+            }
+
+            sb.Append("\nInjury Severities:\n");
+            foreach (var kvp in severityCounts)
+            {
+                sb.Append("- ").Append(kvp.Key).Append(": ").Append(kvp.Value).Append('\n');
+            }
+
+            return sb.ToString();
         }
     }
 }

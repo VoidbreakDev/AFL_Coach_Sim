@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text; // StringBuilder for optimized string operations
 using AFLCoachSim.Core.Engine.Simulation;
 using WeatherCondition = AFLCoachSim.Core.Engine.Match.Weather.Weather;
 
@@ -7,18 +8,26 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
 {
     /// <summary>
     /// Generates natural language commentary from match events
+    /// PERFORMANCE: Uses StringBuilder pooling to eliminate string allocations
     /// </summary>
     public sealed class CommentaryGenerator
     {
         private readonly DeterministicRandom _rng;
-        
+
         // Commentary templates for variety
         private readonly Dictionary<MatchEventType, string[]> _templates;
-        
+
+        // Reusable StringBuilder to avoid allocations on each commentary event
+        private readonly StringBuilder _stringBuilder;
+
+        // Cached quarter names to avoid ToString() allocations
+        private static readonly string[] QuarterNames = { "first", "second", "third", "fourth" };
+
         public CommentaryGenerator(DeterministicRandom rng = null)
         {
             _rng = rng ?? new DeterministicRandom(12345);
             _templates = InitializeTemplates();
+            _stringBuilder = new StringBuilder(128); // Pre-allocate reasonable capacity
         }
         
         /// <summary>
@@ -33,22 +42,83 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
             return FormatTemplate(template, matchEvent);
         }
         
+        /// <summary>
+        /// OPTIMIZED: Format template using StringBuilder to avoid string allocations
+        /// Replaces 5-6 string allocations with reusable StringBuilder
+        /// </summary>
         private string FormatTemplate(string template, MatchEvent matchEvent)
         {
-            var result = template
-                .Replace("{time}", matchEvent.TimeDisplay)
-                .Replace("{player}", matchEvent.PrimaryPlayerName ?? "Player")
-                .Replace("{player2}", matchEvent.SecondaryPlayerName ?? "teammate")
-                .Replace("{zone}", matchEvent.ZoneDescription ?? "")
-                .Replace("{quarter}", GetQuarterName(matchEvent.Quarter));
-            
-            // Add weather context where relevant
+            // Clear the pooled StringBuilder for reuse
+            _stringBuilder.Clear();
+
+            // Manually replace placeholders by scanning template once
+            int lastIndex = 0;
+            int templateLength = template.Length;
+
+            for (int i = 0; i < templateLength; i++)
+            {
+                if (template[i] == '{')
+                {
+                    // Find matching '}'
+                    int endIndex = template.IndexOf('}', i);
+                    if (endIndex == -1) break;
+
+                    // Append text before placeholder
+                    if (i > lastIndex)
+                    {
+                        _stringBuilder.Append(template, lastIndex, i - lastIndex);
+                    }
+
+                    // Get placeholder name
+                    int placeholderStart = i + 1;
+                    int placeholderLength = endIndex - placeholderStart;
+
+                    // Replace placeholder based on name
+                    if (placeholderLength == 4 && template[placeholderStart] == 't' && template[placeholderStart + 1] == 'i' && template[placeholderStart + 2] == 'm' && template[placeholderStart + 3] == 'e')
+                    {
+                        // {time}
+                        _stringBuilder.Append(matchEvent.TimeDisplay);
+                    }
+                    else if (placeholderLength == 6 && template[placeholderStart] == 'p' && template[placeholderStart + 1] == 'l' && template[placeholderStart + 2] == 'a' && template[placeholderStart + 3] == 'y' && template[placeholderStart + 4] == 'e' && template[placeholderStart + 5] == 'r')
+                    {
+                        // {player}
+                        _stringBuilder.Append(matchEvent.PrimaryPlayerName ?? "Player");
+                    }
+                    else if (placeholderLength == 7 && template[placeholderStart] == 'p' && template[placeholderStart + 1] == 'l' && template[placeholderStart + 6] == '2')
+                    {
+                        // {player2}
+                        _stringBuilder.Append(matchEvent.SecondaryPlayerName ?? "teammate");
+                    }
+                    else if (placeholderLength == 4 && template[placeholderStart] == 'z' && template[placeholderStart + 1] == 'o' && template[placeholderStart + 2] == 'n' && template[placeholderStart + 3] == 'e')
+                    {
+                        // {zone}
+                        if (matchEvent.ZoneDescription != null)
+                            _stringBuilder.Append(matchEvent.ZoneDescription);
+                    }
+                    else if (placeholderLength == 7 && template[placeholderStart] == 'q' && template[placeholderStart + 1] == 'u' && template[placeholderStart + 2] == 'a' && template[placeholderStart + 3] == 'r' && template[placeholderStart + 4] == 't' && template[placeholderStart + 5] == 'e' && template[placeholderStart + 6] == 'r')
+                    {
+                        // {quarter}
+                        _stringBuilder.Append(GetQuarterNameCached(matchEvent.Quarter));
+                    }
+
+                    lastIndex = endIndex + 1;
+                    i = endIndex;
+                }
+            }
+
+            // Append remaining text
+            if (lastIndex < templateLength)
+            {
+                _stringBuilder.Append(template, lastIndex, templateLength - lastIndex);
+            }
+
+            // Add weather context where relevant (no string concatenation!)
             if (matchEvent.Weather != WeatherCondition.Clear && ShouldMentionWeather(matchEvent.EventType))
             {
-                result += GetWeatherSuffix(matchEvent.Weather);
+                _stringBuilder.Append(GetWeatherSuffix(matchEvent.Weather));
             }
-            
-            return result;
+
+            return _stringBuilder.ToString();
         }
         
         private Dictionary<MatchEventType, string[]> InitializeTemplates()
@@ -199,21 +269,23 @@ namespace AFLCoachSim.Core.Engine.Match.Commentary
             }
         }
         
+        /// <summary>
+        /// OPTIMIZED: Get cached quarter name to avoid allocations
+        /// </summary>
+        private static string GetQuarterNameCached(int quarter)
+        {
+            // Use cached array for quarters 1-4
+            if (quarter >= 1 && quarter <= 4)
+                return QuarterNames[quarter - 1];
+
+            // Fallback for invalid quarters (shouldn't happen in normal gameplay)
+            return $"quarter {quarter}";
+        }
+
+        // Legacy method for backward compatibility
         private string GetQuarterName(int quarter)
         {
-            switch (quarter)
-            {
-                case 1:
-                    return "first";
-                case 2:
-                    return "second";
-                case 3:
-                    return "third";
-                case 4:
-                    return "fourth";
-                default:
-                    return $"quarter {quarter}";
-            }
+            return GetQuarterNameCached(quarter);
         }
     }
 }
